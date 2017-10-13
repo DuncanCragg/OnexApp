@@ -1,0 +1,42 @@
+apply plugin: 'com.android.application'
+
+android {
+
+    compileSdkVersion 26
+    buildToolsVersion "26.0.0"
+
+    defaultConfig {
+        applicationId "network.object.onexapp"
+        minSdkVersion 24
+        targetSdkVersion 24
+
+        ndk {
+            abiFilters 'armeabi-v7a'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
+    }
+
+    externalNativeBuild {
+        ndkBuild {
+            path 'src/main/jni/Android.mk'
+            //arguments "-DFRUIT=banana", "-DVEG=courgette"
+            //cFlags "-banana"
+            //cppFlags "-DBanana"
+        }
+    }
+
+    sourceSets {
+      main {
+      }
+    }
+
+    lintOptions {
+        abortOnError false
+    }
+}

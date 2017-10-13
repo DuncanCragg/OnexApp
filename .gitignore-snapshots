@@ -1,0 +1,15 @@
+.*.sw?
+.vis
+CMakeFiles/
+CMakeCache.txt
+Makefile
+cmake_install.cmake
+bin/
+,*
+.gradle
+.idea
+*.iml
+build/
+ndkBuild/
+*.a
+.git-hub
