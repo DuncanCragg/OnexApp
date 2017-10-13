@@ -15,4 +15,3 @@ ndkBuild/
 local.properties
 *.a
 .git-snapshots
-.git-hub
