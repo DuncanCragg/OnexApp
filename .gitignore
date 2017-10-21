@@ -1,5 +1,4 @@
 .*.sw?
-.vis
 CMakeFiles/
 CMakeCache.txt
 Makefile
