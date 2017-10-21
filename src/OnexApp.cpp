@@ -1,5 +1,8 @@
 
 #include "gui.h"
+extern "C" {
+#include <onf.h>
+}
 
 #define ENABLE_VALIDATION false
 
@@ -8,6 +11,13 @@ class OnexApp : public VulkanBase
   GUI* gui;
 
 public:
+
+  static bool evaluate_user(object* o)
+  {
+    LOG("evaluate_user\n");
+    return true;
+  }
+
   OnexApp() : VulkanBase(ENABLE_VALIDATION)
   {
     title = "Vulkan App";
@@ -20,6 +30,9 @@ public:
     camera.position = { 10.0f, -13.5f, 0.0f };
     camera.setRotation(glm::vec3(5.0f, 90.0f, 0.0f));
     camera.setPerspective(60.0f, (float)width / (float)height, 0.1f, 256.0f);
+
+    object* o=object_new((char*)"uid-1", (char*)"user", evaluate_user, 4);
+    onex_loop();
   }
 
   ~OnexApp()

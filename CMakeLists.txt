@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 cmake_policy(VERSION 2.8)
+cmake_policy(SET CMP0015 NEW)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
 set(NAME vulkanApp)
@@ -11,6 +12,9 @@ include_directories(external)
 include_directories(external/glm)
 include_directories(external/imgui)
 include_directories(sascha)
+include_directories(OnexKernel/include)
+
+link_directories(OnexKernel)
 
 OPTION(USE_D2D_WSI "Build the project using Direct to Display swapchain" OFF)
 OPTION(USE_WAYLAND_WSI "Build the project using Wayland swapchain" OFF)
@@ -89,7 +93,7 @@ function(buildExample SRC)
     target_link_libraries(${APP_NAME} sascha ${Vulkan_LIBRARY} ${WINLIBS})
   else(WIN32)
     add_executable(${APP_NAME} ${MAIN_CPP} ${SOURCE})
-    target_link_libraries(${APP_NAME} sascha )
+    target_link_libraries(${APP_NAME} sascha OnexKernel)
   endif(WIN32)
 endfunction(buildExample)
 
