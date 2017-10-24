@@ -14,7 +14,7 @@ public:
 
   static bool evaluate_user(object* o)
   {
-    LOG("evaluate_user\n");
+    LOG("evaluate_user callback!\n");
     return true;
   }
 
@@ -171,12 +171,10 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)                
 }
 #elif defined(VK_USE_PLATFORM_ANDROID_KHR)
 // Android entry point
-// A note on app_dummy(): This is required as the compiler may otherwise remove the main entry point of the application
 #define VULKAN_EXAMPLE_MAIN()                                    \
 OnexApp *vulkanApp;                                    \
 void android_main(android_app* state)                                \
 {                                                  \
-  app_dummy();                                          \
   vulkanApp = new OnexApp();                              \
   state->userData = vulkanApp;                                \
   state->onAppCmd = OnexApp::handleAppCommand;                        \
