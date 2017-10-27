@@ -31,8 +31,8 @@ public:
     camera.setRotation(glm::vec3(5.0f, 90.0f, 0.0f));
     camera.setPerspective(60.0f, (float)width / (float)height, 0.1f, 256.0f);
 
+    onex_init();
     object* o=object_new((char*)"uid-1", (char*)"user", evaluate_user, 4);
-    onex_loop();
   }
 
   ~OnexApp()
@@ -93,6 +93,8 @@ public:
   virtual void render()
   {
     if (!prepared) return;
+
+    onex_loop();
 
     gui->render();
 
