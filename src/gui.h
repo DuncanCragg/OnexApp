@@ -16,7 +16,7 @@
 
 extern "C" {
 #include <onex-kernel/log.h>
-#include <properties.h>
+#include <onf.h>
 }
 
 #define GLM_FORCE_RADIANS
@@ -36,9 +36,8 @@ class GUI {
 public:
   ImGuiWindowFlags window_flags = 0;
   void drawInitial();
-  void drawNewObject();
+  void drawObjectProperties(properties* p, bool locallyEditable);
   void drawProperty(char* key, char* val);
-  void drawPropertyChooser();
   void drawXXX();
   void drawFinal();
   unsigned char* fontData;

@@ -142,7 +142,7 @@
     FINAL
   } state = INITIAL;
 
-  properties* drawThis;
+  properties* drawThis = 0;
 
   void GUI::drawProperties(properties* p)
   {
@@ -174,8 +174,8 @@
     style.ScrollbarSize = 40.0f;
 
     if(state == INITIAL) drawInitial();
-    if(state == NEW_OBJECT) drawNewObject();
-    if(state == PROPERTY_CHOOSER) drawPropertyChooser();
+    if(state == NEW_OBJECT) drawInitial();
+    if(state == PROPERTY_CHOOSER) drawInitial();
     if(state == XXX) drawXXX();
     if(state == FINAL)   drawFinal();
 
@@ -189,15 +189,50 @@
     ImGui::Render();
   }
 
-  void GUI::drawProperty(char* key, char* val)
+  static int propchoice = 0;
+
+  void GUI::drawObjectProperties(properties* p, bool locallyEditable)
   {
-      uint16_t height = 70;
+    for(int i=1; i<= properties_size(p); i++){
+      if(!locallyEditable && i==properties_size(p)) ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0,100));
+      drawProperty(properties_get_key(p, i), properties_get_val(p, i));
+      if(!locallyEditable && i==properties_size(p)) ImGui::PopStyleVar();
+    }
+    if(locallyEditable){
       ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
       ImGui::PushStyleColor(ImGuiCol_Button, propertyBackground);
-      ImGui::Button(key, ImVec2(280, height));
+      if(state!=PROPERTY_CHOOSER){
+        if(ImGui::Button(" ", ImVec2(280, 70))) state=PROPERTY_CHOOSER;
+        if(ImGui::IsItemHovered()) ImGui::SetTooltip("choose or enter the name of a property here");
+      }else{
+        ImGui::PushItemWidth(280); ImGui::Combo("", &propchoice, "property name\0new\0is\0Notifying\0Alerted\0Timer\0"); ImGui::PopItemWidth();
+        if(ImGui::IsItemHovered()) ImGui::SetTooltip("choose or enter the name of a property here");
+        if(propchoice == 1){ state = XXX; propchoice = 0; }
+      }
       ImGui::PopStyleColor(2);
+
       ImGui::SameLine();
-      ImGui::Button(val, ImVec2(610, height));
+      ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0,100));
+      ImGui::Button("", ImVec2(610, 70));
+      ImGui::PopStyleVar();
+    }
+  }
+
+  void GUI::drawProperty(char* key, char* val)
+  {
+    uint16_t height = 70;
+    ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
+    ImGui::PushStyleColor(ImGuiCol_Button, propertyBackground);
+    ImGui::Button(key, ImVec2(280, height));
+    ImGui::PopStyleColor(2);
+    ImGui::SameLine();
+    ImGui::Button(val, ImVec2(610, height));
+  }
+
+  object* newObject = 0;
+
+  static bool evaluate_any_object(object* user)
+  {
   }
 
   void GUI::drawInitial()
@@ -205,85 +240,22 @@
     ImGui::BeginChild("Workspace1", ImVec2(910,0), true, ImGuiWindowFlags_HorizontalScrollbar);
     {
       ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(100,100));
-
       ImGui::PushStyleColor(ImGuiCol_Text, actionTextColour);
       ImGui::PushStyleColor(ImGuiCol_Button, propertyBackground);
-      if(ImGui::Button("Add new object", ImVec2(380, 70))) state = NEW_OBJECT;
+      if(ImGui::Button("Add new object", ImVec2(380, 70))){
+        state = NEW_OBJECT;
+        if(!newObject) newObject = object_new((char*)"uid-2", (char*)"editable", evaluate_any_object, 4);
+      }
       if(ImGui::IsItemHovered()) ImGui::SetTooltip("Start here!");
       ImGui::PopStyleColor(2);
-
       ImGui::PopStyleVar();
 
-      for(int i=1; i<= properties_size(drawThis); i++){
-        drawProperty(properties_get_key(drawThis, i), properties_get_val(drawThis, i));
+      drawObjectProperties(drawThis, false);
+
+      if(newObject){
+        properties* p = object_properties(newObject, (char*)":");
+        drawObjectProperties(p, true);
       }
-    }
-    ImGui::EndChild();
-  }
-
-  void GUI::drawNewObject()
-  {
-    ImGui::BeginChild("Workspace1", ImVec2(910,0), true, ImGuiWindowFlags_HorizontalScrollbar);
-    {
-      ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(100,100));
-
-      ImGui::PushStyleColor(ImGuiCol_Text, actionTextColour);
-      ImGui::PushStyleColor(ImGuiCol_Button, propertyBackground);
-      if(ImGui::Button("Add new object", ImVec2(380, 70))) state = NEW_OBJECT;
-      ImGui::PopStyleColor(2);
-
-      ImGui::PopStyleVar();
-
-      ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
-      ImGui::PushStyleColor(ImGuiCol_Button, propertyBackground);
-      ImGui::Button("Rules", ImVec2(280, 70));
-      ImGui::PopStyleColor(2);
-      ImGui::SameLine();
-      ImGui::Button("", ImVec2(610, 70));
-
-      ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
-      ImGui::PushStyleColor(ImGuiCol_Button, propertyBackground);
-      if(ImGui::Button(" ", ImVec2(280, 70))) state=PROPERTY_CHOOSER;
-      if(ImGui::IsItemHovered()) ImGui::SetTooltip("choose or enter the name of a property here");
-      ImGui::PopStyleColor(2);
-
-      ImGui::SameLine();
-      ImGui::Button("", ImVec2(610, 70));
-    }
-    ImGui::EndChild();
-  }
-
-  static int propchoice = 0;
-
-  void GUI::drawPropertyChooser()
-  {
-    ImGui::BeginChild("Workspace1", ImVec2(910,0), true, ImGuiWindowFlags_HorizontalScrollbar);
-    {
-      ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(100,100));
-
-      ImGui::PushStyleColor(ImGuiCol_Text, actionTextColour);
-      ImGui::PushStyleColor(ImGuiCol_Button, propertyBackground);
-      if(ImGui::Button("Add new object", ImVec2(380, 70))) state = NEW_OBJECT;
-      ImGui::PopStyleColor(2);
-
-      ImGui::PopStyleVar();
-
-      ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
-      ImGui::PushStyleColor(ImGuiCol_Button, propertyBackground);
-      ImGui::Button("Rules", ImVec2(280, 70));
-      ImGui::PopStyleColor(2);
-      ImGui::SameLine();
-      ImGui::Button("", ImVec2(610, 70));
-
-      ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
-      ImGui::PushStyleColor(ImGuiCol_Button, propertyBackground);
-      ImGui::PushItemWidth(280); ImGui::Combo("", &propchoice, "property name\0new\0is\0Notifying\0Alerted\0Timer\0"); ImGui::PopItemWidth();
-      if(ImGui::IsItemHovered()) ImGui::SetTooltip("choose or enter the name of a property here");
-      if(propchoice == 1){ state = XXX; propchoice = 0; }
-      ImGui::PopStyleColor(2);
-
-      ImGui::SameLine();
-      ImGui::Button("", ImVec2(610, 70));
     }
     ImGui::EndChild();
   }
