@@ -14,6 +14,11 @@
 #include <array>
 #include <algorithm>
 
+extern "C" {
+#include <onex-kernel/log.h>
+#include <properties.h>
+}
+
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
@@ -32,6 +37,7 @@ public:
   ImGuiWindowFlags window_flags = 0;
   void drawInitial();
   void drawNewObject();
+  void drawProperty(char* key, char* val);
   void drawPropertyChooser();
   void drawXXX();
   void drawFinal();
@@ -76,7 +82,8 @@ public:
   void createPipelineCache();
   void createPipelines(VkRenderPass renderPass);
 
-  void newFrame();
+  void drawProperties(properties* p);
+  void drawGUI();
 
   void updateBuffers();
 

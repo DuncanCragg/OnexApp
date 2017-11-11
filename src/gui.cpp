@@ -142,7 +142,14 @@
     FINAL
   } state = INITIAL;
 
-  void GUI::newFrame()
+  properties* drawThis;
+
+  void GUI::drawProperties(properties* p)
+  {
+    drawThis = p;
+  }
+
+  void GUI::drawGUI()
   {
     ImGui::NewFrame();
 
@@ -182,15 +189,34 @@
     ImGui::Render();
   }
 
+  void GUI::drawProperty(char* key, char* val)
+  {
+      uint16_t height = 70;
+      ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
+      ImGui::PushStyleColor(ImGuiCol_Button, propertyBackground);
+      ImGui::Button(key, ImVec2(280, height));
+      ImGui::PopStyleColor(2);
+      ImGui::SameLine();
+      ImGui::Button(val, ImVec2(610, height));
+  }
+
   void GUI::drawInitial()
   {
     ImGui::BeginChild("Workspace1", ImVec2(910,0), true, ImGuiWindowFlags_HorizontalScrollbar);
     {
+      ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(100,100));
+
       ImGui::PushStyleColor(ImGuiCol_Text, actionTextColour);
       ImGui::PushStyleColor(ImGuiCol_Button, propertyBackground);
       if(ImGui::Button("Add new object", ImVec2(380, 70))) state = NEW_OBJECT;
-      if (ImGui::IsItemHovered()) ImGui::SetTooltip("Start here!");
+      if(ImGui::IsItemHovered()) ImGui::SetTooltip("Start here!");
       ImGui::PopStyleColor(2);
+
+      ImGui::PopStyleVar();
+
+      for(int i=1; i<= properties_size(drawThis); i++){
+        drawProperty(properties_get_key(drawThis, i), properties_get_val(drawThis, i));
+      }
     }
     ImGui::EndChild();
   }
@@ -253,7 +279,6 @@
       ImGui::PushStyleColor(ImGuiCol_Button, propertyBackground);
       ImGui::PushItemWidth(280); ImGui::Combo("", &propchoice, "property name\0new\0is\0Notifying\0Alerted\0Timer\0"); ImGui::PopItemWidth();
       if(ImGui::IsItemHovered()) ImGui::SetTooltip("choose or enter the name of a property here");
-LOG2("propchoice: %d\n", propchoice);
       if(propchoice == 1){ state = XXX; propchoice = 0; }
       ImGui::PopStyleColor(2);
 
@@ -855,7 +880,7 @@ LOG2("propchoice: %d\n", propchoice);
   void GUI::buildCommandBuffers(int32_t i)
   {
     if(i==0){
-      newFrame();
+      drawGUI();
       updateBuffers();
     }
     drawFrame(app->drawCmdBuffers[i]);

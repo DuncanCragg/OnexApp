@@ -1,10 +1,13 @@
 
 #include "gui.h"
 extern "C" {
+#include <onex-kernel/log.h>
 #include <onf.h>
 }
 
 #define ENABLE_VALIDATION false
+
+static GUI* static_gui;
 
 class OnexApp : public VulkanBase
 {
@@ -12,9 +15,12 @@ class OnexApp : public VulkanBase
 
 public:
 
-  static bool evaluate_user(object* o)
+  static bool evaluate_user(object* user)
   {
-    LOG("evaluate_user callback!\n");
+    if(object_property(user, (char*)"viewing:is")){
+      properties* p = object_properties(user, (char*)"viewing:");
+      static_gui->drawProperties(p);
+    }
     return true;
   }
 
@@ -23,6 +29,7 @@ public:
     title = "Vulkan App";
 
     gui = new GUI(this);
+    static_gui = gui;
 
     timerSpeed *= 8.0f;
     srand(time(NULL));
@@ -32,7 +39,8 @@ public:
     camera.setPerspective(60.0f, (float)width / (float)height, 0.1f, 256.0f);
 
     onex_init();
-    object* o=object_new((char*)"uid-1", (char*)"user", evaluate_user, 4);
+    object* user=object_new((char*)"uid-1", (char*)"user", evaluate_user, 4);
+    object_property_set(user, (char*)"viewing", (char*)"uid-1-2-3");
   }
 
   ~OnexApp()
@@ -42,9 +50,9 @@ public:
 
   void prepare()
   {
-    LOG("OnexApp----------------------\n");
+    log_write("OnexApp----------------------\n");
     VulkanBase::prepare();
-    LOG("GUI----------------------\n");
+    log_write("GUI----------------------\n");
     gui->prepare();
     buildCommandBuffers();
     prepared = true;
