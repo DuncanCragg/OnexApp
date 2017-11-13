@@ -13,5 +13,3 @@ build/
 ndkBuild/
 local.properties
 *.a
-.git-snapshots
-.gitignore-snapshots

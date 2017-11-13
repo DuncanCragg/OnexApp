@@ -136,8 +136,9 @@
 
   enum {
     INITIAL = 0,
-    NEW_OBJECT,
     PROPERTY_CHOOSER,
+    ENTER_PROPERTY_NAME,
+    SHOW_OBJECT,
     XXX,
     FINAL
   } state = INITIAL;
@@ -164,7 +165,7 @@
 
     int svs = 5;
 
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10,0));
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10,5));
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0,0));
     ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0,0));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10,10));
@@ -174,8 +175,9 @@
     style.ScrollbarSize = 40.0f;
 
     if(state == INITIAL) drawInitial();
-    if(state == NEW_OBJECT) drawInitial();
     if(state == PROPERTY_CHOOSER) drawInitial();
+    if(state == ENTER_PROPERTY_NAME) drawInitial();
+    if(state == SHOW_OBJECT) drawInitial();
     if(state == XXX) drawXXX();
     if(state == FINAL)   drawFinal();
 
@@ -191,6 +193,8 @@
 
   static int propchoice = 0;
 
+  object* newObject = 0;
+
   void GUI::drawObjectProperties(properties* p, bool locallyEditable)
   {
     for(int i=1; i<= properties_size(p); i++){
@@ -201,13 +205,35 @@
     if(locallyEditable){
       ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
       ImGui::PushStyleColor(ImGuiCol_Button, propertyBackground);
-      if(state!=PROPERTY_CHOOSER){
+      if(state==PROPERTY_CHOOSER){
+        ImGui::PushItemWidth(280); ImGui::Combo("", &propchoice, "choose..\0new\0title\0description\0Rules\0Notifying\0Alerted\0Timer\0"); ImGui::PopItemWidth();
+        if(ImGui::IsItemHovered()) ImGui::SetTooltip("Choose or enter the name of a property here");
+        if(propchoice == 1){ state = ENTER_PROPERTY_NAME; propchoice = 0; }
+        if(propchoice == 4){ state = XXX; propchoice = 0; }
+      }
+      if(state==ENTER_PROPERTY_NAME){
+        static char b[64] = "";
+        struct TextFilters {
+          static int FilterImGuiLetters(ImGuiTextEditCallbackData* data) {
+            ImWchar ch = data->EventChar;
+            if(ch >=256) return 1;
+            if(!strlen(b) && !isalpha(ch)) return 1;
+            if(ch == ' '){ data->EventChar = '-'; return 0; }
+            if(ch == '-'){ return 0; }
+            if(!isalnum(ch)) return 1;
+            data->EventChar = tolower(ch);
+            return 0;
+          }
+        };
+        ImGui::SetKeyboardFocusHere();
+        if(ImGui::InputText("<-", b, 64, ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue, TextFilters::FilterImGuiLetters)){
+          object_property_set(newObject, strdup(b), (char*)"yay!");
+          state=SHOW_OBJECT;
+          *b=0;
+        }
+      }
+      if(state==SHOW_OBJECT){
         if(ImGui::Button(" ", ImVec2(280, 70))) state=PROPERTY_CHOOSER;
-        if(ImGui::IsItemHovered()) ImGui::SetTooltip("choose or enter the name of a property here");
-      }else{
-        ImGui::PushItemWidth(280); ImGui::Combo("", &propchoice, "property name\0new\0is\0Notifying\0Alerted\0Timer\0"); ImGui::PopItemWidth();
-        if(ImGui::IsItemHovered()) ImGui::SetTooltip("choose or enter the name of a property here");
-        if(propchoice == 1){ state = XXX; propchoice = 0; }
       }
       ImGui::PopStyleColor(2);
 
@@ -229,8 +255,6 @@
     ImGui::Button(val, ImVec2(610, height));
   }
 
-  object* newObject = 0;
-
   static bool evaluate_any_object(object* user)
   {
   }
@@ -243,7 +267,7 @@
       ImGui::PushStyleColor(ImGuiCol_Text, actionTextColour);
       ImGui::PushStyleColor(ImGuiCol_Button, propertyBackground);
       if(ImGui::Button("Add new object", ImVec2(380, 70))){
-        state = NEW_OBJECT;
+        state = PROPERTY_CHOOSER;
         if(!newObject) newObject = object_new((char*)"uid-2", (char*)"editable", evaluate_any_object, 4);
       }
       if(ImGui::IsItemHovered()) ImGui::SetTooltip("Start here!");
@@ -268,7 +292,7 @@
 
       ImGui::PushStyleColor(ImGuiCol_Text, actionTextColour);
       ImGui::PushStyleColor(ImGuiCol_Button, propertyBackground);
-      if(ImGui::Button("Add new object", ImVec2(380, 70))) state = NEW_OBJECT;
+      if(ImGui::Button("Add new object", ImVec2(380, 70))) state = PROPERTY_CHOOSER;
       ImGui::PopStyleColor(2);
 
       ImGui::PopStyleVar();
@@ -334,7 +358,7 @@
 
       ImGui::PushStyleColor(ImGuiCol_Text, actionTextColour);
       ImGui::PushStyleColor(ImGuiCol_Button, propertyBackground);
-      if(ImGui::Button("Add new object", ImVec2(380, 70))) state = NEW_OBJECT;
+      if(ImGui::Button("Add new object", ImVec2(380, 70))) state = PROPERTY_CHOOSER;
       ImGui::PopStyleColor(2);
 
       ImGui::PopStyleVar();
