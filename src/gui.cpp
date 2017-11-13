@@ -138,10 +138,13 @@
     INITIAL = 0,
     PROPERTY_CHOOSER,
     ENTER_PROPERTY_NAME,
+    ENTER_PROPERTY_VAL,
     SHOW_OBJECT,
     XXX,
     FINAL
   } state = INITIAL;
+
+  char* propname;
 
   properties* drawThis = 0;
 
@@ -177,6 +180,7 @@
     if(state == INITIAL) drawInitial();
     if(state == PROPERTY_CHOOSER) drawInitial();
     if(state == ENTER_PROPERTY_NAME) drawInitial();
+    if(state == ENTER_PROPERTY_VAL) drawInitial();
     if(state == SHOW_OBJECT) drawInitial();
     if(state == XXX) drawXXX();
     if(state == FINAL)   drawFinal();
@@ -226,21 +230,25 @@
           }
         };
         ImGui::SetKeyboardFocusHere();
-        if(ImGui::InputText("<-", b, 64, ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue, TextFilters::FilterImGuiLetters)){
-          object_property_set(newObject, strdup(b), (char*)"yay!");
+        ImGui::PushItemWidth(280);
+        if(ImGui::InputText("## property name", b, 64, ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue, TextFilters::FilterImGuiLetters)){
+          object_property_set(newObject, strdup(b), (char*)"");
           state=SHOW_OBJECT;
           *b=0;
         }
+        ImGui::PopItemWidth();
       }
       if(state==SHOW_OBJECT){
         if(ImGui::Button(" ", ImVec2(280, 70))) state=PROPERTY_CHOOSER;
       }
       ImGui::PopStyleColor(2);
 
-      ImGui::SameLine();
-      ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0,100));
-      ImGui::Button("", ImVec2(610, 70));
-      ImGui::PopStyleVar();
+      if(state!=ENTER_PROPERTY_VAL){
+        ImGui::SameLine();
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0,100));
+        ImGui::Button("", ImVec2(610, 70));
+        ImGui::PopStyleVar();
+      }
     }
   }
 
@@ -252,7 +260,28 @@
     ImGui::Button(key, ImVec2(280, height));
     ImGui::PopStyleColor(2);
     ImGui::SameLine();
-    ImGui::Button(val, ImVec2(610, height));
+    if(state!=ENTER_PROPERTY_VAL || strcmp(key, propname)){
+      if(ImGui::Button(val, ImVec2(610, height))){ state = ENTER_PROPERTY_VAL; propname = key; }
+    }
+    else{
+      static char b[64] = "";
+      struct TextFilters {
+        static int FilterImGuiLetters(ImGuiTextEditCallbackData* data) {
+          ImWchar ch = data->EventChar;
+          if(ch >=256) return 1;
+          return 0;
+        }
+      };
+      strncpy(b, val, 64); b[63]=0;
+      ImGui::SetKeyboardFocusHere();
+      ImGui::PushItemWidth(610);
+      if(ImGui::InputText(" ", b, 64, ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue, TextFilters::FilterImGuiLetters)){
+        object_property_set(newObject, propname, strdup(b));
+        state=SHOW_OBJECT;
+        *b=0;
+      }
+      ImGui::PopItemWidth();
+    }
   }
 
   static bool evaluate_any_object(object* user)
