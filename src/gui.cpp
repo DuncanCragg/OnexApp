@@ -286,6 +286,7 @@
 
   static bool evaluate_any_object(object* user)
   {
+    return true;
   }
 
   void GUI::drawInitial()
@@ -303,7 +304,7 @@
       ImGui::PopStyleColor(2);
       ImGui::PopStyleVar();
 
-      drawObjectProperties(drawThis, false);
+      if(drawThis) drawObjectProperties(drawThis, false);
 
       if(newObject){
         properties* p = object_properties(newObject, (char*)":");
