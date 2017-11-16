@@ -40,6 +40,7 @@ public:
   void drawProperty(char* key, char* val);
   void drawXXX();
   void drawFinal();
+  void showOrHideSoftKeyboard(bool show);
   unsigned char* fontData;
   int texWidth, texHeight;
   VkSampler sampler;

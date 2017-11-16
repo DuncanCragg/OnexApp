@@ -8,6 +8,20 @@
 
 #include "gui.h"
 
+extern "C"
+{
+  JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyPress(JNIEnv* env, jobject thiz, jint keyCode, jstring key);
+};
+
+JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyPress(JNIEnv* env, jobject thiz, jint keyCode, jstring key)
+{
+  const char* keychars = env->GetStringUTFChars(key, NULL);
+
+  LOGI("*******  %d %s %d", keyCode, keychars, strlen(keychars));
+
+  env->ReleaseStringUTFChars(key, keychars);
+}
+
   GUI::GUI(VulkanBase *a)
   {
     app = a;
@@ -109,6 +123,23 @@
 #define ASSET_PATH ""
 #else
 #define ASSET_PATH "./../data/"
+#endif
+
+#if defined(__ANDROID__)
+  bool keyboardUp = false;
+
+  void GUI::showOrHideSoftKeyboard(bool show)
+  {
+    if(keyboardUp == show) return;
+    JNIEnv* jni;
+    androidApp->activity->vm->AttachCurrentThread(&jni, 0);
+    jobject nativeActivity = androidApp->activity->clazz;
+    jclass nativeActivityClass = jni->GetObjectClass(nativeActivity);
+    jmethodID method = jni->GetMethodID(nativeActivityClass, show? "showKeyboard": "hideKeyboard", "()V");
+    jni->CallVoidMethod(nativeActivity, method);
+    androidApp->activity->vm->DetachCurrentThread();
+    keyboardUp = show;
+  }
 #endif
 
   void GUI::getFontInfo()
@@ -230,6 +261,9 @@
           }
         };
         ImGui::SetKeyboardFocusHere();
+#if defined(__ANDROID__)
+        showOrHideSoftKeyboard(true);
+#endif
         ImGui::PushItemWidth(280);
         if(ImGui::InputText("## property name", b, 64, ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue, TextFilters::FilterImGuiLetters)){
           object_property_set(newObject, strdup(b), (char*)"");

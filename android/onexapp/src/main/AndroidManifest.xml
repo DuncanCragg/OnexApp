@@ -10,11 +10,12 @@
   <uses-feature android:name="android.hardware.gamepad" android:required="false"/>
   <uses-feature android:name="android.software.leanback" android:required="false"/>
 
-  <application android:label="onexapp"
+  <application android:allowBackup="false"
+               android:label="onexapp"
                android:icon="@drawable/icon"
-               android:hasCode="false">
+               android:hasCode="true">
 
-    <activity android:name="android.app.NativeActivity"
+    <activity android:name="OnexNativeActivity"
               android:label="Onex"
               android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
               android:launchMode="singleTask"
