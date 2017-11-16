@@ -1366,8 +1366,6 @@ int32_t VulkanBase::handleAppInput(struct android_app* app, AInputEvent* event)
       vulkanApp->paused = !vulkanApp->paused;
       break;
     };
-
-    LOGD("Button %d pressed", keyCode);
   }
 
   return 0;
@@ -1945,8 +1943,7 @@ void VulkanBase::handleEvent(const xcb_generic_event_t *event)
         break;
     }
     xkb_state_update_key(state, keyCode, XKB_KEY_UP);
-    xkb_keysym_t keySym = xkb_state_key_get_one_sym(state, keyCode);
-    keyReleased(keyCode, keySym);
+    keyReleased(keyCode);
   }
   break;
   case XCB_DESTROY_NOTIFY:
@@ -1976,7 +1973,7 @@ void VulkanBase::viewChanged() {}
 
 void VulkanBase::keyPressed(uint32_t, uint32_t keysym) {}
 
-void VulkanBase::keyReleased(uint32_t, uint32_t keysym) {}
+void VulkanBase::keyReleased(uint32_t) {}
 
 void VulkanBase::mouseMoved(double x, double y, bool & handled) {}
 

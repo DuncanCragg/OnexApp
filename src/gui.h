@@ -93,12 +93,14 @@ public:
 
   void updateUniformBuffers(){}
 
+  void addAnyKeySym();
+
   void keyPressed(uint32_t keyCode, uint32_t keySym);
 
-  void keyReleased(uint32_t keyCode, uint32_t keySym);
+  void keyReleased(uint32_t keyCode);
 
   void render();
-  
+
   ~GUI();
 };
 

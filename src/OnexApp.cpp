@@ -9,6 +9,32 @@ extern "C" {
 
 static GUI* static_gui;
 
+extern "C"
+{
+  JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyPress(JNIEnv* env, jobject thiz, jint keyCode, jstring key);
+  JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyRelease(JNIEnv* env, jobject thiz, jint keyCode);
+};
+
+JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyPress(JNIEnv* env, jobject thiz, jint keyCode, jstring key)
+{
+  const char* keychars = env->GetStringUTFChars(key, NULL);
+
+  LOGI("*******  0x%x %d %s %d", keyCode, keyCode, keychars, strlen(keychars));
+
+  if(strlen(keychars)==1){
+    if(keychars[0]!=' ' || keyCode==KEY_SPACE) static_gui->keyPressed(keyCode, keychars[0]);
+    else                                       static_gui->keyPressed(keyCode, KEYSYM_BACKSPACE);
+  }
+  env->ReleaseStringUTFChars(key, keychars);
+}
+
+JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyRelease(JNIEnv* env, jobject thiz, jint keyCode)
+{
+  LOGI("-------  0x%x %d", keyCode, keyCode);
+
+  static_gui->keyReleased(keyCode);
+}
+
 class OnexApp : public VulkanBase
 {
   GUI* gui;
@@ -147,9 +173,9 @@ public:
     gui->keyPressed(keyCode, keySym);
   }
 
-  virtual void keyReleased(uint32_t keyCode, uint32_t keySym)
+  virtual void keyReleased(uint32_t keyCode)
   {
-    gui->keyReleased(keyCode, keySym);
+    gui->keyReleased(keyCode);
   }
 };
 

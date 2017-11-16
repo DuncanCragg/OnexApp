@@ -64,22 +64,32 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
     // -----------------------------------------------------------
 
     public static native void onKeyPress(int keyCode, String key);
+    public static native void onKeyRelease(int keyCode);
 
     @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event){
-      char unicodeChar = event.isPrintingKey()? (char)event.getUnicodeChar(): ' ';
-      onKeyPress(keyCode, ""+unicodeChar);
-      return true;
-    }
-
-    @Override
-    public boolean onKeyMultiple(int keyCode, int count, KeyEvent event){
-      onKeyPress(keyCode, event.getCharacters());
+    public boolean dispatchKeyEvent(final KeyEvent event)
+    {
+      int action = event.getAction();
+      if(!(action == KeyEvent.ACTION_UP || action == KeyEvent.ACTION_MULTIPLE)){
+        return super.dispatchKeyEvent(event);
+      }
+      String chars;
+      if(action == KeyEvent.ACTION_UP){
+        chars = event.isPrintingKey()? ""+((char)event.getUnicodeChar()): " ";
+      }
+      else{
+        chars = event.getCharacters();
+      }
+      final int keyCode = event.getKeyCode();
+      onKeyPress(keyCode, chars);
+      final int presstime = (keyCode == 0x43)? 50: 300;
+      new Thread(){ public void run(){ try { Thread.sleep(presstime); }catch(Exception e){}; onKeyRelease(keyCode); } }.start();
       return true;
     }
 
     @Override
     public void onBackPressed(){
+        System.out.println("Back button!");
         return;
     }
 

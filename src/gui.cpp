@@ -8,20 +8,6 @@
 
 #include "gui.h"
 
-extern "C"
-{
-  JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyPress(JNIEnv* env, jobject thiz, jint keyCode, jstring key);
-};
-
-JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyPress(JNIEnv* env, jobject thiz, jint keyCode, jstring key)
-{
-  const char* keychars = env->GetStringUTFChars(key, NULL);
-
-  LOGI("*******  %d %s %d", keyCode, keychars, strlen(keychars));
-
-  env->ReleaseStringUTFChars(key, keychars);
-}
-
   GUI::GUI(VulkanBase *a)
   {
     app = a;
@@ -308,6 +294,9 @@ JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyPress
       };
       strncpy(b, val, 64); b[63]=0;
       ImGui::SetKeyboardFocusHere();
+#if defined(__ANDROID__)
+      showOrHideSoftKeyboard(true);
+#endif
       ImGui::PushItemWidth(610);
       if(ImGui::InputText(" ", b, 64, ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue, TextFilters::FilterImGuiLetters)){
         object_property_set(newObject, propname, strdup(b));
@@ -586,6 +575,7 @@ JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyPress
     io.MouseDown[2] = false;
     io.MouseWheel   = 0.0f;
 #endif
+    addAnyKeySym();
   }
 
   void GUI::setUpKeyMap()
@@ -608,6 +598,19 @@ JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyPress
     io.KeyMap[ImGuiKey_X] = KEY_X;
     io.KeyMap[ImGuiKey_Y] = KEY_Y;
     io.KeyMap[ImGuiKey_Z] = KEY_Z;
+#if defined(__ANDROID__)
+    io.KeyRepeatDelay = 1e20;
+#endif
+  }
+
+  uint32_t keySymToAdd = 0;
+
+  void GUI::addAnyKeySym()
+  {
+    if(!keySymToAdd) return;
+    ImGuiIO& io = ImGui::GetIO();
+    io.AddInputCharacter(keySymToAdd);
+    keySymToAdd = 0;
   }
 
   void GUI::keyPressed(uint32_t keyCode, uint32_t keySym)
@@ -618,10 +621,10 @@ JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyPress
     io.KeyShift = io.KeysDown[KEY_SHIFT_LEFT] || io.KeysDown[KEY_SHIFT_RIGHT];
     io.KeyAlt = io.KeysDown[KEY_ALT_LEFT] || io.KeysDown[KEY_ALT_RIGHT];
     io.KeySuper = io.KeysDown[KEY_SUPER_LEFT] || io.KeysDown[KEY_SUPER_RIGHT];
-    if(keySym < KEYSYM_BACKSPACE) io.AddInputCharacter(keySym);
+    if(keySym < KEYSYM_BACKSPACE) keySymToAdd = keySym;
   }
 
-  void GUI::keyReleased(uint32_t keyCode, uint32_t keySym)
+  void GUI::keyReleased(uint32_t keyCode)
   {
     ImGuiIO& io = ImGui::GetIO();
     io.KeysDown[keyCode] = false;
