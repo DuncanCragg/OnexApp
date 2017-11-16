@@ -31,7 +31,7 @@ namespace vks
     extern const char *validationLayerNames[];
 
     // Default debug callback
-    VkBool32 messageCallback(
+    VkBool32 __attribute__((pcs("aapcs-vfp"))) messageCallback(
       VkDebugReportFlagsEXT flags,
       VkDebugReportObjectTypeEXT objType,
       uint64_t srcObject,
