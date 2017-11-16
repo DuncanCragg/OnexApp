@@ -9,6 +9,7 @@ extern "C" {
 
 static GUI* static_gui;
 
+#if defined(VK_USE_PLATFORM_ANDROID_KHR)
 extern "C"
 {
   JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyPress(JNIEnv* env, jobject thiz, jint keyCode, jstring key);
@@ -32,6 +33,7 @@ JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyRelea
 
   static_gui->keyReleased(keyCode);
 }
+#endif
 
 class OnexApp : public VulkanBase
 {
