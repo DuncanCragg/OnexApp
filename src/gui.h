@@ -95,7 +95,7 @@ public:
 
   void addAnyKeySym();
 
-  void keyPressed(uint32_t keyCode, uint32_t keySym);
+  void keyPressed(uint32_t keyCode, char* keySym);
 
   void keyReleased(uint32_t keyCode);
 

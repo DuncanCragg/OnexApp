@@ -21,10 +21,8 @@ JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyPress
 
   LOGI("*******  0x%x %d %s %d", keyCode, keyCode, keychars, strlen(keychars));
 
-  if(strlen(keychars)==1){
-    if(keychars[0]!=' ' || keyCode==KEY_SPACE) static_gui->keyPressed(keyCode, keychars[0]);
-    else                                       static_gui->keyPressed(keyCode, KEYSYM_BACKSPACE);
-  }
+  if(strcmp(keychars, " ") || keyCode==KEY_SPACE) static_gui->keyPressed(keyCode, strdup(keychars));
+  else                                            static_gui->keyPressed(keyCode, 0);
   env->ReleaseStringUTFChars(key, keychars);
 }
 
@@ -168,7 +166,7 @@ public:
     }
   }
 
-  virtual void keyPressed(uint32_t keyCode, uint32_t keySym)
+  virtual void keyPressed(uint32_t keyCode, char* keySym)
   {
     gui->keyPressed(keyCode, keySym);
   }

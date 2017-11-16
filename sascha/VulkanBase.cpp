@@ -1971,7 +1971,7 @@ void VulkanBase::handleEvent(const xcb_generic_event_t *event)
 
 void VulkanBase::viewChanged() {}
 
-void VulkanBase::keyPressed(uint32_t, uint32_t keysym) {}
+void VulkanBase::keyPressed(uint32_t, char* keySym) {}
 
 void VulkanBase::keyReleased(uint32_t) {}
 
