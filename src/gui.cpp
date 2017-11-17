@@ -603,18 +603,26 @@
 #endif
   }
 
-  char* keySymToAdd = 0;
+  char* u8KeySymToAdd = 0;
+
+  uint32_t ucKeySymToAdd = 0;
 
   void GUI::addAnyKeySym()
   {
-    if(!keySymToAdd) return;
-    ImGuiIO& io = ImGui::GetIO();
-    io.AddInputCharactersUTF8(keySymToAdd);
-    free(keySymToAdd);
-    keySymToAdd = 0;
+    if(u8KeySymToAdd){
+      ImGuiIO& io = ImGui::GetIO();
+      io.AddInputCharactersUTF8(u8KeySymToAdd);
+      free(u8KeySymToAdd);
+      u8KeySymToAdd = 0;
+    }
+    if(ucKeySymToAdd){
+      ImGuiIO& io = ImGui::GetIO();
+      io.AddInputCharacter(ucKeySymToAdd);
+      ucKeySymToAdd = 0;
+    }
   }
 
-  void GUI::keyPressed(uint32_t keyCode, char* keySym)
+  void GUI::keyPressed(uint32_t keyCode)
   {
     ImGuiIO& io = ImGui::GetIO();
     if(keyCode) io.KeysDown[keyCode] = true;
@@ -622,7 +630,18 @@
     io.KeyShift = io.KeysDown[KEY_SHIFT_LEFT] || io.KeysDown[KEY_SHIFT_RIGHT];
     io.KeyAlt = io.KeysDown[KEY_ALT_LEFT] || io.KeysDown[KEY_ALT_RIGHT];
     io.KeySuper = io.KeysDown[KEY_SUPER_LEFT] || io.KeysDown[KEY_SUPER_RIGHT];
-    if(keySym) keySymToAdd = keySym;
+  }
+
+  void GUI::keyPressed(uint32_t keyCode, char* u8KeySym)
+  {
+    keyPressed(keyCode);
+    if(u8KeySym) u8KeySymToAdd = u8KeySym;
+  }
+
+  void GUI::keyPressed(uint32_t keyCode, uint32_t ucKeySym)
+  {
+    keyPressed(keyCode);
+    if(ucKeySym) ucKeySymToAdd = ucKeySym;
   }
 
   void GUI::keyReleased(uint32_t keyCode)

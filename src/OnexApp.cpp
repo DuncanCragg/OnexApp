@@ -19,18 +19,13 @@ extern "C"
 JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyPress(JNIEnv* env, jobject thiz, jint keyCode, jstring key)
 {
   const char* keychars = env->GetStringUTFChars(key, NULL);
-
-  LOGI("*******  0x%x %d %s %d", keyCode, keyCode, keychars, strlen(keychars));
-
   if(strcmp(keychars, " ") || keyCode==KEY_SPACE) static_gui->keyPressed(keyCode, strdup(keychars));
-  else                                            static_gui->keyPressed(keyCode, 0);
+  else                                            static_gui->keyPressed(keyCode, (char*)0);
   env->ReleaseStringUTFChars(key, keychars);
 }
 
 JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyRelease(JNIEnv* env, jobject thiz, jint keyCode)
 {
-  LOGI("-------  0x%x %d", keyCode, keyCode);
-
   static_gui->keyReleased(keyCode);
 }
 #endif
@@ -168,9 +163,9 @@ public:
     }
   }
 
-  virtual void keyPressed(uint32_t keyCode, char* keySym)
+  virtual void keyPressed(uint32_t keyCode, uint32_t ucKeySym)
   {
-    gui->keyPressed(keyCode, keySym);
+    gui->keyPressed(keyCode, ucKeySym);
   }
 
   virtual void keyReleased(uint32_t keyCode)

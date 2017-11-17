@@ -33,7 +33,6 @@
 #define KEY_BACKSPACE 0x43
 #define KEY_ENTER 0x42
 #define KEY_SPACE 0x3e
-#define KEYSYM_BACKSPACE 65288
 #define KEY_ESCAPE 0x0
 #define KEY_F1 0x0
 #define KEY_F2 0x0
@@ -135,7 +134,6 @@
 #define KEY_KPSUB KEY_KPMINUS
 
 #elif defined(__linux__)
-#define KEYSYM_BACKSPACE 65288
 #define KEY_CTRL_LEFT 0x25
 #define KEY_CTRL_RIGHT 0x25
 #define KEY_SHIFT_LEFT 0x32
