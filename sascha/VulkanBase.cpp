@@ -1795,6 +1795,13 @@ xcb_window_t VulkanBase::setupWindow()
   return(window);
 }
 
+struct xkb_rule_names rns = {
+  rules: "evdev",
+  model: "macbook78",
+  layout: "gb",
+  variant: NULL,
+  options: NULL  // "ctrl:swapcaps"; "ctrl:nocaps"
+};
 struct xkb_context* ctx;
 struct xkb_keymap* keymap;
 struct xkb_state* state;
@@ -1819,7 +1826,7 @@ void VulkanBase::initxcbConnection()
     xcb_screen_next(&iter);
   screen = iter.data;
   ctx = xkb_context_new(XKB_CONTEXT_NO_FLAGS);                                if (!ctx)    LOG("oops, dodgy context\n");
-  keymap = xkb_keymap_new_from_names(ctx, NULL, XKB_KEYMAP_COMPILE_NO_FLAGS); if (!keymap) LOG("oops, dodgy keymap\n");
+  keymap = xkb_keymap_new_from_names(ctx, &rns, XKB_KEYMAP_COMPILE_NO_FLAGS); if (!keymap) LOG("oops, dodgy keymap\n");
   state = xkb_state_new(keymap);                                              if (!state)  LOG("oops, dodgy state\n");
 }
 
@@ -1891,9 +1898,9 @@ void VulkanBase::handleEvent(const xcb_generic_event_t *event)
   {
     const xcb_key_press_event_t* keyEvent = (const xcb_key_press_event_t*)event;
     xcb_keycode_t keyCode = keyEvent->detail;
-    if(keyCode==0x42)keyCode=0x25;
+    if(keyCode==0x42) keyCode=0x25;
     else
-    if(keyCode==0x25)keyCode=0x42;
+    if(keyCode==0x25) keyCode=0x42;
     switch (keyCode)
     {
       case KEY_W:
@@ -1913,8 +1920,8 @@ void VulkanBase::handleEvent(const xcb_generic_event_t *event)
         break;
     }
     xkb_state_update_key(state, keyCode, XKB_KEY_DOWN);
-    xkb_keysym_t ucKeySym = /* keysym2unicode().. */ xkb_state_key_get_one_sym(state, keyCode);
-    keyPressed(keyCode, (ucKeySym < XKB_KEY_BackSpace)? ucKeySym: 0);
+    uint32_t ucKeySym = xkb_state_key_get_utf32(state, keyCode);
+    keyPressed(keyCode, ucKeySym);
   }
   break;
   case XCB_KEY_RELEASE:
