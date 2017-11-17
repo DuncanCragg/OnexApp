@@ -1920,8 +1920,8 @@ void VulkanBase::handleEvent(const xcb_generic_event_t *event)
         break;
     }
     xkb_state_update_key(state, keyCode, XKB_KEY_DOWN);
-    uint32_t ucKeySym = xkb_state_key_get_utf32(state, keyCode);
-    keyPressed(keyCode, ucKeySym);
+    char32_t u32key = xkb_state_key_get_utf32(state, keyCode);
+    keyPressed(keyCode, u32key);
   }
   break;
   case XCB_KEY_RELEASE:
@@ -1978,7 +1978,7 @@ void VulkanBase::handleEvent(const xcb_generic_event_t *event)
 
 void VulkanBase::viewChanged() {}
 
-void VulkanBase::keyPressed(uint32_t, uint32_t) {}
+void VulkanBase::keyPressed(uint32_t, char32_t) {}
 
 void VulkanBase::keyReleased(uint32_t) {}
 

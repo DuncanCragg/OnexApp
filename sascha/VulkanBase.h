@@ -315,7 +315,7 @@ public:
   // Containing view dependant matrices
   virtual void viewChanged();
   /** @brief (Virtual) Called after a key was pressed, can be used to do custom key handling */
-  virtual void keyPressed(uint32_t, uint32_t);
+  virtual void keyPressed(uint32_t, char32_t);
   virtual void keyReleased(uint32_t);
   /** @brief (Virtual) Called after th mouse cursor moved and before internal events (like camera rotation) is handled */
   virtual void mouseMoved(double x, double y, bool &handled);

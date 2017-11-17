@@ -18,10 +18,11 @@ extern "C"
 
 JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyPress(JNIEnv* env, jobject thiz, jint keyCode, jstring key)
 {
-  const char* keychars = env->GetStringUTFChars(key, NULL);
-  if(strcmp(keychars, " ") || keyCode==KEY_SPACE) static_gui->keyPressed(keyCode, strdup(keychars));
-  else                                            static_gui->keyPressed(keyCode, (char*)0);
-  env->ReleaseStringUTFChars(key, keychars);
+  const jchar* keychars = env->GetStringChars(key, NULL);
+  char32_t u32key = keychars[0];
+  if(u32key!=' ' || keyCode==KEY_SPACE) static_gui->keyPressed(keyCode, u32key);
+  else                                  static_gui->keyPressed(keyCode, 0);
+  env->ReleaseStringChars(key, keychars);
 }
 
 JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyRelease(JNIEnv* env, jobject thiz, jint keyCode)
@@ -163,9 +164,9 @@ public:
     }
   }
 
-  virtual void keyPressed(uint32_t keyCode, uint32_t ucKeySym)
+  virtual void keyPressed(uint32_t keyCode, char32_t u32key)
   {
-    gui->keyPressed(keyCode, ucKeySym);
+    gui->keyPressed(keyCode, u32key);
   }
 
   virtual void keyReleased(uint32_t keyCode)
