@@ -9,6 +9,7 @@
   <uses-feature android:name="android.hardware.touchscreen" android:required="false"/>
   <uses-feature android:name="android.hardware.gamepad" android:required="false"/>
   <uses-feature android:name="android.software.leanback" android:required="false"/>
+  <uses-feature android:name="android.hardware.usb.host"/>
 
   <application android:allowBackup="false"
                android:label="onexapp"
@@ -29,6 +30,13 @@
         <category android:name="android.intent.category.LAUNCHER" />
         <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
       </intent-filter>
+
+      <intent-filter>
+        <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"/>
+      </intent-filter>
+
+      <meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
+                 android:resource="@xml/device_filter"/>
 
     </activity>
   </application>

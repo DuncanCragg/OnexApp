@@ -1,11 +1,18 @@
 
 package network.object.onexapp;
 
+import java.io.ByteArrayOutputStream;
+
 import android.os.*;
 import android.view.*;
 import android.view.inputmethod.InputMethodManager;
 import android.content.Context;
 import android.app.NativeActivity;
+import android.hardware.usb.*;
+import android.content.Intent;
+
+import com.felhr.usbserial.UsbSerialInterface;
+import com.felhr.usbserial.UsbSerialDevice;
 
 /**  NativeActivity wrapper to offer Java API functions not available in JNI land.
   */
@@ -94,5 +101,47 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
     }
 
     // -----------------------------------------------------------
+
+    private UsbSerialInterface.UsbReadCallback recvCB = new UsbSerialInterface.UsbReadCallback() {
+        ByteArrayOutputStream buff = new ByteArrayOutputStream();
+        @Override
+        public void onReceivedData(byte[] data) {
+          try{
+            buff.write(data);
+            String chars = buff.toString("UTF-8");
+            int x = chars.lastIndexOf('\n');
+            if(x == -1) return;
+            String newChars = chars.substring(0,x+1);
+            buff.reset();
+            buff.write(chars.substring(x+1).getBytes());
+            System.out.println("onReceivedData: "+newChars+ " remaining: "+buff.toString("UTF-8"));
+          }catch(Exception e){}
+        }
+    };
+
+    @Override
+    protected void onNewIntent(Intent intent){
+      super.onNewIntent(intent);
+      if(!"android.hardware.usb.action.USB_DEVICE_ATTACHED".equalsIgnoreCase(intent.getAction())) return;
+      UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+      UsbManager usbManager = getSystemService(UsbManager.class);
+      final UsbDeviceConnection connection = usbManager.openDevice(device);
+      UsbInterface interf = device.getInterface(0);
+      connection.claimInterface(interf, true);
+      final UsbSerialDevice serialPort = UsbSerialDevice.createUsbSerialDevice(device, connection);
+      if(serialPort == null) { System.out.println("No serial port!"); return; }
+      if(!serialPort.open()) { System.out.println("Could not open serial port!"); return; }
+      serialPort.setBaudRate(76800);
+      serialPort.setDataBits(UsbSerialInterface.DATA_BITS_8);
+      serialPort.setStopBits(UsbSerialInterface.STOP_BITS_1);
+      serialPort.setParity(UsbSerialInterface.PARITY_NONE);
+      serialPort.setFlowControl(UsbSerialInterface.FLOW_CONTROL_OFF);
+      serialPort.read(recvCB);
+      new Thread(){ public void run(){
+        try{Thread.sleep(400);}catch(Exception e){}
+        System.out.println("----------------------sending------>");
+        serialPort.write("OBS: uid-1-2-3\n".getBytes());
+      }}.start();
+    }
 }
 
