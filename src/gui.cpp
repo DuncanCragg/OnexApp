@@ -8,7 +8,7 @@
 
 #include "gui.h"
 
-  GUI::GUI(VulkanBase *a)
+  GUI::GUI(VulkanBase* a)
   {
     app = a;
   };
@@ -109,23 +109,6 @@
 #define ASSET_PATH ""
 #else
 #define ASSET_PATH "./../data/"
-#endif
-
-#if defined(__ANDROID__)
-  bool keyboardUp = false;
-
-  void GUI::showOrHideSoftKeyboard(bool show)
-  {
-    if(keyboardUp == show) return;
-    JNIEnv* jni;
-    androidApp->activity->vm->AttachCurrentThread(&jni, 0);
-    jobject nativeActivity = androidApp->activity->clazz;
-    jclass nativeActivityClass = jni->GetObjectClass(nativeActivity);
-    jmethodID method = jni->GetMethodID(nativeActivityClass, show? "showKeyboard": "hideKeyboard", "()V");
-    jni->CallVoidMethod(nativeActivity, method);
-    androidApp->activity->vm->DetachCurrentThread();
-    keyboardUp = show;
-  }
 #endif
 
   void GUI::getFontInfo()
@@ -229,7 +212,7 @@
       if(state==PROPERTY_CHOOSER){
         ImGui::PushItemWidth(280); ImGui::Combo("", &propchoice, "choose..\0new\0title\0description\0Rules\0Notifying\0Alerted\0Timer\0"); ImGui::PopItemWidth();
         if(ImGui::IsItemHovered()) ImGui::SetTooltip("Choose or enter the name of a property here");
-        if(propchoice == 1){ state = ENTER_PROPERTY_NAME; propchoice = 0; }
+        if(propchoice == 1){ state = ENTER_PROPERTY_NAME; propchoice = 0; showOrHideSoftKeyboard(true); }
         if(propchoice == 4){ state = XXX; propchoice = 0; }
       }
       if(state==ENTER_PROPERTY_NAME){
@@ -247,13 +230,11 @@
           }
         };
         ImGui::SetKeyboardFocusHere();
-#if defined(__ANDROID__)
-        showOrHideSoftKeyboard(true);
-#endif
         ImGui::PushItemWidth(280);
         if(ImGui::InputText("## property name", b, 64, ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue, TextFilters::FilterImGuiLetters)){
           object_property_set(newObject, strdup(b), (char*)"");
           state=SHOW_OBJECT;
+          showOrHideSoftKeyboard(false);
           *b=0;
         }
         ImGui::PopItemWidth();
@@ -281,7 +262,7 @@
     ImGui::PopStyleColor(2);
     ImGui::SameLine();
     if(state!=ENTER_PROPERTY_VAL || strcmp(key, propname)){
-      if(ImGui::Button(val, ImVec2(610, height))){ state = ENTER_PROPERTY_VAL; propname = key; }
+      if(ImGui::Button(val, ImVec2(610, height))){ state = ENTER_PROPERTY_VAL; propname = key; showOrHideSoftKeyboard(true); }
     }
     else{
       static char b[64] = "";
@@ -294,13 +275,11 @@
       };
       strncpy(b, val, 64); b[63]=0;
       ImGui::SetKeyboardFocusHere();
-#if defined(__ANDROID__)
-      showOrHideSoftKeyboard(true);
-#endif
       ImGui::PushItemWidth(610);
       if(ImGui::InputText(" ", b, 64, ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue, TextFilters::FilterImGuiLetters)){
         object_property_set(newObject, propname, strdup(b));
         state=SHOW_OBJECT;
+        showOrHideSoftKeyboard(false);
         *b=0;
       }
       ImGui::PopItemWidth();

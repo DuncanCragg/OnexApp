@@ -1400,16 +1400,12 @@ void VulkanBase::handleAppCommand(android_app * app, int32_t cmd)
     break;
   case APP_CMD_INIT_WINDOW:
     LOGD("APP_CMD_INIT_WINDOW");
-    if (androidApp->window != NULL)
-    {
+    if (androidApp->window != NULL) {
       vulkanApp->startup();
       vulkanApp->prepare();
       assert(vulkanApp->prepared);
     }
-    else
-    {
-      LOGE("No window assigned!");
-    }
+    else LOGE("No window assigned!");
     break;
   case APP_CMD_LOST_FOCUS:
     LOGD("APP_CMD_LOST_FOCUS");

@@ -32,6 +32,8 @@ extern "C" {
 #include "../sascha/VulkanDevice.hpp"
 #include "../sascha/VulkanBuffer.hpp"
 
+extern void showOrHideSoftKeyboard(bool show);
+
 class GUI {
 public:
   ImGuiWindowFlags window_flags = 0;
@@ -40,7 +42,6 @@ public:
   void drawProperty(char* key, char* val);
   void drawXXX();
   void drawFinal();
-  void showOrHideSoftKeyboard(bool show);
   unsigned char* fontData;
   int texWidth, texHeight;
   VkSampler sampler;

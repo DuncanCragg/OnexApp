@@ -31,6 +31,24 @@ JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyRelea
 }
 #endif
 
+  bool keyboardUp = false;
+
+  void showOrHideSoftKeyboard(bool show)
+  {
+    log_write("showOrHideSoftKeyboard %s\n", show? "show": "hide");
+#if defined(VK_USE_PLATFORM_ANDROID_KHR)
+    if(keyboardUp == show) return;
+    JNIEnv* jni;
+    androidApp->activity->vm->AttachCurrentThread(&jni, 0);
+    jobject nativeActivity = androidApp->activity->clazz;
+    jclass nativeActivityClass = jni->GetObjectClass(nativeActivity);
+    jmethodID method = jni->GetMethodID(nativeActivityClass, show? "showKeyboard": "hideKeyboard", "()V");
+    jni->CallVoidMethod(nativeActivity, method);
+    androidApp->activity->vm->DetachCurrentThread();
+    keyboardUp = show;
+#endif
+  }
+
 class OnexApp : public VulkanBase
 {
   GUI* gui;
@@ -74,6 +92,7 @@ public:
 
   virtual void cleanup()
   {
+    if(keyboardUp){ showOrHideSoftKeyboard(false); keyboardUp = true; }
     delete gui; gui=0;
     VulkanBase::cleanup();
   }
@@ -91,6 +110,7 @@ public:
     gui->prepare();
     buildCommandBuffers();
     prepared = true;
+    if(keyboardUp){ keyboardUp = false; showOrHideSoftKeyboard(true); }
   }
 
   void buildCommandBuffers()
