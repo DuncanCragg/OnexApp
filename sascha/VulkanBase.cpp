@@ -764,8 +764,15 @@ VulkanBase::VulkanBase(bool enableValidation)
 #endif
 }
 
-VulkanBase::~VulkanBase()
+void VulkanBase::startup()
 {
+  initVulkan();
+  initSwapchain();
+}
+
+void VulkanBase::cleanup()
+{
+  prepared = false;
   swapChain.cleanup();
   if (descriptorPool != VK_NULL_HANDLE)
   {
@@ -777,11 +784,12 @@ VulkanBase::~VulkanBase()
   {
     vkDestroyFramebuffer(device, frameBuffers[i], nullptr);
   }
-
+/*
   for (auto& shaderModule : shaderModules)
   {
     vkDestroyShaderModule(device, shaderModule, nullptr);
   }
+*/
   vkDestroyImageView(device, depthStencil.view, nullptr);
   vkDestroyImage(device, depthStencil.image, nullptr);
   vkFreeMemory(device, depthStencil.mem, nullptr);
@@ -801,6 +809,11 @@ VulkanBase::~VulkanBase()
   }
 
   vkDestroyInstance(instance, nullptr);
+}
+
+VulkanBase::~VulkanBase()
+{
+  cleanup();
 
 #if defined(_DIRECT2DISPLAY)
 
@@ -1389,8 +1402,7 @@ void VulkanBase::handleAppCommand(android_app * app, int32_t cmd)
     LOGD("APP_CMD_INIT_WINDOW");
     if (androidApp->window != NULL)
     {
-      vulkanApp->initVulkan();
-      vulkanApp->initSwapchain();
+      vulkanApp->startup();
       vulkanApp->prepare();
       assert(vulkanApp->prepared);
     }
@@ -1410,7 +1422,7 @@ void VulkanBase::handleAppCommand(android_app * app, int32_t cmd)
   case APP_CMD_TERM_WINDOW:
     // Window is hidden or closed, clean up resources
     LOGD("APP_CMD_TERM_WINDOW");
-    vulkanApp->swapChain.cleanup();
+    vulkanApp->cleanup();
     break;
   }
 }

@@ -65,6 +65,19 @@ public:
     object_property_set(user, (char*)"viewing", (char*)"uid-1-2-3");
   }
 
+  virtual void startup()
+  {
+    VulkanBase::startup();
+    if(!gui) gui = new GUI(this);
+    static_gui = gui;
+  }
+
+  virtual void cleanup()
+  {
+    delete gui; gui=0;
+    VulkanBase::cleanup();
+  }
+
   ~OnexApp()
   {
     delete gui;
