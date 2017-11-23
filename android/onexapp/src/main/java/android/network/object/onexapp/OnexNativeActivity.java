@@ -102,6 +102,8 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
 
     // -----------------------------------------------------------
 
+    public static native void onSerialRecv(String b);
+
     private UsbSerialInterface.UsbReadCallback recvCB = new UsbSerialInterface.UsbReadCallback() {
         ByteArrayOutputStream buff = new ByteArrayOutputStream();
         @Override
@@ -114,10 +116,13 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
             String newChars = chars.substring(0,x+1);
             buff.reset();
             buff.write(chars.substring(x+1).getBytes());
-            System.out.println("onReceivedData: "+newChars+ " remaining: "+buff.toString("UTF-8"));
+            System.out.println("onReceivedData: "+newChars+ "remaining: "+buff.toString("UTF-8"));
+            onSerialRecv(newChars);
           }catch(Exception e){}
         }
     };
+
+    UsbSerialDevice serialPort = null;
 
     @Override
     protected void onNewIntent(Intent intent){
@@ -128,7 +133,7 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
       final UsbDeviceConnection connection = usbManager.openDevice(device);
       UsbInterface interf = device.getInterface(0);
       connection.claimInterface(interf, true);
-      final UsbSerialDevice serialPort = UsbSerialDevice.createUsbSerialDevice(device, connection);
+      serialPort = UsbSerialDevice.createUsbSerialDevice(device, connection);
       if(serialPort == null) { System.out.println("No serial port!"); return; }
       if(!serialPort.open()) { System.out.println("Could not open serial port!"); return; }
       serialPort.setBaudRate(76800);
@@ -137,11 +142,12 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
       serialPort.setParity(UsbSerialInterface.PARITY_NONE);
       serialPort.setFlowControl(UsbSerialInterface.FLOW_CONTROL_OFF);
       serialPort.read(recvCB);
-      new Thread(){ public void run(){
-        try{Thread.sleep(400);}catch(Exception e){}
-        System.out.println("----------------------sending------>");
-        serialPort.write("OBS: uid-1-2-3\n".getBytes());
-      }}.start();
+    }
+
+    public void serialSend(String chars)
+    {
+      System.out.println("----------------------sending------> "+chars);
+      if(serialPort!=null) try{ serialPort.write(chars.getBytes("UTF-8")); }catch(Exception e){}
     }
 }
 

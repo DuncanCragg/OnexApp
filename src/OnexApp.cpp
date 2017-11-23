@@ -14,6 +14,7 @@ extern "C"
 {
   JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyPress(JNIEnv* env, jobject thiz, jint keyCode, jstring key);
   JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyRelease(JNIEnv* env, jobject thiz, jint keyCode);
+  JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onSerialRecv(JNIEnv* env, jobject thiz, jstring b);
 };
 
 JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyPress(JNIEnv* env, jobject thiz, jint keyCode, jstring key)
@@ -28,25 +29,53 @@ JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyRelea
 {
   static_gui->keyReleased(keyCode);
 }
+
+JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onSerialRecv(JNIEnv* env, jobject thiz, jstring b)
+{
+  const char* chars = env->GetStringUTFChars(b, 0);
+  log_write("onSerialRecv %s\n", (char*)chars);
+  env->ReleaseStringUTFChars(b, chars);
+}
 #endif
 
   bool keyboardUp = false;
 
+  object* user;
+
   void showOrHideSoftKeyboard(bool show)
   {
     log_write("showOrHideSoftKeyboard %s\n", show? "show": "hide");
+    onex_run_evaluators(user);
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
     if(keyboardUp == show) return;
-    JNIEnv* jni;
-    androidApp->activity->vm->AttachCurrentThread(&jni, 0);
+    JNIEnv* env;
+    androidApp->activity->vm->AttachCurrentThread(&env, 0);
     jobject nativeActivity = androidApp->activity->clazz;
-    jclass nativeActivityClass = jni->GetObjectClass(nativeActivity);
-    jmethodID method = jni->GetMethodID(nativeActivityClass, show? "showKeyboard": "hideKeyboard", "()V");
-    jni->CallVoidMethod(nativeActivity, method);
+    jclass nativeActivityClass = env->GetObjectClass(nativeActivity);
+    jmethodID method = env->GetMethodID(nativeActivityClass, show? "showKeyboard": "hideKeyboard", "()V");
+    env->CallVoidMethod(nativeActivity, method);
     androidApp->activity->vm->DetachCurrentThread();
     keyboardUp = show;
 #endif
   }
+
+extern "C" {
+  void serialSend(char* b)
+  {
+    log_write("serialSend %s\n", b);
+#if defined(VK_USE_PLATFORM_ANDROID_KHR)
+    JNIEnv* env;
+    androidApp->activity->vm->AttachCurrentThread(&env, 0);
+    jobject nativeActivity = androidApp->activity->clazz;
+    jclass nativeActivityClass = env->GetObjectClass(nativeActivity);
+    jmethodID method = env->GetMethodID(nativeActivityClass, "serialSend", "(Ljava/lang/String;)V");
+    jstring buff = env->NewStringUTF(b);
+    env->CallVoidMethod(nativeActivity, method, buff);
+    env->DeleteLocalRef(buff);
+    androidApp->activity->vm->DetachCurrentThread();
+#endif
+  }
+}
 
 class OnexApp : public VulkanBase
 {
@@ -78,7 +107,7 @@ public:
     camera.setPerspective(60.0f, (float)width / (float)height, 0.1f, 256.0f);
 
     onex_init();
-    object* user=object_new((char*)"uid-1", (char*)"user", evaluate_user, 4);
+    user=object_new((char*)"uid-1", (char*)"user", evaluate_user, 4);
     object_property_set(user, (char*)"viewing", (char*)"uid-1-2-3");
   }
 
