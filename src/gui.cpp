@@ -589,7 +589,6 @@
     if(u32keyToAdd){
       ImGuiIO& io = ImGui::GetIO();
       io.AddInputCharacter(u32keyToAdd);
-#define LOG_UNICODE_BYTES
 #ifdef LOG_UNICODE_BYTES
       uint8_t* u32b = (uint8_t*)&u32keyToAdd; log_write("bytes: %x %x %x %x\n", u32b[3], u32b[2], u32b[1], u32b[0]);
 #endif

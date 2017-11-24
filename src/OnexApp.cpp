@@ -37,7 +37,6 @@ void on_serial_recv(char* b);
 JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onSerialRecv(JNIEnv* env, jobject thiz, jstring b)
 {
   const char* chars = env->GetStringUTFChars(b, 0);
-  log_write("Java onSerialRecv calling C on_serial_recv %s\n", (char*)chars);
   on_serial_recv((char*)chars);
   env->ReleaseStringUTFChars(b, chars);
 }
@@ -49,7 +48,6 @@ JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onSerialRe
 
   void showOrHideSoftKeyboard(bool show)
   {
-    log_write("showOrHideSoftKeyboard %s\n", show? "show": "hide");
     onex_run_evaluators(user);
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
     if(keyboardUp == show) return;
@@ -67,7 +65,6 @@ JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onSerialRe
 extern "C" {
   void serial_send(char* b)
   {
-    log_write("C serial_send calling Java serialSend %s\n", b);
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
     JNIEnv* env;
     androidApp->activity->vm->AttachCurrentThread(&env, 0);
@@ -139,7 +136,6 @@ public:
   {
     log_write("OnexApp----------------------\n");
     VulkanBase::prepare();
-    log_write("GUI----------------------\n");
     gui->prepare();
     buildCommandBuffers();
     prepared = true;

@@ -116,7 +116,6 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
             String newChars = chars.substring(0,x+1);
             buff.reset();
             buff.write(chars.substring(x+1).getBytes());
-            System.out.println("onReceivedData: "+newChars+ "remaining: "+buff.toString("UTF-8"));
             onSerialRecv(newChars);
           }catch(Exception e){}
         }
@@ -146,7 +145,6 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
 
     public void serialSend(String chars)
     {
-      System.out.println("----------------------sending------> "+chars);
       if(serialPort!=null) try{ serialPort.write(chars.getBytes("UTF-8")); }catch(Exception e){}
     }
 }
