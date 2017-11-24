@@ -30,10 +30,15 @@ JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyRelea
   static_gui->keyReleased(keyCode);
 }
 
+extern "C" {
+void on_serial_recv(char* b);
+}
+
 JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onSerialRecv(JNIEnv* env, jobject thiz, jstring b)
 {
   const char* chars = env->GetStringUTFChars(b, 0);
-  log_write("onSerialRecv %s\n", (char*)chars);
+  log_write("Java onSerialRecv calling C on_serial_recv %s\n", (char*)chars);
+  on_serial_recv((char*)chars);
   env->ReleaseStringUTFChars(b, chars);
 }
 #endif
@@ -60,9 +65,9 @@ JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onSerialRe
   }
 
 extern "C" {
-  void serialSend(char* b)
+  void serial_send(char* b)
   {
-    log_write("serialSend %s\n", b);
+    log_write("C serial_send calling Java serialSend %s\n", b);
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
     JNIEnv* env;
     androidApp->activity->vm->AttachCurrentThread(&env, 0);

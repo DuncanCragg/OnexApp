@@ -136,7 +136,7 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
       serialPort = UsbSerialDevice.createUsbSerialDevice(device, connection);
       if(serialPort == null) { System.out.println("No serial port!"); return; }
       if(!serialPort.open()) { System.out.println("Could not open serial port!"); return; }
-      serialPort.setBaudRate(76800);
+      serialPort.setBaudRate(9600);
       serialPort.setDataBits(UsbSerialInterface.DATA_BITS_8);
       serialPort.setStopBits(UsbSerialInterface.STOP_BITS_1);
       serialPort.setParity(UsbSerialInterface.PARITY_NONE);
