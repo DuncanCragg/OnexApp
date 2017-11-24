@@ -42,42 +42,44 @@ JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onSerialRe
 }
 #endif
 
-  bool keyboardUp = false;
+bool keyboardUp = false;
 
-  object* user;
+object* user;
 
-  void showOrHideSoftKeyboard(bool show)
-  {
-    onex_run_evaluators(user);
+void showOrHideSoftKeyboard(bool show)
+{
+  onex_run_evaluators(user);
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
-    if(keyboardUp == show) return;
-    JNIEnv* env;
-    androidApp->activity->vm->AttachCurrentThread(&env, 0);
-    jobject nativeActivity = androidApp->activity->clazz;
-    jclass nativeActivityClass = env->GetObjectClass(nativeActivity);
-    jmethodID method = env->GetMethodID(nativeActivityClass, show? "showKeyboard": "hideKeyboard", "()V");
-    env->CallVoidMethod(nativeActivity, method);
-    androidApp->activity->vm->DetachCurrentThread();
-    keyboardUp = show;
+  if(keyboardUp == show) return;
+  JNIEnv* env;
+  androidApp->activity->vm->AttachCurrentThread(&env, 0);
+  jobject nativeActivity = androidApp->activity->clazz;
+  jclass nativeActivityClass = env->GetObjectClass(nativeActivity);
+  jmethodID method = env->GetMethodID(nativeActivityClass, show? "showKeyboard": "hideKeyboard", "()V");
+  env->CallVoidMethod(nativeActivity, method);
+  androidApp->activity->vm->DetachCurrentThread();
+  keyboardUp = show;
 #endif
-  }
-
-extern "C" {
-  void serial_send(char* b)
-  {
-#if defined(VK_USE_PLATFORM_ANDROID_KHR)
-    JNIEnv* env;
-    androidApp->activity->vm->AttachCurrentThread(&env, 0);
-    jobject nativeActivity = androidApp->activity->clazz;
-    jclass nativeActivityClass = env->GetObjectClass(nativeActivity);
-    jmethodID method = env->GetMethodID(nativeActivityClass, "serialSend", "(Ljava/lang/String;)V");
-    jstring buff = env->NewStringUTF(b);
-    env->CallVoidMethod(nativeActivity, method, buff);
-    env->DeleteLocalRef(buff);
-    androidApp->activity->vm->DetachCurrentThread();
-#endif
-  }
 }
+
+#if defined(VK_USE_PLATFORM_ANDROID_KHR)
+extern "C" {
+
+void serial_send(char* b)
+{
+  JNIEnv* env;
+  androidApp->activity->vm->AttachCurrentThread(&env, 0);
+  jobject nativeActivity = androidApp->activity->clazz;
+  jclass nativeActivityClass = env->GetObjectClass(nativeActivity);
+  jmethodID method = env->GetMethodID(nativeActivityClass, "serialSend", "(Ljava/lang/String;)V");
+  jstring buff = env->NewStringUTF(b);
+  env->CallVoidMethod(nativeActivity, method, buff);
+  env->DeleteLocalRef(buff);
+  androidApp->activity->vm->DetachCurrentThread();
+}
+
+}
+#endif
 
 class OnexApp : public VulkanBase
 {

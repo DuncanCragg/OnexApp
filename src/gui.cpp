@@ -176,6 +176,7 @@
 
     ImGuiStyle& style = ImGui::GetStyle();
     style.ScrollbarSize = 40.0f;
+    style.TouchExtraPadding = ImVec2(10.0f,10.0f);
 
     if(state == INITIAL) drawInitial();
     if(state == PROPERTY_CHOOSER) drawInitial();
@@ -312,6 +313,15 @@
         properties* p = object_properties(newObject, (char*)":");
         drawObjectProperties(p, true);
       }
+
+      ImGui::Button("Link this", ImVec2(280, 80));
+      if (ImGui::IsItemActive() && ImGui::IsMouseDragging())
+      {
+          ImDrawList* draw_list = ImGui::GetWindowDrawList();
+          draw_list->PushClipRectFullScreen();
+          draw_list->AddLine(ImGui::CalcItemRectClosestPoint(ImGui::GetIO().MousePos, true, -2.0f), ImGui::GetIO().MousePos, ImColor(ImGui::GetStyle().Colors[ImGuiCol_Button]), 4.0f);
+          draw_list->PopClipRect();
+      }
     }
     ImGui::EndChild();
   }
@@ -352,32 +362,54 @@
 
       ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, valueBackground);
       ImGui::SameLine();
-      ImGui::BeginChild("Todos", ImVec2(0,200), true, ImGuiWindowFlags_HorizontalScrollbar);
+      ImVec2 start_draggable_pos = ImGui::GetCursorScreenPos();
+      ImGui::BeginChild("Todos", ImVec2(0,200), true);
+      ImVec2 mouse_delta(0,0);
       {
         ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
         ImGui::PushStyleColor(ImGuiCol_Button, propertyBackground);
         ImGui::Button("title", ImVec2(280, 70));
+        if (ImGui::IsItemActive() && ImGui::IsMouseDragging()) mouse_delta = ImGui::GetIO().MouseDelta;
         ImGui::PopStyleColor(2);
         ImGui::SameLine();
         ImGui::Button("milk", ImVec2(280, 70));
+        if (ImGui::IsItemActive() && ImGui::IsMouseDragging()) mouse_delta = ImGui::GetIO().MouseDelta;
         ImGui::SameLine();
         ImGui::Button("beer", ImVec2(280, 70));
+        if (ImGui::IsItemActive() && ImGui::IsMouseDragging()) mouse_delta = ImGui::GetIO().MouseDelta;
         ImGui::SameLine();
         ImGui::Button("potatoes", ImVec2(280, 70));
+        if (ImGui::IsItemActive() && ImGui::IsMouseDragging()) mouse_delta = ImGui::GetIO().MouseDelta;
 
         ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
         ImGui::PushStyleColor(ImGuiCol_Button, propertyBackground);
         ImGui::Button("done", ImVec2(280, 70));
+        if (ImGui::IsItemActive() && ImGui::IsMouseDragging()) mouse_delta = ImGui::GetIO().MouseDelta;
         ImGui::PopStyleColor(2);
         ImGui::SameLine();
         ImGui::Button("yes", ImVec2(280, 70));
+        if (ImGui::IsItemActive() && ImGui::IsMouseDragging()) mouse_delta = ImGui::GetIO().MouseDelta;
         ImGui::SameLine();
         ImGui::Button("no", ImVec2(280, 70));
+        if (ImGui::IsItemActive() && ImGui::IsMouseDragging()) mouse_delta = ImGui::GetIO().MouseDelta;
         ImGui::SameLine();
         ImGui::Button("no", ImVec2(280, 70));
+        if (ImGui::IsItemActive() && ImGui::IsMouseDragging()) mouse_delta = ImGui::GetIO().MouseDelta;
+        ImGui::SameLine();
+
+        ImVec2 end_draggable_pos = ImGui::GetCursorScreenPos();
+        ImVec2 canvas_size(end_draggable_pos.x-start_draggable_pos.x, 200);
+        ImGui::SetCursorScreenPos(start_draggable_pos);
+        ImGui::InvisibleButton("banana", canvas_size);
+        if (ImGui::IsItemActive() && ImGui::IsMouseDragging()) mouse_delta = ImGui::GetIO().MouseDelta;
       }
       ImGui::EndChild();
       ImGui::PopStyleColor();
+      ImGui::BeginChild("Todos");
+      {
+        ImGui::SetScrollX(ImGui::GetScrollX() - mouse_delta.x);
+      }
+      ImGui::End();
     }
     ImGui::EndChild();
   }
