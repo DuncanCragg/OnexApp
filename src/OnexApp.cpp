@@ -90,8 +90,7 @@ public:
   static bool evaluate_user(object* user)
   {
     if(object_property(user, (char*)"viewing:is")){
-      properties* p = object_properties(user, (char*)"viewing:");
-      static_gui->drawProperties(p);
+      static_gui->drawObject(user, (char*)"viewing:");
     }
     return true;
   }

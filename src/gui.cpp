@@ -146,11 +146,13 @@
 
   char* propname;
 
-  properties* drawThis = 0;
+  object* drawThis = 0;
+  char*   drawPath = 0;
 
-  void GUI::drawProperties(properties* p)
+  void GUI::drawObject(object* o, char* path)
   {
-    drawThis = p;
+    drawThis = o;
+    drawPath = path;
   }
 
   void GUI::drawGUI()
@@ -200,12 +202,13 @@
 
   object* newObject = 0;
 
-  void GUI::drawObjectProperties(properties* p, bool locallyEditable)
+  void GUI::drawObjectProperties(object* o, char* path, bool locallyEditable)
   {
-    for(int i=1; i<= properties_size(p); i++){
-      if(!locallyEditable && i==properties_size(p)) ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0,100));
-      drawProperty(properties_key_n(p, i), properties_get_n(p, i));
-      if(!locallyEditable && i==properties_size(p)) ImGui::PopStyleVar();
+    uint8_t size = object_properties_size(o, path);
+    for(int i=1; i<=size; i++){
+      if(!locallyEditable && i==size) ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0,100));
+      drawProperty(object_property_key(o, i), object_property_val(o, i));
+      if(!locallyEditable && i==size) ImGui::PopStyleVar();
     }
     if(locallyEditable){
       ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
@@ -254,9 +257,8 @@
     }
   }
 
-  void GUI::drawProperty(char* key, item* i)
+  void GUI::drawProperty(char* key, char* val)
   {
-    char* val=(i->type==ITEM_VALUE)? value_string((value*)i): (char*)"[non-value]";
     uint16_t height = 70;
     ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
     ImGui::PushStyleColor(ImGuiCol_Button, propertyBackground);
@@ -308,11 +310,10 @@
       ImGui::PopStyleColor(2);
       ImGui::PopStyleVar();
 
-      if(drawThis) drawObjectProperties(drawThis, false);
+      if(drawThis) drawObjectProperties(drawThis, drawPath, false);
 
       if(newObject){
-        properties* p = object_properties(newObject, (char*)":");
-        drawObjectProperties(p, true);
+        drawObjectProperties(newObject, (char*)":", true);
       }
 
       ImGui::Button("Link this", ImVec2(280, 80));

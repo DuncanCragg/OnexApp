@@ -38,8 +38,8 @@ class GUI {
 public:
   ImGuiWindowFlags window_flags = 0;
   void drawInitial();
-  void drawObjectProperties(properties* p, bool locallyEditable);
-  void drawProperty(char* key, item* i);
+  void drawObjectProperties(object* o, char* path, bool locallyEditable);
+  void drawProperty(char* key, char* val);
   void drawXXX();
   void drawFinal();
   unsigned char* fontData;
@@ -83,7 +83,7 @@ public:
   void createPipelineCache();
   void createPipelines(VkRenderPass renderPass);
 
-  void drawProperties(properties* p);
+  void drawObject(object* o, char* path);
   void drawGUI();
 
   void updateBuffers();
