@@ -204,7 +204,7 @@
   {
     for(int i=1; i<= properties_size(p); i++){
       if(!locallyEditable && i==properties_size(p)) ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0,100));
-      drawProperty(properties_get_key(p, i), properties_get_val(p, i));
+      drawProperty(properties_key_n(p, i), properties_get_n(p, i));
       if(!locallyEditable && i==properties_size(p)) ImGui::PopStyleVar();
     }
     if(locallyEditable){
@@ -254,8 +254,9 @@
     }
   }
 
-  void GUI::drawProperty(char* key, char* val)
+  void GUI::drawProperty(char* key, item* i)
   {
+    char* val=(i->type==ITEM_VALUE)? value_string((value*)i): (char*)"[non-value]";
     uint16_t height = 70;
     ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
     ImGui::PushStyleColor(ImGuiCol_Button, propertyBackground);

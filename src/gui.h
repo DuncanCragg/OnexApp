@@ -39,7 +39,7 @@ public:
   ImGuiWindowFlags window_flags = 0;
   void drawInitial();
   void drawObjectProperties(properties* p, bool locallyEditable);
-  void drawProperty(char* key, char* val);
+  void drawProperty(char* key, item* i);
   void drawXXX();
   void drawFinal();
   unsigned char* fontData;
