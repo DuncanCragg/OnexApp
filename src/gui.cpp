@@ -204,7 +204,7 @@
 
   void GUI::drawObjectProperties(object* o, char* path, bool locallyEditable)
   {
-    uint8_t size = object_properties_size(o, path);
+    uint8_t size = object_property_size(o, path);
     for(int i=1; i<=size; i++){
       if(!locallyEditable && i==size) ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0,100));
       drawProperty(object_property_key(o, path, i), object_property_value(o, path, i));
