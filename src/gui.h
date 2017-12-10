@@ -37,8 +37,10 @@ extern void showOrHideSoftKeyboard(bool show);
 class GUI {
 public:
   ImGuiWindowFlags window_flags = 0;
+  void drawGUI();
   void drawView();
-  void drawObjectProperties(object* o, char* path, bool locallyEditable);
+  void drawObjectProperties(char* path, bool locallyEditable);
+  void drawNestedObjectProperties(char* path, bool locallyEditable);
   void drawProperty(char* key, char* val, bool locallyEditable);
   unsigned char* fontData;
   int texWidth, texHeight;
@@ -57,6 +59,9 @@ public:
   VkDescriptorSetLayout descriptorSetLayout;
   VkDescriptorSet descriptorSet;
   vks::VulkanDevice *device;
+
+  object* user;
+
   VulkanBase *app;
 
   struct PushConstBlock {
@@ -64,7 +69,7 @@ public:
     glm::vec2 translate;
   } pushConstBlock;
 
-  GUI(VulkanBase *app);
+  GUI(VulkanBase *app, object* user);
 
   void prepare();
 
@@ -80,9 +85,6 @@ public:
   void setupDescriptorSets();
   void createPipelineCache();
   void createPipelines(VkRenderPass renderPass);
-
-  void drawObject(object* o, char* path);
-  void drawGUI();
 
   void updateBuffers();
 

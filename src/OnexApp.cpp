@@ -90,18 +90,12 @@ public:
 
   static bool evaluate_user(object* user)
   {
-    if(object_property(user, (char*)"viewing:is")){
-      static_gui->drawObject(user, (char*)"viewing:");
-    }
     return true;
   }
 
   OnexApp() : VulkanBase(ENABLE_VALIDATION)
   {
     title = "Vulkan App";
-
-    gui = new GUI(this);
-    static_gui = gui;
 
     timerSpeed *= 8.0f;
     srand(time(NULL));
@@ -117,12 +111,15 @@ public:
 
     user=object_new((char*)"uid-1", (char*)"user", evaluate_user, 4);
     object_property_set(user, (char*)"viewing", (char*)"uid-2");
+
+    gui = new GUI(this, user);
+    static_gui = gui;
   }
 
   virtual void startup()
   {
     VulkanBase::startup();
-    if(!gui) gui = new GUI(this);
+    if(!gui) gui = new GUI(this, user);
     static_gui = gui;
   }
 

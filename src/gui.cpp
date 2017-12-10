@@ -10,9 +10,10 @@
 
 #include "gui.h"
 
-GUI::GUI(VulkanBase* a)
+GUI::GUI(VulkanBase* a, object* u)
 {
   app = a;
+  user = u;
 };
 
 void GUI::prepare()
@@ -135,15 +136,6 @@ void GUI::getFontInfo()
 
 // ---------------------------------------------------------------------------------------------
 
-object* drawThis = 0;
-char*   drawPath = 0;
-
-void GUI::drawObject(object* o, char* path)
-{
-  drawThis = o;
-  drawPath = path;
-}
-
 void GUI::drawGUI()
 {
   ImGui::NewFrame();
@@ -190,32 +182,67 @@ void GUI::drawView()
 {
   ImGui::BeginChild("Workspace1", ImVec2(910,0), true, ImGuiWindowFlags_HorizontalScrollbar);
   {
-    if(drawThis) drawObjectProperties(drawThis, drawPath, false);
+    if(user) drawObjectProperties((char*)"viewing:", false);
   }
   ImGui::EndChild();
 }
 
-void GUI::drawObjectProperties(object* o, char* path, bool locallyEditable)
+void GUI::drawObjectProperties(char* path, bool locallyEditable)
 {
-  uint8_t size = object_property_size(o, path);
+  uint8_t size = object_property_size(user, path);
   for(int i=1; i<=size; i++){
-    if(!locallyEditable && i==size) ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0,100));
-    drawProperty(object_property_key(o, path, i), object_property_value(o, path, i), locallyEditable);
-    if(!locallyEditable && i==size) ImGui::PopStyleVar();
+    //if(!locallyEditable && i==size) ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0,100));
+    drawProperty(object_property_key(user, path, i), object_property_value(user, path, i), locallyEditable);
+    //if(!locallyEditable && i==size) ImGui::PopStyleVar();
   }
 
   if(!locallyEditable) return;
 }
 
+static ImVec2 mouse_delta(0,0);
+
 void GUI::drawProperty(char* key, char* val, bool locallyEditable)
 {
-  uint16_t height = 70;
+  uint16_t height = is_uid(val)? 200: 70;
   ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
   ImGui::PushStyleColor(ImGuiCol_Button, propertyBackground);
   ImGui::Button(key, ImVec2(280, height));
+  if(ImGui::IsItemActive() && ImGui::IsMouseDragging()) mouse_delta = ImGui::GetIO().MouseDelta;
   ImGui::PopStyleColor(2);
   ImGui::SameLine();
-  ImGui::Button(val, ImVec2(610, height));
+  if(!is_uid(val)){
+    ImGui::Button(val, ImVec2(610, height));
+    if(ImGui::IsItemActive() && ImGui::IsMouseDragging()) mouse_delta = ImGui::GetIO().MouseDelta;
+  }else{
+    char b[128];
+    snprintf(b, 128, "viewing:%s:", key);
+    drawNestedObjectProperties(b, false);
+  }
+}
+
+void GUI::drawNestedObjectProperties(char* path, bool locallyEditable)
+{
+    ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, valueBackground);
+    ImGui::SameLine();
+    ImVec2 start_draggable_pos = ImGui::GetCursorScreenPos();
+    ImGui::BeginChild("NestedChangeMe", ImVec2(0,200), true);
+    {
+      drawObjectProperties(path, locallyEditable);
+
+      ImVec2 end_draggable_pos = ImGui::GetCursorScreenPos();
+      ImVec2 canvas_size(end_draggable_pos.x-start_draggable_pos.x, end_draggable_pos.y-start_draggable_pos.y);
+      ImGui::SetCursorScreenPos(start_draggable_pos);
+      ImGui::InvisibleButton("ChangeMeToo", canvas_size);
+      if (ImGui::IsItemActive() && ImGui::IsMouseDragging()) mouse_delta = ImGui::GetIO().MouseDelta;
+    }
+    ImGui::EndChild();
+    ImGui::PopStyleColor();
+    ImGui::BeginChild("NestedChangeMe");
+    {
+      ImGui::SetScrollX(ImGui::GetScrollX() - mouse_delta.x);
+      ImGui::SetScrollY(ImGui::GetScrollY() - mouse_delta.y);
+    }
+    ImGui::End();
 }
 
 // ---------------------------------------------------------------------------------------------
