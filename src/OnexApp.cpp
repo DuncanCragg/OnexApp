@@ -9,6 +9,9 @@ extern "C" {
 
 static GUI* static_gui;
 
+object* user;
+object* links;
+
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
 extern "C"
 {
@@ -43,8 +46,6 @@ JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onSerialRe
 #endif
 
 bool keyboardUp = false;
-
-object* user;
 
 void showOrHideSoftKeyboard(bool show)
 {
@@ -110,8 +111,12 @@ public:
     camera.setPerspective(60.0f, (float)width / (float)height, 0.1f, 256.0f);
 
     onex_init();
+
+    links=object_new((char*)"uid-2", (char*)"links list", 0, 4);
+    object_property_set(links, (char*)"list", (char*)"uid-1-2-3");
+
     user=object_new((char*)"uid-1", (char*)"user", evaluate_user, 4);
-    object_property_set(user, (char*)"viewing", (char*)"uid-1-2-3");
+    object_property_set(user, (char*)"viewing", (char*)"uid-2");
   }
 
   virtual void startup()

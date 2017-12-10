@@ -37,11 +37,9 @@ extern void showOrHideSoftKeyboard(bool show);
 class GUI {
 public:
   ImGuiWindowFlags window_flags = 0;
-  void drawInitial();
+  void drawView();
   void drawObjectProperties(object* o, char* path, bool locallyEditable);
-  void drawProperty(char* key, char* val);
-  void drawXXX();
-  void drawFinal();
+  void drawProperty(char* key, char* val, bool locallyEditable);
   unsigned char* fontData;
   int texWidth, texHeight;
   VkSampler sampler;
