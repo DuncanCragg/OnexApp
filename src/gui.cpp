@@ -222,27 +222,27 @@ void GUI::drawProperty(char* key, char* val, bool locallyEditable)
 
 void GUI::drawNestedObjectProperties(char* path, bool locallyEditable)
 {
-    ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, valueBackground);
-    ImGui::SameLine();
-    ImVec2 start_draggable_pos = ImGui::GetCursorScreenPos();
-    ImGui::BeginChild("NestedChangeMe", ImVec2(0,200), true);
-    {
-      drawObjectProperties(path, locallyEditable);
+  ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, valueBackground);
+  ImGui::SameLine();
+  ImVec2 start_draggable_pos = ImGui::GetCursorScreenPos();
+  ImGui::BeginChild("NestedChangeMe", ImVec2(0,200), true);
+  {
+    drawObjectProperties(path, locallyEditable);
 
-      ImVec2 end_draggable_pos = ImGui::GetCursorScreenPos();
-      ImVec2 canvas_size(end_draggable_pos.x-start_draggable_pos.x, end_draggable_pos.y-start_draggable_pos.y);
-      ImGui::SetCursorScreenPos(start_draggable_pos);
-      ImGui::InvisibleButton("ChangeMeToo", canvas_size);
-      if (ImGui::IsItemActive() && ImGui::IsMouseDragging()) mouse_delta = ImGui::GetIO().MouseDelta;
-    }
-    ImGui::EndChild();
-    ImGui::PopStyleColor();
-    ImGui::BeginChild("NestedChangeMe");
-    {
-      ImGui::SetScrollX(ImGui::GetScrollX() - mouse_delta.x);
-      ImGui::SetScrollY(ImGui::GetScrollY() - mouse_delta.y);
-    }
-    ImGui::End();
+    ImVec2 end_draggable_pos = ImGui::GetCursorScreenPos();
+    ImVec2 canvas_size(end_draggable_pos.x-start_draggable_pos.x, end_draggable_pos.y-start_draggable_pos.y);
+    ImGui::SetCursorScreenPos(start_draggable_pos);
+    ImGui::InvisibleButton("ChangeMeToo", canvas_size);
+    if (ImGui::IsItemActive() && ImGui::IsMouseDragging()) mouse_delta = ImGui::GetIO().MouseDelta;
+  }
+  ImGui::EndChild();
+  ImGui::PopStyleColor();
+  ImGui::BeginChild("NestedChangeMe");
+  {
+    ImGui::SetScrollX(ImGui::GetScrollX() - mouse_delta.x);
+    ImGui::SetScrollY(ImGui::GetScrollY() - mouse_delta.y);
+  }
+  ImGui::End();
 }
 
 // ---------------------------------------------------------------------------------------------
