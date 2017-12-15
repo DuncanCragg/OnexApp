@@ -191,9 +191,17 @@ void GUI::drawObjectProperties(char* path, bool locallyEditable)
 {
   uint8_t size = object_property_size(user, path);
   for(int i=1; i<=size; i++){
-    //if(!locallyEditable && i==size) ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0,100));
-    drawProperty(object_property_key(user, path, i), object_property_value(user, path, i), locallyEditable);
-    //if(!locallyEditable && i==size) ImGui::PopStyleVar();
+    char* key=object_property_key(user, path, i);
+    char pathkey[128]; size_t l = snprintf(pathkey, 128, "%s%s:", path, key);
+    pathkey[l-1] = 0;
+    if(object_property_is_value(user, pathkey)){
+      pathkey[l-1] = ':';
+      drawPropertyValue(pathkey, key, object_property_value(user, path, i), locallyEditable);
+    }
+    else
+    if(object_property_is_list(user, pathkey)){
+      drawPropertyList(pathkey, key, locallyEditable);
+    }
   }
 
   if(!locallyEditable) return;
@@ -201,7 +209,7 @@ void GUI::drawObjectProperties(char* path, bool locallyEditable)
 
 static ImVec2 mouse_delta(0,0);
 
-void GUI::drawProperty(char* key, char* val, bool locallyEditable)
+void GUI::drawPropertyValue(char* path, char* key, char* val, bool locallyEditable)
 {
   uint16_t height = is_uid(val)? 200: 70;
   ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
@@ -214,20 +222,67 @@ void GUI::drawProperty(char* key, char* val, bool locallyEditable)
     ImGui::Button(val, ImVec2(610, height));
     if(ImGui::IsItemActive() && ImGui::IsMouseDragging()) mouse_delta = ImGui::GetIO().MouseDelta;
   }else{
-    char b[128];
-    snprintf(b, 128, "viewing:%s:", key);
-    drawNestedObjectProperties(b, false);
+    drawNestedObjectProperties(path, false, height);
   }
 }
 
-void GUI::drawNestedObjectProperties(char* path, bool locallyEditable)
+void GUI::drawNestedObjectProperties(char* path, bool locallyEditable, int height)
 {
   ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, valueBackground);
   ImGui::SameLine();
   ImVec2 start_draggable_pos = ImGui::GetCursorScreenPos();
-  ImGui::BeginChild("NestedChangeMe", ImVec2(0,200), true);
+  ImGui::BeginChild("NestedChangeMe", ImVec2(0,height), true);
   {
     drawObjectProperties(path, locallyEditable);
+
+    ImVec2 end_draggable_pos = ImGui::GetCursorScreenPos();
+    ImVec2 canvas_size(end_draggable_pos.x-start_draggable_pos.x, end_draggable_pos.y-start_draggable_pos.y);
+    ImGui::SetCursorScreenPos(start_draggable_pos);
+    ImGui::InvisibleButton("ChangeMeToo", canvas_size);
+    if (ImGui::IsItemActive() && ImGui::IsMouseDragging()) mouse_delta = ImGui::GetIO().MouseDelta;
+  }
+  ImGui::EndChild();
+  ImGui::PopStyleColor();
+  ImGui::BeginChild("NestedChangeMe");
+  {
+    ImGui::SetScrollX(ImGui::GetScrollX() - mouse_delta.x);
+    ImGui::SetScrollY(ImGui::GetScrollY() - mouse_delta.y);
+  }
+  ImGui::End();
+}
+
+void GUI::drawPropertyList(char* pathkey, char* key, bool locallyEditable)
+{
+  uint16_t height = 300;
+  ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
+  ImGui::PushStyleColor(ImGuiCol_Button, propertyBackground);
+  ImGui::Button(key, ImVec2(280, height));
+  if(ImGui::IsItemActive() && ImGui::IsMouseDragging()) mouse_delta = ImGui::GetIO().MouseDelta;
+  ImGui::PopStyleColor(2);
+  ImGui::SameLine();
+  drawNestedObjectPropertiesList(pathkey, locallyEditable, height);
+}
+
+void GUI::drawNestedObjectPropertiesList(char* pathkey, bool locallyEditable, int height)
+{
+  ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, valueBackground);
+  ImGui::SameLine();
+  ImVec2 start_draggable_pos = ImGui::GetCursorScreenPos();
+  ImGui::BeginChild("NestedChangeMe", ImVec2(0,height), true);
+  {
+    uint8_t sz = object_property_size(user, pathkey);
+    for(int j=1; j<=sz; j++){
+      char* val=object_property_value(user, pathkey, j);
+      if(!is_uid(val)){
+        ImGui::Button(val, ImVec2(610, 70));
+        if(ImGui::IsItemActive() && ImGui::IsMouseDragging()) mouse_delta = ImGui::GetIO().MouseDelta;
+      }else{
+        size_t l=strlen(pathkey);
+        snprintf(pathkey+l, 128-l, ":%d:", j);
+        drawObjectProperties(pathkey, false);
+        pathkey[l] = 0;
+      }
+    }
 
     ImVec2 end_draggable_pos = ImGui::GetCursorScreenPos();
     ImVec2 canvas_size(end_draggable_pos.x-start_draggable_pos.x, end_draggable_pos.y-start_draggable_pos.y);

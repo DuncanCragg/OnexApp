@@ -40,8 +40,10 @@ public:
   void drawGUI();
   void drawView();
   void drawObjectProperties(char* path, bool locallyEditable);
-  void drawNestedObjectProperties(char* path, bool locallyEditable);
-  void drawProperty(char* key, char* val, bool locallyEditable);
+  void drawNestedObjectProperties(char* path, bool locallyEditable, int height);
+  void drawNestedObjectPropertiesList(char* path, bool locallyEditable, int height);
+  void drawPropertyValue(char* path, char* key, char* val, bool locallyEditable);
+  void drawPropertyList(char* pathkey, char* key, bool locallyEditable);
   unsigned char* fontData;
   int texWidth, texHeight;
   VkSampler sampler;
