@@ -251,7 +251,7 @@ void GUI::drawNestedObjectProperties(char* path, bool locallyEditable, int heigh
   ImGui::End();
 }
 
-void GUI::drawPropertyList(char* pathkey, char* key, bool locallyEditable)
+void GUI::drawPropertyList(char* path, char* key, bool locallyEditable)
 {
   uint16_t height = 300;
   ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
@@ -260,27 +260,27 @@ void GUI::drawPropertyList(char* pathkey, char* key, bool locallyEditable)
   if(ImGui::IsItemActive() && ImGui::IsMouseDragging()) mouse_delta = ImGui::GetIO().MouseDelta;
   ImGui::PopStyleColor(2);
   ImGui::SameLine();
-  drawNestedObjectPropertiesList(pathkey, locallyEditable, height);
+  drawNestedObjectPropertiesList(path, locallyEditable, height);
 }
 
-void GUI::drawNestedObjectPropertiesList(char* pathkey, bool locallyEditable, int height)
+void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int height)
 {
   ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, valueBackground);
   ImGui::SameLine();
   ImVec2 start_draggable_pos = ImGui::GetCursorScreenPos();
   ImGui::BeginChild("NestedChangeMe", ImVec2(0,height), true);
   {
-    uint8_t sz = object_property_size(user, pathkey);
+    uint8_t sz = object_property_size(user, path);
     for(int j=1; j<=sz; j++){
-      char* val=object_property_value(user, pathkey, j);
+      char* val=object_property_value(user, path, j);
       if(!is_uid(val)){
         ImGui::Button(val, ImVec2(610, 70));
         if(ImGui::IsItemActive() && ImGui::IsMouseDragging()) mouse_delta = ImGui::GetIO().MouseDelta;
       }else{
-        size_t l=strlen(pathkey);
-        snprintf(pathkey+l, 128-l, ":%d:", j);
-        drawObjectProperties(pathkey, false);
-        pathkey[l] = 0;
+        size_t l=strlen(path);
+        snprintf(path+l, 128-l, ":%d:", j);
+        drawObjectProperties(path, false);
+        path[l] = 0;
       }
     }
 
