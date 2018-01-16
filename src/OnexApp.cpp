@@ -108,8 +108,8 @@ public:
 
     links=object_new((char*)"uid-2", (char*)"links list", 0, 4);
     object_property_set(links, (char*)"list", (char*)"uid-1-2-3");
-    object_property_add(links, (char*)"list", (char*)"banana");
-    object_property_add(links, (char*)"list", (char*)"uid-1-2-3");
+//  object_property_add(links, (char*)"list", (char*)"banana");
+//  object_property_add(links, (char*)"list", (char*)"uid-1-2-3");
     object_property_add(links, (char*)"list", (char*)"mango");
 
     user=object_new((char*)"uid-1", (char*)"user", evaluate_user, 4);

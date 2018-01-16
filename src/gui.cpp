@@ -187,6 +187,11 @@ void GUI::drawView()
   ImGui::EndChild();
 }
 
+static bool evaluate_any_object(object* user)
+{
+  return true;
+}
+
 void GUI::drawObjectProperties(char* path, bool locallyEditable)
 {
   uint8_t size = object_property_size(user, path);
@@ -263,6 +268,25 @@ void GUI::drawPropertyList(char* path, char* key, bool locallyEditable)
   drawNestedObjectPropertiesList(path, locallyEditable, height);
 }
 
+void GUI::drawNewObjectButton(char* path)
+{
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0,10));
+  ImGui::PushStyleColor(ImGuiCol_Text, actionTextColour);
+  ImGui::PushStyleColor(ImGuiCol_Button, propertyBackground);
+  if(ImGui::Button("Add item", ImVec2(240, 70))){
+    object* o = object_new((char*)"uid-4", (char*)"editable", evaluate_any_object, 4);
+    if(o){
+      char* lastcolon=strrchr(path,':');
+      *lastcolon=0;
+      object* v = object_get_from_cache(object_property(user, path));
+      object_property_add(v, (char*)lastcolon+1, object_property(o, (char*)"UID"));
+      *lastcolon=':';
+    }
+  }
+  ImGui::PopStyleColor(2);
+  ImGui::PopStyleVar();
+}
+
 void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int height)
 {
   ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, valueBackground);
@@ -270,6 +294,8 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int h
   ImVec2 start_draggable_pos = ImGui::GetCursorScreenPos();
   ImGui::BeginChild("NestedChangeMe", ImVec2(0,height), true);
   {
+    drawNewObjectButton(path);
+
     uint8_t sz = object_property_size(user, path);
     for(int j=1; j<=sz; j++){
       char* val=object_property_value(user, path, j);

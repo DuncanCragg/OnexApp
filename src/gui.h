@@ -41,6 +41,7 @@ public:
   void drawView();
   void drawObjectProperties(char* path, bool locallyEditable);
   void drawNestedObjectProperties(char* path, bool locallyEditable, int height);
+  void drawNewObjectButton(char* path);
   void drawNestedObjectPropertiesList(char* path, bool locallyEditable, int height);
   void drawPropertyValue(char* path, char* key, char* val, bool locallyEditable);
   void drawPropertyList(char* pathkey, char* key, bool locallyEditable);
