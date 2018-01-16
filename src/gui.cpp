@@ -182,7 +182,9 @@ void GUI::drawView()
 {
   ImGui::BeginChild("Workspace1", ImVec2(910,0), true, ImGuiWindowFlags_HorizontalScrollbar);
   {
-    if(user) drawObjectProperties((char*)"viewing:", false);
+    char* uid=object_property(user, (char*)"viewing");
+    bool locallyEditable = object_is_local(uid);
+    if(user) drawObjectProperties((char*)"viewing:", locallyEditable);
   }
   ImGui::EndChild();
 }
@@ -227,7 +229,8 @@ void GUI::drawPropertyValue(char* path, char* key, char* val, bool locallyEditab
     ImGui::Button(val, ImVec2(610, height));
     if(ImGui::IsItemActive() && ImGui::IsMouseDragging()) mouse_delta = ImGui::GetIO().MouseDelta;
   }else{
-    drawNestedObjectProperties(path, false, height);
+    bool locallyEditable = object_is_local(val);
+    drawNestedObjectProperties(path, locallyEditable, height);
   }
 }
 
@@ -294,7 +297,7 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int h
   ImVec2 start_draggable_pos = ImGui::GetCursorScreenPos();
   ImGui::BeginChild("NestedChangeMe", ImVec2(0,height), true);
   {
-    drawNewObjectButton(path);
+    if(locallyEditable) drawNewObjectButton(path);
 
     uint8_t sz = object_property_size(user, path);
     for(int j=1; j<=sz; j++){
@@ -305,7 +308,8 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int h
       }else{
         size_t l=strlen(path);
         snprintf(path+l, 128-l, ":%d:", j);
-        drawObjectProperties(path, false);
+        bool locallyEditable = object_is_local(val);
+        drawObjectProperties(path, locallyEditable);
         path[l] = 0;
       }
     }
