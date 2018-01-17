@@ -173,8 +173,11 @@ void GUI::drawGUI()
   ImGui::Render();
 }
 
+const char* propNameChoices = "add prop\0new\0title\0description\0Rules\0Notifying\0Alerted\0Timer\0";
+int         propNameChoice = 0;
+const char* propNameStrings[] = { "", "", "title", "description", "Rules", "Notifying", "Alerted", "Timer" };
+
 object* objectEditing=0;
-int     propNameChoice = 0;
 char*   propNameEditing=0;
 char*   propValueEditing=0;
 
@@ -184,7 +187,8 @@ void GUI::drawView()
   {
     char* uid=object_property(user, (char*)"viewing");
     bool locallyEditable = object_is_local(uid);
-    if(user) drawObjectProperties((char*)"viewing:", locallyEditable);
+    char path[9]; memcpy(path, "viewing:", 9);
+    if(user) drawObjectProperties(path, locallyEditable);
   }
   ImGui::EndChild();
 }
@@ -192,6 +196,42 @@ void GUI::drawView()
 static bool evaluate_any_object(object* user)
 {
   return true;
+}
+
+void GUI::drawNewObjectButton(char* path)
+{
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0,10));
+  ImGui::PushStyleColor(ImGuiCol_Text, actionTextColour);
+  ImGui::PushStyleColor(ImGuiCol_Button, propertyBackground);
+  if(ImGui::Button("Add item", ImVec2(240, 70))){
+    object* o = object_new((char*)"uid-4", (char*)"editable", evaluate_any_object, 4);
+    if(o){
+      char* lastcolon=strrchr(path,':');
+      *lastcolon=0;
+      object* v = object_get_from_cache(object_property(user, path));
+      object_property_add(v, lastcolon+1, object_property(o, (char*)"UID"));
+      *lastcolon=':';
+    }
+  }
+  ImGui::PopStyleColor(2);
+  ImGui::PopStyleVar();
+}
+
+void GUI::drawNewPropertyCombo(char* path)
+{
+  ImGui::PushItemWidth(280);
+  ImGui::Combo("", &propNameChoice, propNameChoices);
+  ImGui::PopItemWidth();
+  if(propNameChoice){
+    char* lastcolon=strrchr(path,':');
+    *lastcolon=0;
+    objectEditing = object_get_from_cache(object_property(user, path));
+    *lastcolon=':';
+    if(propNameChoice > 1){
+      object_property_set(objectEditing, (char*)propNameStrings[propNameChoice], (char*)"--");
+      propNameChoice = 0;
+    }
+  }
 }
 
 void GUI::drawObjectProperties(char* path, bool locallyEditable)
@@ -210,8 +250,7 @@ void GUI::drawObjectProperties(char* path, bool locallyEditable)
       drawPropertyList(pathkey, key, locallyEditable);
     }
   }
-
-  if(!locallyEditable) return;
+  if(locallyEditable) drawNewPropertyCombo(path);
 }
 
 static ImVec2 mouse_delta(0,0);
@@ -269,25 +308,6 @@ void GUI::drawPropertyList(char* path, char* key, bool locallyEditable)
   ImGui::PopStyleColor(2);
   ImGui::SameLine();
   drawNestedObjectPropertiesList(path, locallyEditable, height);
-}
-
-void GUI::drawNewObjectButton(char* path)
-{
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0,10));
-  ImGui::PushStyleColor(ImGuiCol_Text, actionTextColour);
-  ImGui::PushStyleColor(ImGuiCol_Button, propertyBackground);
-  if(ImGui::Button("Add item", ImVec2(240, 70))){
-    object* o = object_new((char*)"uid-4", (char*)"editable", evaluate_any_object, 4);
-    if(o){
-      char* lastcolon=strrchr(path,':');
-      *lastcolon=0;
-      object* v = object_get_from_cache(object_property(user, path));
-      object_property_add(v, (char*)lastcolon+1, object_property(o, (char*)"UID"));
-      *lastcolon=':';
-    }
-  }
-  ImGui::PopStyleColor(2);
-  ImGui::PopStyleVar();
 }
 
 void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int height)
