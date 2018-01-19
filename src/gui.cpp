@@ -309,22 +309,25 @@ void GUI::drawPropertyValue(char* path, char* key, char* val, bool locallyEditab
 
 void GUI::drawNestedObjectProperties(char* path, bool locallyEditable, int height)
 {
+  char childName[128]; memcpy(childName, path, strlen(path)+1);
   ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, valueBackground);
   ImGui::SameLine();
   ImVec2 start_draggable_pos = ImGui::GetCursorScreenPos();
-  ImGui::BeginChild("NestedChangeMe", ImVec2(0,height), true);
+  ImGui::BeginChild(childName, ImVec2(0,height), true);
   {
     drawObjectProperties(path, locallyEditable);
 
     ImVec2 end_draggable_pos = ImGui::GetCursorScreenPos();
     ImVec2 canvas_size(end_draggable_pos.x-start_draggable_pos.x, end_draggable_pos.y-start_draggable_pos.y);
     ImGui::SetCursorScreenPos(start_draggable_pos);
-    ImGui::InvisibleButton("ChangeMeToo", canvas_size);
+    ImGui::PushID(childName);
+    ImGui::InvisibleButton("dragme", canvas_size);
+    ImGui::PopID();
     if (ImGui::IsItemActive() && ImGui::IsMouseDragging()) mouse_delta = ImGui::GetIO().MouseDelta;
   }
   ImGui::EndChild();
   ImGui::PopStyleColor();
-  ImGui::BeginChild("NestedChangeMe");
+  ImGui::BeginChild(childName);
   {
     ImGui::SetScrollX(ImGui::GetScrollX() - mouse_delta.x);
     ImGui::SetScrollY(ImGui::GetScrollY() - mouse_delta.y);
@@ -346,10 +349,11 @@ void GUI::drawPropertyList(char* path, char* key, bool locallyEditable)
 
 void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int height)
 {
+  char childName[128]; memcpy(childName, path, strlen(path)+1);
   ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, valueBackground);
   ImGui::SameLine();
   ImVec2 start_draggable_pos = ImGui::GetCursorScreenPos();
-  ImGui::BeginChild("NestedChangeMe", ImVec2(0,height), true);
+  ImGui::BeginChild(childName, ImVec2(0,height), true);
   {
     if(locallyEditable) drawNewObjectButton(path);
 
@@ -372,12 +376,14 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int h
     ImVec2 end_draggable_pos = ImGui::GetCursorScreenPos();
     ImVec2 canvas_size(end_draggable_pos.x-start_draggable_pos.x, end_draggable_pos.y-start_draggable_pos.y);
     ImGui::SetCursorScreenPos(start_draggable_pos);
-    ImGui::InvisibleButton("ChangeMeToo", canvas_size);
+    ImGui::PushID(childName);
+    ImGui::InvisibleButton("dragme", canvas_size);
+    ImGui::PopID();
     if (ImGui::IsItemActive() && ImGui::IsMouseDragging()) mouse_delta = ImGui::GetIO().MouseDelta;
   }
   ImGui::EndChild();
   ImGui::PopStyleColor();
-  ImGui::BeginChild("NestedChangeMe");
+  ImGui::BeginChild(childName);
   {
     ImGui::SetScrollX(ImGui::GetScrollX() - mouse_delta.x);
     ImGui::SetScrollY(ImGui::GetScrollY() - mouse_delta.y);
