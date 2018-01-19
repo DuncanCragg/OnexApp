@@ -291,14 +291,15 @@ void GUI::drawObjectProperties(char* path, bool locallyEditable)
 
 void GUI::drawPropertyValue(char* path, char* key, char* val, bool locallyEditable)
 {
-  uint16_t height = is_uid(val)? 200: 70;
+  bool isAvailableObject = is_uid(val) && object_property_size(user, path);
+  uint16_t height = isAvailableObject? 200: 70;
   ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
   ImGui::PushStyleColor(ImGuiCol_Button, propertyBackground);
   ImGui::Button(key, ImVec2(280, height));
   if(ImGui::IsItemActive() && ImGui::IsMouseDragging()) mouse_delta = ImGui::GetIO().MouseDelta;
   ImGui::PopStyleColor(2);
   ImGui::SameLine();
-  if(!is_uid(val)){
+  if(!isAvailableObject){
     drawNewPropertyValueEditor(path, key, val, locallyEditable, height);
   }else{
     bool locallyEditable = object_is_local(val);
@@ -355,16 +356,17 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int h
     uint8_t sz = object_property_size(user, path);
     for(int j=1; j<=sz; j++){
       char* val=object_property_value(user, path, j);
-      if(!is_uid(val)){
+      size_t l=strlen(path);
+      snprintf(path+l, 128-l, ":%d:", j);
+      bool isAvailableObject = is_uid(val) && object_property_size(user, path);
+      if(!isAvailableObject){
         ImGui::Button(val, ImVec2(610, 70));
         if(ImGui::IsItemActive() && ImGui::IsMouseDragging()) mouse_delta = ImGui::GetIO().MouseDelta;
       }else{
-        size_t l=strlen(path);
-        snprintf(path+l, 128-l, ":%d:", j);
         bool locallyEditable = object_is_local(val);
         drawObjectProperties(path, locallyEditable);
-        path[l] = 0;
       }
+      path[l] = 0;
     }
 
     ImVec2 end_draggable_pos = ImGui::GetCursorScreenPos();
