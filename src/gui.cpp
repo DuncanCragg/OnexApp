@@ -179,7 +179,6 @@ const char* propNameStrings[] = { "", "", "title", "description", "Rules", "Noti
 
 object* objectEditing=0;
 char*   propNameEditing=0;
-char*   propValueEditing=0;
 
 void GUI::drawView()
 {
@@ -196,6 +195,41 @@ void GUI::drawView()
 static bool evaluate_any_object(object* user)
 {
   return true;
+}
+
+static ImVec2 mouse_delta(0,0);
+
+void GUI::drawNewPropertyValueEditor(char* path, char* key, char* val, bool locallyEditable, uint16_t height)
+{
+  bool editing = locallyEditable && propNameEditing && !strcmp(path, propNameEditing);
+  if(!editing){
+    if(ImGui::Button(val, ImVec2(610, height))){ propNameEditing = strdup(path); showOrHideSoftKeyboard(true); }
+    if(ImGui::IsItemActive() && ImGui::IsMouseDragging()) mouse_delta = ImGui::GetIO().MouseDelta;
+  }
+  else{
+    static char b[64] = "";
+    struct TextFilters {
+      static int FilterImGuiLetters(ImGuiTextEditCallbackData* data) {
+        ImWchar ch = data->EventChar;
+        if(ch >=256) return 1;
+        return 0;
+      }
+    };
+    strncpy(b, val, 64); b[63]=0;
+    ImGui::SetKeyboardFocusHere();
+    ImGui::PushItemWidth(610);
+    if(ImGui::InputText("## property value", b, 64, ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue, TextFilters::FilterImGuiLetters)){
+      char* lastcolon=strrchr(path,':'); *lastcolon=0;
+      char* secondlastcolon=strrchr(path, ':'); *secondlastcolon=0;
+      objectEditing = object_get_from_cache(object_property(user, path));
+      *secondlastcolon=':'; *lastcolon=':';
+      object_property_set(objectEditing, key, strdup(b));
+      free(propNameEditing); propNameEditing=0;
+      showOrHideSoftKeyboard(false);
+      *b=0;
+    }
+    ImGui::PopItemWidth();
+  }
 }
 
 void GUI::drawNewObjectButton(char* path)
@@ -221,6 +255,8 @@ void GUI::drawNewPropertyCombo(char* path)
 {
   ImGui::PushItemWidth(280);
   ImGui::Combo("", &propNameChoice, propNameChoices);
+  ImGui::SameLine();
+  ImGui::Button("", ImVec2(610, 70));
   ImGui::PopItemWidth();
   if(propNameChoice){
     char* lastcolon=strrchr(path,':');
@@ -253,8 +289,6 @@ void GUI::drawObjectProperties(char* path, bool locallyEditable)
   if(locallyEditable) drawNewPropertyCombo(path);
 }
 
-static ImVec2 mouse_delta(0,0);
-
 void GUI::drawPropertyValue(char* path, char* key, char* val, bool locallyEditable)
 {
   uint16_t height = is_uid(val)? 200: 70;
@@ -265,8 +299,7 @@ void GUI::drawPropertyValue(char* path, char* key, char* val, bool locallyEditab
   ImGui::PopStyleColor(2);
   ImGui::SameLine();
   if(!is_uid(val)){
-    ImGui::Button(val, ImVec2(610, height));
-    if(ImGui::IsItemActive() && ImGui::IsMouseDragging()) mouse_delta = ImGui::GetIO().MouseDelta;
+    drawNewPropertyValueEditor(path, key, val, locallyEditable, height);
   }else{
     bool locallyEditable = object_is_local(val);
     drawNestedObjectProperties(path, locallyEditable, height);
