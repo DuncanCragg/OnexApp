@@ -47,6 +47,7 @@ public:
   void drawNestedObjectPropertiesList(char* path, bool locallyEditable, int height);
   void drawPropertyValue(char* path, char* key, char* val, bool locallyEditable);
   void drawPropertyList(char* pathkey, char* key, bool locallyEditable);
+  void setPropertyName(char* path , char* name);
   unsigned char* fontData;
   int texWidth, texHeight;
   VkSampler sampler;

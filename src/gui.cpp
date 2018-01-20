@@ -179,11 +179,10 @@ void GUI::drawGUI()
   ImGui::Render();
 }
 
+const char* propNameStrings[] = { "", "", "title", "description", "Rules", "Notifying", "Alerted", "Timer" };
 const char* propNameChoices = "add prop\0new\0title\0description\0Rules\0Notifying\0Alerted\0Timer\0";
 int         propNameChoice = 0;
-const char* propNameStrings[] = { "", "", "title", "description", "Rules", "Notifying", "Alerted", "Timer" };
-
-char*   propNameEditing=0;
+char*       propNameEditing=0;
 
 void GUI::drawView()
 {
@@ -206,21 +205,56 @@ static ImVec2 mouse_delta(0,0);
 
 void GUI::drawNewPropertyCombo(char* path)
 {
-  ImGui::PushItemWidth(280);
-  ImGui::Combo("", &propNameChoice, propNameChoices);
-  ImGui::SameLine();
-  ImGui::Button("", ImVec2(610, 70));
-  ImGui::PopItemWidth();
-  if(propNameChoice){
-    char* lastcolon=strrchr(path,':');
-    *lastcolon=0;
-    object* objectEditing = object_get_from_cache(object_property(user, path));
-    *lastcolon=':';
+  bool editing = propNameEditing && !strcmp(path, propNameEditing);
+  if(!editing){
+    ImGui::PushItemWidth(280);
+    int c=0;
+    ImGui::Combo("", !propNameEditing? &propNameChoice: &c, propNameChoices);
+    if(!propNameEditing && propNameChoice){ propNameEditing = strdup(path); if(propNameChoice==1) showOrHideSoftKeyboard(true); }
+    ImGui::PopItemWidth();
+    ImGui::SameLine();
+    ImGui::Button("", ImVec2(610, 70));
+  }else{
     if(propNameChoice > 1){
-      object_property_set(objectEditing, (char*)propNameStrings[propNameChoice], (char*)"--");
-      propNameChoice = 0;
+      setPropertyName(path, (char*)propNameStrings[propNameChoice]);
+    }
+    else{
+      static char b[64] = "";
+      struct TextFilters {
+        static int FilterImGuiLetters(ImGuiTextEditCallbackData* data) {
+          ImWchar ch = data->EventChar;
+          if(ch >=256) return 1;
+          if(!strlen(b) && !isalpha(ch)) return 1;
+          if(ch == ' '){ data->EventChar = '-'; return 0; }
+          if(ch == '-'){ return 0; }
+          if(!isalnum(ch)) return 1;
+          data->EventChar = tolower(ch);
+          return 0;
+        }
+      };
+      ImGui::SetKeyboardFocusHere();
+      ImGui::PushItemWidth(280);
+      if(ImGui::InputText("## property name", b, 64, ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue, TextFilters::FilterImGuiLetters)){
+        setPropertyName(path, strdup(b));
+        showOrHideSoftKeyboard(false);
+        *b=0;
+      }
+      ImGui::SameLine();
+      ImGui::Button("", ImVec2(610, 70));
+      ImGui::PopItemWidth();
     }
   }
+}
+
+void GUI::setPropertyName(char* path , char* name)
+{
+  char* lastcolon=strrchr(path,':');
+  *lastcolon=0;
+  object* objectEditing = object_get_from_cache(object_property(user, path));
+  *lastcolon=':';
+  object_property_set(objectEditing, name, (char*)"--");
+  free(propNameEditing); propNameEditing=0;
+  propNameChoice = 0;
 }
 
 void GUI::drawNewPropertyValueEditor(char* path, char* key, char* val, bool locallyEditable, uint16_t height)
