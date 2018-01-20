@@ -183,7 +183,6 @@ const char* propNameChoices = "add prop\0new\0title\0description\0Rules\0Notifyi
 int         propNameChoice = 0;
 const char* propNameStrings[] = { "", "", "title", "description", "Rules", "Notifying", "Alerted", "Timer" };
 
-object* objectEditing=0;
 char*   propNameEditing=0;
 
 void GUI::drawView()
@@ -204,6 +203,25 @@ static bool evaluate_any_object(object* user)
 }
 
 static ImVec2 mouse_delta(0,0);
+
+void GUI::drawNewPropertyCombo(char* path)
+{
+  ImGui::PushItemWidth(280);
+  ImGui::Combo("", &propNameChoice, propNameChoices);
+  ImGui::SameLine();
+  ImGui::Button("", ImVec2(610, 70));
+  ImGui::PopItemWidth();
+  if(propNameChoice){
+    char* lastcolon=strrchr(path,':');
+    *lastcolon=0;
+    object* objectEditing = object_get_from_cache(object_property(user, path));
+    *lastcolon=':';
+    if(propNameChoice > 1){
+      object_property_set(objectEditing, (char*)propNameStrings[propNameChoice], (char*)"--");
+      propNameChoice = 0;
+    }
+  }
+}
 
 void GUI::drawNewPropertyValueEditor(char* path, char* key, char* val, bool locallyEditable, uint16_t height)
 {
@@ -227,7 +245,7 @@ void GUI::drawNewPropertyValueEditor(char* path, char* key, char* val, bool loca
     if(ImGui::InputText("## property value", b, 64, ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue, TextFilters::FilterImGuiLetters)){
       char* lastcolon=strrchr(path,':'); *lastcolon=0;
       char* secondlastcolon=strrchr(path, ':'); *secondlastcolon=0;
-      objectEditing = object_get_from_cache(object_property(user, path));
+      object* objectEditing = object_get_from_cache(object_property(user, path));
       *secondlastcolon=':'; *lastcolon=':';
       object_property_set(objectEditing, key, strdup(b));
       free(propNameEditing); propNameEditing=0;
@@ -255,25 +273,6 @@ void GUI::drawNewObjectButton(char* path)
   }
   ImGui::PopStyleColor(2);
   ImGui::PopStyleVar();
-}
-
-void GUI::drawNewPropertyCombo(char* path)
-{
-  ImGui::PushItemWidth(280);
-  ImGui::Combo("", &propNameChoice, propNameChoices);
-  ImGui::SameLine();
-  ImGui::Button("", ImVec2(610, 70));
-  ImGui::PopItemWidth();
-  if(propNameChoice){
-    char* lastcolon=strrchr(path,':');
-    *lastcolon=0;
-    objectEditing = object_get_from_cache(object_property(user, path));
-    *lastcolon=':';
-    if(propNameChoice > 1){
-      object_property_set(objectEditing, (char*)propNameStrings[propNameChoice], (char*)"--");
-      propNameChoice = 0;
-    }
-  }
 }
 
 void GUI::drawObjectProperties(char* path, bool locallyEditable)
