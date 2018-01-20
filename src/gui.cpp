@@ -40,6 +40,12 @@ ImVec4 keywordColour(0.5f, 0.1f, 0.2f, 1.0f);
 ImVec4 propertyBackground(0.90f, 0.90f, 1.00f, 1.00f);
 ImVec4 valueBackground(0.9f, 0.8f, 1.0f, 1.0f);
 
+ImVec4 schemeBrown(183.0f/255, 142.0f/255, 96.0f/255, 1.0f);
+ImVec4 schemeYellow(255.0f/255, 245.0f/255, 180.0f/255, 1.0f);
+ImVec4 schemeMauve(221.0f/255, 190.0f/255, 243.0f/255, 1.0f);
+ImVec4 schemePurple(169.0f/255, 103.0f/255, 212.0f/255, 1.0f);
+ImVec4 schemeGreen(160.0f/255, 175.0f/255, 110.0f/255, 1.0f);
+
 void GUI::initImGUI(float width, float height)
 {
   ImGuiStyle& style = ImGui::GetStyle();
@@ -236,7 +242,7 @@ void GUI::drawNewObjectButton(char* path)
 {
   ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0,10));
   ImGui::PushStyleColor(ImGuiCol_Text, actionTextColour);
-  ImGui::PushStyleColor(ImGuiCol_Button, propertyBackground);
+  ImGui::PushStyleColor(ImGuiCol_Button, schemeYellow);
   if(ImGui::Button("Add item", ImVec2(240, 70))){
     object* o = object_new((char*)"uid-4", (char*)"editable", evaluate_any_object, 4);
     if(o){
