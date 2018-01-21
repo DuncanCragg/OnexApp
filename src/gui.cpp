@@ -315,7 +315,7 @@ void GUI::drawNewObjectButton(char* path)
   ImGui::PushStyleColor(ImGuiCol_Text, actionTextColour);
   ImGui::PushStyleColor(ImGuiCol_Button, schemeYellow);
   if(ImGui::Button("Add item", ImVec2(buttonWidth, buttonHeight))){
-    object* o = object_new((char*)"uid-4", (char*)"editable", evaluate_any_object, 4);
+    object* o = object_new(0, (char*)"editable", evaluate_any_object, 4);
     if(o){
       char* lastcolon=strrchr(path,':');
       *lastcolon=0;
