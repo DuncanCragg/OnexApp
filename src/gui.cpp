@@ -46,13 +46,14 @@ ImVec4 schemeMauve(221.0f/255, 190.0f/255, 243.0f/255, 1.0f);
 ImVec4 schemePurple(169.0f/255, 103.0f/255, 212.0f/255, 1.0f);
 ImVec4 schemeGreen(160.0f/255, 175.0f/255, 110.0f/255, 1.0f);
 ImVec4 schemeLightPurple(0.8f, 0.7f, 0.9f, 1.0f);
+ImVec4 schemePlum(230.0f/255, 179.0f/255, 230.0f/255, 1.0f);
 
 #define workspace1Width 1300
 #define keyWidth 380
 #define valWidth 900
 #define objectHeight 400
 #define listHeight 1000
-#define buttonWidth 210
+#define buttonWidth 270
 #define buttonHeight 70
 #define listBackground schemeLightPurple
 
@@ -315,8 +316,8 @@ static void drawPadding(int width, int height)
 void GUI::drawNewObjectButton(char* path)
 {
   ImGui::PushStyleColor(ImGuiCol_Text, actionTextColour);
-  ImGui::PushStyleColor(ImGuiCol_Button, schemeYellow);
-  char addId[256]; snprintf(addId, 256, "Add item ## %s", path);
+  ImGui::PushStyleColor(ImGuiCol_Button, schemePlum);
+  char addId[256]; snprintf(addId, 256, "Add object ## %s", path);
   if(ImGui::Button(addId, ImVec2(buttonWidth, buttonHeight))){
     object* o = object_new(0, (char*)"editable", evaluate_any_object, 4);
     if(o){
