@@ -53,7 +53,7 @@ ImVec4 schemePlum(230.0f/255, 179.0f/255, 230.0f/255, 1.0f);
 #define valWidth 900
 #define objectHeight 400
 #define listHeight 1000
-#define buttonWidth 270
+#define buttonWidth 190
 #define buttonHeight 70
 #define listBackground schemeLightPurple
 
@@ -191,7 +191,7 @@ void GUI::drawGUI()
 }
 
 const char* propNameStrings[] = { "", "", "title", "description", "Rules", "Notifying", "Alerted", "Timer" };
-const char* propNameChoices = "add prop\0new\0title\0description\0Rules\0Notifying\0Alerted\0Timer\0";
+const char* propNameChoices = "+ property\0new\0title\0description\0Rules\0Notifying\0Alerted\0Timer\0";
 int         propNameChoice = 0;
 char*       propNameEditing=0;
 
@@ -291,10 +291,21 @@ void GUI::drawNewPropertyValueEditor(char* path, char* key, char* val, bool loca
     ImGui::PushItemWidth(valWidth);
     if(ImGui::InputText("## property value", b, 64, ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue, TextFilters::FilterImGuiLetters)){
       char* lastcolon=strrchr(path,':'); *lastcolon=0;
-      char* secondlastcolon=strrchr(path, ':'); *secondlastcolon=0;
-      object* objectEditing = object_get_from_cache(object_property(user, path));
-      *secondlastcolon=':'; *lastcolon=':';
-      object_property_set(objectEditing, key, strdup(b));
+      if(key){
+        char* secondlastcolon=strrchr(path, ':'); *secondlastcolon=0;
+        object* objectEditing = object_get_from_cache(object_property(user, path));
+        object_property_set(objectEditing, key, strdup(b));
+        *secondlastcolon=':';
+      }
+      else{
+        char* secondlastcolon=strrchr(path, ':'); *secondlastcolon=0;
+        char* thirdlastcolon=strrchr(path, ':'); *thirdlastcolon=0;
+        object* objectEditing = object_get_from_cache(object_property(user, path));
+        *secondlastcolon=':';
+        object_property_set(objectEditing, thirdlastcolon+1, strdup(b));
+        *thirdlastcolon=':';
+      }
+      *lastcolon=':';
       free(propNameEditing); propNameEditing=0;
       showOrHideSoftKeyboard(false);
       *b=0;
@@ -317,8 +328,17 @@ void GUI::drawNewObjectButton(char* path)
 {
   ImGui::PushStyleColor(ImGuiCol_Text, actionTextColour);
   ImGui::PushStyleColor(ImGuiCol_Button, schemePlum);
-  char addId[256]; snprintf(addId, 256, "Add object ## %s", path);
-  if(ImGui::Button(addId, ImVec2(buttonWidth, buttonHeight))){
+  char addValId[256]; snprintf(addValId, 256, "+ value ## %s", path);
+  if(ImGui::Button(addValId, ImVec2(buttonWidth, buttonHeight))){
+    char* lastcolon=strrchr(path,':');
+    *lastcolon=0;
+    object* v = object_get_from_cache(object_property(user, path));
+    object_property_add(v, lastcolon+1, (char*)"--");
+    *lastcolon=':';
+  }
+  ImGui::SameLine();
+  char addObId[256]; snprintf(addObId, 256, "+ object ## %s", path);
+  if(ImGui::Button(addObId, ImVec2(buttonWidth, buttonHeight))){
     object* o = object_new(0, (char*)"editable", evaluate_any_object, 4);
     if(o){
       char* lastcolon=strrchr(path,':');
@@ -428,9 +448,7 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int h
       snprintf(path+l, 128-l, ":%d:", j);
       bool isAvailableObject = is_uid(val) && object_property_size(user, path);
       if(!isAvailableObject){
-        char valId[256]; snprintf(valId, 256, "%s ## %s", val, path);
-        ImGui::Button(valId, ImVec2(valWidth, buttonHeight));
-        if(ImGui::IsItemActive() && ImGui::IsMouseDragging()) mouse_delta = ImGui::GetIO().MouseDelta;
+        drawNewPropertyValueEditor(path, 0, val, locallyEditable, buttonHeight);
       }else{
         bool locallyEditable = object_is_local(val);
         drawObjectProperties(path, locallyEditable);
