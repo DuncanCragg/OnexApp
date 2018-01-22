@@ -219,11 +219,12 @@ void GUI::drawNewPropertyCombo(char* path)
   if(!editing){
     ImGui::PushItemWidth(keyWidth);
     int c=0;
-    ImGui::Combo("", !propNameEditing? &propNameChoice: &c, propNameChoices);
+    char id[128]; snprintf(id, 128, "## %s", path);
+    ImGui::Combo(id, !propNameEditing? &propNameChoice: &c, propNameChoices);
     if(!propNameEditing && propNameChoice){ propNameEditing = strdup(path); if(propNameChoice==1) showOrHideSoftKeyboard(true); }
     ImGui::PopItemWidth();
     ImGui::SameLine();
-    ImGui::Button("", ImVec2(valWidth, buttonHeight));
+    ImGui::Button("## blank", ImVec2(valWidth, buttonHeight));
   }else{
     if(propNameChoice > 1){
       setPropertyName(path, (char*)propNameStrings[propNameChoice]);
@@ -250,7 +251,7 @@ void GUI::drawNewPropertyCombo(char* path)
         *b=0;
       }
       ImGui::SameLine();
-      ImGui::Button("", ImVec2(valWidth, buttonHeight));
+      ImGui::Button("## blank", ImVec2(valWidth, buttonHeight));
       ImGui::PopItemWidth();
     }
   }
@@ -271,7 +272,8 @@ void GUI::drawNewPropertyValueEditor(char* path, char* key, char* val, bool loca
 {
   bool editing = locallyEditable && propNameEditing && !strcmp(path, propNameEditing);
   if(!editing){
-    if(ImGui::Button(val, ImVec2(valWidth, height))){ propNameEditing = strdup(path); showOrHideSoftKeyboard(true); }
+    char valId[256]; snprintf(valId, 256, "%s ## %s", val, path);
+    if(ImGui::Button(valId, ImVec2(valWidth, height))){ propNameEditing = strdup(path); showOrHideSoftKeyboard(true); }
     if(ImGui::IsItemActive() && ImGui::IsMouseDragging()) mouse_delta = ImGui::GetIO().MouseDelta;
   }
   else{
@@ -306,7 +308,7 @@ static void drawPadding(int width, int height)
   ImGui::PushStyleColor(ImGuiCol_ButtonHovered, listBackground);
   ImGui::PushStyleColor(ImGuiCol_Border, listBackground);
   ImGui::PushStyleColor(ImGuiCol_BorderShadow, listBackground);
-  ImGui::Button("", ImVec2(width, height));
+  ImGui::Button("## blank", ImVec2(width, height));
   ImGui::PopStyleColor(4);
 }
 
@@ -314,7 +316,8 @@ void GUI::drawNewObjectButton(char* path)
 {
   ImGui::PushStyleColor(ImGuiCol_Text, actionTextColour);
   ImGui::PushStyleColor(ImGuiCol_Button, schemeYellow);
-  if(ImGui::Button("Add item", ImVec2(buttonWidth, buttonHeight))){
+  char addId[256]; snprintf(addId, 256, "Add item ## %s", path);
+  if(ImGui::Button(addId, ImVec2(buttonWidth, buttonHeight))){
     object* o = object_new(0, (char*)"editable", evaluate_any_object, 4);
     if(o){
       char* lastcolon=strrchr(path,':');
@@ -353,7 +356,8 @@ void GUI::drawPropertyValue(char* path, char* key, char* val, bool locallyEditab
   uint16_t height = isAvailableObject? objectHeight: buttonHeight;
   ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
   ImGui::PushStyleColor(ImGuiCol_Button, propertyBackground);
-  ImGui::Button(key, ImVec2(keyWidth, height));
+  char keyId[256]; snprintf(keyId, 256, "%s ## %s", key, path);
+  ImGui::Button(keyId, ImVec2(keyWidth, height));
   if(ImGui::IsItemActive() && ImGui::IsMouseDragging()) mouse_delta = ImGui::GetIO().MouseDelta;
   ImGui::PopStyleColor(2);
   ImGui::SameLine();
@@ -398,7 +402,8 @@ void GUI::drawPropertyList(char* path, char* key, bool locallyEditable)
   uint16_t height = listHeight;
   ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
   ImGui::PushStyleColor(ImGuiCol_Button, propertyBackground);
-  ImGui::Button(key, ImVec2(keyWidth, height));
+  char keyId[256]; snprintf(keyId, 256, "%s ## %s", key, path);
+  ImGui::Button(keyId, ImVec2(keyWidth, height));
   if(ImGui::IsItemActive() && ImGui::IsMouseDragging()) mouse_delta = ImGui::GetIO().MouseDelta;
   ImGui::PopStyleColor(2);
   ImGui::SameLine();
@@ -422,7 +427,8 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int h
       snprintf(path+l, 128-l, ":%d:", j);
       bool isAvailableObject = is_uid(val) && object_property_size(user, path);
       if(!isAvailableObject){
-        ImGui::Button(val, ImVec2(valWidth, buttonHeight));
+        char valId[256]; snprintf(valId, 256, "%s ## %s", val, path);
+        ImGui::Button(valId, ImVec2(valWidth, buttonHeight));
         if(ImGui::IsItemActive() && ImGui::IsMouseDragging()) mouse_delta = ImGui::GetIO().MouseDelta;
       }else{
         bool locallyEditable = object_is_local(val);
