@@ -51,6 +51,7 @@ ImVec4 schemePlum(230.0f/255, 179.0f/255, 230.0f/255, 1.0f);
 #define workspace1Width 1300
 #define keyWidth 380
 #define valWidth 900
+#define shorterValWidth 680
 #define objectHeight 400
 #define listHeight 1000
 #define buttonWidth 190
@@ -325,7 +326,7 @@ static void drawPadding(int width, int height)
   ImGui::PopStyleColor(4);
 }
 
-void GUI::drawNewObjectButton(char* path, uint8_t width)
+void GUI::drawNewValueOrObjectButtons(char* path, uint8_t width)
 {
   ImGui::PushStyleColor(ImGuiCol_Text, actionTextColour);
   ImGui::PushStyleColor(ImGuiCol_Button, schemePlum);
@@ -333,10 +334,18 @@ void GUI::drawNewObjectButton(char* path, uint8_t width)
   char addValId[256]; snprintf(addValId, 256, addValLabel, path);
   if(ImGui::Button(addValId, ImVec2(width, buttonHeight))){
     char* lastcolon=strrchr(path,':');
-    *lastcolon=0;
-    object* v = object_get_from_cache(object_property(user, path));
-    object_property_add(v, lastcolon+1, (char*)"--");
-    *lastcolon=':';
+    if(lastcolon+1-path == strlen(path)){
+      *lastcolon=0; char* secondlastcolon=strrchr(path,':'); *secondlastcolon=0;
+      object* v = object_get_from_cache(object_property(user, path));
+      object_property_add(v, secondlastcolon+1, (char*)"--");
+      *secondlastcolon=':'; *lastcolon=':';
+    }
+    else{
+      *lastcolon=0;
+      object* v = object_get_from_cache(object_property(user, path));
+      object_property_add(v, lastcolon+1, (char*)"--");
+      *lastcolon=':';
+    }
   }
   ImGui::SameLine();
   const char* addObjLabel = width<buttonWidth? "+o##%s": "+ object## %s";
@@ -345,10 +354,18 @@ void GUI::drawNewObjectButton(char* path, uint8_t width)
     object* o = object_new(0, (char*)"editable", evaluate_any_object, 4);
     if(o){
       char* lastcolon=strrchr(path,':');
-      *lastcolon=0;
-      object* v = object_get_from_cache(object_property(user, path));
-      object_property_add(v, lastcolon+1, object_property(o, (char*)"UID"));
-      *lastcolon=':';
+      if(lastcolon+1-path == strlen(path)){
+        *lastcolon=0; char* secondlastcolon=strrchr(path,':'); *secondlastcolon=0;
+        object* v = object_get_from_cache(object_property(user, path));
+        object_property_add(v, secondlastcolon+1, object_property(o, (char*)"UID"));
+        *secondlastcolon=':'; *lastcolon=':';
+      }
+      else{
+        *lastcolon=0;
+        object* v = object_get_from_cache(object_property(user, path));
+        object_property_add(v, lastcolon+1, object_property(o, (char*)"UID"));
+        *lastcolon=':';
+      }
     }
   }
   ImGui::PopStyleColor(2);
@@ -385,7 +402,9 @@ void GUI::drawPropertyValue(char* path, char* key, char* val, bool locallyEditab
   ImGui::PopStyleColor(2);
   ImGui::SameLine();
   if(!isAvailableObject){
-    drawNewPropertyValueEditor(path, key, val, locallyEditable, valWidth, height);
+    drawNewPropertyValueEditor(path, key, val, locallyEditable, shorterValWidth, height);
+    ImGui::SameLine();
+    if(locallyEditable) drawNewValueOrObjectButtons(path, smallButtonWidth);
   }else{
     bool locallyEditable = object_is_local(val);
     drawNestedObjectProperties(path, locallyEditable, height);
@@ -395,12 +414,14 @@ void GUI::drawPropertyValue(char* path, char* key, char* val, bool locallyEditab
 void GUI::drawNestedObjectProperties(char* path, bool locallyEditable, int height)
 {
   char childName[128]; memcpy(childName, path, strlen(path)+1);
-  ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, valueBackground);
+  ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, listBackground);
   ImGui::SameLine();
   ImVec2 start_draggable_pos = ImGui::GetCursorScreenPos();
   ImGui::BeginChild(childName, ImVec2(0,height), true);
   {
     drawObjectProperties(path, locallyEditable);
+    drawPadding(valWidth, 15);
+    if(locallyEditable) drawNewValueOrObjectButtons(path, buttonWidth);
 
     ImVec2 end_draggable_pos = ImGui::GetCursorScreenPos();
     ImVec2 canvas_size(end_draggable_pos.x-start_draggable_pos.x, end_draggable_pos.y-start_draggable_pos.y);
@@ -477,7 +498,7 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int h
       path[l] = 0;
       if(!oneline) drawPadding(valWidth, 15);
     }
-    if(locallyEditable) drawNewObjectButton(path, oneline? smallButtonWidth: buttonWidth);
+    if(locallyEditable) drawNewValueOrObjectButtons(path, oneline? smallButtonWidth: buttonWidth);
 
     ImVec2 end_draggable_pos = ImGui::GetCursorScreenPos();
     ImVec2 canvas_size(end_draggable_pos.x-start_draggable_pos.x, end_draggable_pos.y-start_draggable_pos.y);
