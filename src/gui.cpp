@@ -215,6 +215,28 @@ static bool evaluate_any_object(object* user)
 }
 
 static ImVec2 mouse_delta(0,0);
+static char*  mouse_path=0;
+
+static void track_drag(char* path)
+{
+  if(ImGui::IsItemActive() && ImGui::IsMouseDragging()){
+    mouse_delta = ImGui::GetIO().MouseDelta;
+    if(mouse_delta.x+mouse_delta.y){
+      mouse_path=strdup(path);
+    }
+  }
+}
+
+static void set_drag_scroll(char* path)
+{
+  if(mouse_path && !strncmp(mouse_path, path, strlen(path)) && (mouse_delta.x+mouse_delta.y)){
+    ImGui::SetScrollX(ImGui::GetScrollX() - mouse_delta.x);
+    ImGui::SetScrollY(ImGui::GetScrollY() - mouse_delta.y);
+    free(mouse_path);
+    mouse_path=0;
+    mouse_delta=ImVec2(0,0);
+  }
+}
 
 void GUI::drawNewPropertyCombo(char* path)
 {
@@ -224,10 +246,12 @@ void GUI::drawNewPropertyCombo(char* path)
     int c=0;
     char id[128]; snprintf(id, 128, "## %s", path);
     ImGui::Combo(id, !propNameEditing? &propNameChoice: &c, propNameChoices);
+    track_drag(path);
     if(!propNameEditing && propNameChoice){ propNameEditing = strdup(path); if(propNameChoice==1) showOrHideSoftKeyboard(true); }
     ImGui::PopItemWidth();
     ImGui::SameLine();
     ImGui::Button("## blank", ImVec2(valWidth, buttonHeight));
+    track_drag(path);
   }else{
     if(propNameChoice > 1){
       setPropertyName(path, (char*)propNameStrings[propNameChoice]);
@@ -255,6 +279,7 @@ void GUI::drawNewPropertyCombo(char* path)
       }
       ImGui::SameLine();
       ImGui::Button("## blank", ImVec2(valWidth, buttonHeight));
+      track_drag(path);
       ImGui::PopItemWidth();
     }
   }
@@ -277,7 +302,7 @@ void GUI::drawNewPropertyValueEditor(char* path, char* key, char* val, bool loca
   if(!editing){
     char valId[256]; snprintf(valId, 256, "%s ## %s", val, path);
     if(ImGui::Button(valId, ImVec2(width, height))){ propNameEditing = strdup(path); showOrHideSoftKeyboard(true); }
-    if(ImGui::IsItemActive() && ImGui::IsMouseDragging()) mouse_delta = ImGui::GetIO().MouseDelta;
+    track_drag(path);
   }
   else{
     static char b[64] = "";
@@ -347,6 +372,7 @@ void GUI::drawNewValueOrObjectButtons(char* path, uint8_t width)
       *lastcolon=':';
     }
   }
+  track_drag(path);
   ImGui::SameLine();
   const char* addObjLabel = width<buttonWidth? "+o##%s": "+ object## %s";
   char addObjId[256]; snprintf(addObjId, 256, addObjLabel, path);
@@ -368,6 +394,7 @@ void GUI::drawNewValueOrObjectButtons(char* path, uint8_t width)
       }
     }
   }
+  track_drag(path);
   ImGui::PopStyleColor(2);
 }
 
@@ -398,7 +425,7 @@ void GUI::drawPropertyValue(char* path, char* key, char* val, bool locallyEditab
   ImGui::PushStyleColor(ImGuiCol_Button, propertyBackground);
   char keyId[256]; snprintf(keyId, 256, "%s ## %s", key, path);
   ImGui::Button(keyId, ImVec2(keyWidth, height));
-  if(ImGui::IsItemActive() && ImGui::IsMouseDragging()) mouse_delta = ImGui::GetIO().MouseDelta;
+  track_drag(path);
   ImGui::PopStyleColor(2);
   ImGui::SameLine();
   if(!isAvailableObject){
@@ -421,6 +448,7 @@ void GUI::drawNestedObjectProperties(char* path, bool locallyEditable, int heigh
   {
     drawObjectProperties(path, locallyEditable);
     drawPadding(valWidth, 15);
+    track_drag(path);
     if(locallyEditable) drawNewValueOrObjectButtons(path, buttonWidth);
 
     ImVec2 end_draggable_pos = ImGui::GetCursorScreenPos();
@@ -429,15 +457,12 @@ void GUI::drawNestedObjectProperties(char* path, bool locallyEditable, int heigh
     ImGui::PushID(childName);
     ImGui::InvisibleButton("dragme", canvas_size);
     ImGui::PopID();
-    if (ImGui::IsItemActive() && ImGui::IsMouseDragging()) mouse_delta = ImGui::GetIO().MouseDelta;
+    track_drag(path);
   }
   ImGui::EndChild();
   ImGui::PopStyleColor();
   ImGui::BeginChild(childName);
-  {
-    ImGui::SetScrollX(ImGui::GetScrollX() - mouse_delta.x);
-    ImGui::SetScrollY(ImGui::GetScrollY() - mouse_delta.y);
-  }
+  set_drag_scroll(path);
   ImGui::End();
 }
 
@@ -455,7 +480,7 @@ void GUI::drawPropertyList(char* path, char* key, bool locallyEditable)
   ImGui::PushStyleColor(ImGuiCol_Button, propertyBackground);
   char keyId[256]; snprintf(keyId, 256, "%s ## %s", key, path);
   ImGui::Button(keyId, ImVec2(keyWidth, height));
-  if(ImGui::IsItemActive() && ImGui::IsMouseDragging()) mouse_delta = ImGui::GetIO().MouseDelta;
+  track_drag(path);
   ImGui::PopStyleColor(2);
   ImGui::SameLine();
   drawNestedObjectPropertiesList(path, locallyEditable, height);
@@ -496,7 +521,7 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int h
         drawObjectProperties(path, locallyEditable);
       }
       path[l] = 0;
-      if(!oneline) drawPadding(valWidth, 15);
+      if(!oneline){ drawPadding(valWidth, 15); track_drag(path); }
     }
     if(locallyEditable) drawNewValueOrObjectButtons(path, oneline? smallButtonWidth: buttonWidth);
 
@@ -506,7 +531,7 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int h
     ImGui::PushID(childName);
     ImGui::InvisibleButton("dragme", canvas_size);
     ImGui::PopID();
-    if (ImGui::IsItemActive() && ImGui::IsMouseDragging()) mouse_delta = ImGui::GetIO().MouseDelta;
+    track_drag(path);
     if(oneline){
       ImGui::PopStyleVar(2);
     }
@@ -514,10 +539,7 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int h
   ImGui::EndChild();
   ImGui::PopStyleColor();
   ImGui::BeginChild(childName);
-  {
-    ImGui::SetScrollX(ImGui::GetScrollX() - mouse_delta.x);
-    ImGui::SetScrollY(ImGui::GetScrollY() - mouse_delta.y);
-  }
+  set_drag_scroll(path);
   ImGui::End();
   if(oneline){
     ImGui::PopStyleVar(2);
