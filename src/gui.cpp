@@ -215,26 +215,27 @@ static bool evaluate_any_object(object* user)
 }
 
 static ImVec2 mouse_delta(0,0);
-static char*  mouse_path=0;
+static char*  drag_path=0;
 
 static void track_drag(char* path)
 {
   if(ImGui::IsItemActive() && ImGui::IsMouseDragging()){
+    drag_path=strdup(path);
     mouse_delta = ImGui::GetIO().MouseDelta;
-    if(mouse_delta.x+mouse_delta.y){
-      mouse_path=strdup(path);
-    }
+  }
+  else
+  if(drag_path && !strcmp(path, drag_path)){
+    free(drag_path);
+    drag_path=0;
+    mouse_delta=ImVec2(0,0);
   }
 }
 
 static void set_drag_scroll(char* path)
 {
-  if(mouse_path && !strncmp(mouse_path, path, strlen(path)) && (mouse_delta.x+mouse_delta.y)){
+  if(drag_path && !strncmp(drag_path, path, strlen(path)) && (mouse_delta.x+mouse_delta.y)){
     ImGui::SetScrollX(ImGui::GetScrollX() - mouse_delta.x);
     ImGui::SetScrollY(ImGui::GetScrollY() - mouse_delta.y);
-    free(mouse_path);
-    mouse_path=0;
-    mouse_delta=ImVec2(0,0);
   }
 }
 
@@ -298,10 +299,15 @@ void GUI::setPropertyName(char* path , char* name)
 
 void GUI::drawNewPropertyValueEditor(char* path, char* key, char* val, bool locallyEditable, uint16_t width, uint16_t height)
 {
-  bool editing = locallyEditable && propNameEditing && !strcmp(path, propNameEditing);
+  bool editing = propNameEditing && !strcmp(path, propNameEditing);
   if(!editing){
     char valId[256]; snprintf(valId, 256, "%s ## %s", val, path);
-    if(ImGui::Button(valId, ImVec2(width, height))){ propNameEditing = strdup(path); showOrHideSoftKeyboard(true); }
+    if(ImGui::Button(valId, ImVec2(width, height))){
+      if(locallyEditable && (!drag_path || strcmp(path, drag_path))){
+        propNameEditing = strdup(path);
+        showOrHideSoftKeyboard(true);
+      }
+    }
     track_drag(path);
   }
   else{
