@@ -78,11 +78,11 @@ void GUI::initImGUI(float width, float height)
   style.Colors[ImGuiCol_ScrollbarBg] = ImVec4(0.9f, 0.9f, 0.9f, 1.0f);
   style.Colors[ImGuiCol_ComboBg] = valueBackground;
   style.Colors[ImGuiCol_FrameBg] = ImVec4(0.9f, 0.7f, 0.9f, 1.0f);
-  style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.9f, 0.7f, 0.9f, 1.0f);
+//style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.9f, 0.7f, 0.9f, 1.0f);
   style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.9f, 0.7f, 0.9f, 1.0f);
   style.Colors[ImGuiCol_CheckMark] = ImVec4(0.8f, 0.7f, 0.9f, 1.0f);
   style.Colors[ImGuiCol_Button] = valueBackground;
-  style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.8f, 0.7f, 0.9f, 1.0f);
+  style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.88f, 0.78f, 0.98f, 1.0f);
   style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.7f, 0.6f, 0.8f, 1.0f);
   style.Colors[ImGuiCol_SliderGrab] = valueBackground;
   style.Colors[ImGuiCol_SliderGrabActive] = ImVec4(0.8f, 0.7f, 0.9f, 1.0f);
@@ -418,8 +418,37 @@ void GUI::drawNewValueOrObjectButtons(char* path, uint8_t width)
   ImGui::PopStyleColor(2);
 }
 
+void GUI::drawObjectHeader(char* path)
+{
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(3,0));
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));
+  ImGui::PushStyleColor(ImGuiCol_Text, actionTextColour);
+  ImGui::PushStyleColor(ImGuiCol_Button, schemePlum);
+
+  char maxId[256]; snprintf(maxId, 256, "[++]##%s", path);
+  if(ImGui::Button(maxId, ImVec2(smallButtonWidth, buttonHeight))){
+    char* lastcolon=strrchr(path,':');
+    *lastcolon=0;
+    char* viewing=object_property(user, path);
+    *lastcolon=':';
+    object_property_set(user, (char*)"viewing", viewing);
+  }
+  track_drag(path);
+
+  ImGui::SameLine();
+
+  char linkId[256]; snprintf(linkId, 256, "-->##%s", path);
+  if(ImGui::Button(linkId, ImVec2(smallButtonWidth, buttonHeight))){
+  }
+  track_drag(path);
+
+  ImGui::PopStyleColor(2);
+  ImGui::PopStyleVar(2);
+}
+
 void GUI::drawObjectProperties(char* path, bool locallyEditable)
 {
+  drawObjectHeader(path);
   uint8_t size = object_property_size(user, path);
   for(int i=1; i<=size; i++){
     char* key=object_property_key(user, path, i);
