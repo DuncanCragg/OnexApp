@@ -214,28 +214,42 @@ static bool evaluate_any_object(object* user)
   return true;
 }
 
-static ImVec2 mouse_delta(0,0);
 static char*  drag_path=0;
+static float delta_x=0.0f;
+static float delta_y=0.0f;
+static bool drag_handled = false;
+#define MOVING_DELTA(x,y) (((x)*(x)+(y)*(y)) > 0.001f)
 
 static void track_drag(char* path)
 {
   if(ImGui::IsItemActive() && ImGui::IsMouseDragging()){
-    drag_path=strdup(path);
-    mouse_delta = ImGui::GetIO().MouseDelta;
+    if(!drag_path || strcmp(drag_path, path)) drag_path=strdup(path);
+    ImVec2 mouse_delta = ImGui::GetIO().MouseDelta;
+    if(MOVING_DELTA(mouse_delta.x, mouse_delta.y)){
+      delta_x=mouse_delta.x;
+      delta_y=mouse_delta.y;
+      drag_handled=false;
+    }
   }
   else
-  if(drag_path && !strcmp(path, drag_path)){
+  if(MOVING_DELTA(delta_x, delta_y) && drag_path && !strcmp(path, drag_path)){
+    delta_x *= 0.99f;
+    delta_y *= 0.99f;
+    drag_handled=false;
+  }
+  else
+  if(!ImGui::IsMouseDragging() && drag_path && !strcmp(path, drag_path)){
     free(drag_path);
     drag_path=0;
-    mouse_delta=ImVec2(0,0);
   }
 }
 
 static void set_drag_scroll(char* path)
 {
-  if(drag_path && !strncmp(drag_path, path, strlen(path)) && (mouse_delta.x+mouse_delta.y)){
-    ImGui::SetScrollX(ImGui::GetScrollX() - mouse_delta.x);
-    ImGui::SetScrollY(ImGui::GetScrollY() - mouse_delta.y);
+  if(drag_path && !strncmp(drag_path, path, strlen(path)) && !drag_handled && MOVING_DELTA(delta_x,delta_y)){
+    ImGui::SetScrollX(ImGui::GetScrollX() - delta_x);
+    ImGui::SetScrollY(ImGui::GetScrollY() - delta_y);
+    drag_handled=true;
   }
 }
 
