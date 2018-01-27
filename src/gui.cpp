@@ -388,6 +388,22 @@ object* GUI::createNewObjectLikeOthers(char* path)
       object_property_set(r, key, (char*)"--");
       filled=true;
     }
+    else{
+      char* val=object_property_value(user, path, i);
+      size_t l=strlen(path);
+      snprintf(path+l, 128-l, ":%d:", i);
+      size_t size=object_property_size(user, path);
+      if(is_uid(val) && size){
+        for(int j=1; j<=size; j++){
+          char* key=object_property_key(user, path, j);
+          if(key){
+            object_property_set(r, key, (char*)"--");
+            filled=true;
+          }
+        }
+      }
+      path[l] = 0;
+    }
   }
   if(!filled) object_property_set(r, (char*)"is", (char*)"editable");
   return r;
