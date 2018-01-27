@@ -35,6 +35,7 @@ void GUI::prepare()
 // ---------------------------------------------------------------------------------------------
 
 ImVec4 actionTextColour(0.5f, 0.1f, 0.2f, 1.0f);
+ImVec4 actionTextBG(0.90f, 0.90f, 0.95f, 1.0f);
 ImVec4 propertyColour(0.2f, 0.5f, 0.3f, 1.0f);
 ImVec4 keywordColour(0.5f, 0.1f, 0.2f, 1.0f);
 ImVec4 propertyBackground(0.90f, 0.90f, 1.00f, 1.00f);
@@ -76,8 +77,8 @@ void GUI::initImGUI(float width, float height)
   style.Colors[ImGuiCol_TextSelectedBg] = ImVec4(0.9f, 0.9f, 0.9f, 1.0f);
   style.Colors[ImGuiCol_PopupBg] = ImVec4(0.9f, 0.9f, 0.9f, 1.0f);
   style.Colors[ImGuiCol_ScrollbarBg] = ImVec4(0.9f, 0.9f, 0.9f, 1.0f);
-  style.Colors[ImGuiCol_ComboBg] = valueBackground;
-  style.Colors[ImGuiCol_FrameBg] = ImVec4(0.9f, 0.7f, 0.9f, 1.0f);
+  style.Colors[ImGuiCol_ComboBg] = actionTextBG;
+  style.Colors[ImGuiCol_FrameBg] = actionTextBG;
 //style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.9f, 0.7f, 0.9f, 1.0f);
   style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.9f, 0.7f, 0.9f, 1.0f);
   style.Colors[ImGuiCol_CheckMark] = ImVec4(0.8f, 0.7f, 0.9f, 1.0f);
@@ -193,7 +194,7 @@ void GUI::drawGUI()
 }
 
 const char* propNameStrings[] = { "", "", "title", "description", "Rules", "Notifying", "Alerted", "Timer" };
-const char* propNameChoices = "+ property\0new\0title\0description\0Rules\0Notifying\0Alerted\0Timer\0";
+const char* propNameChoices = "+p\0new\0title\0description\0Rules\0Notifying\0Alerted\0Timer\0";
 int         propNameChoice = 0;
 char*       propNameEditing=0;
 
@@ -324,13 +325,17 @@ static void drawPadding(int width, int height)
   ImGui::PopStyleColor(4);
 }
 
-void GUI::drawNewValueOrObjectButtons(char* path, uint8_t width)
+void GUI::drawNewValueOrObjectButtons(char* path, bool oneline)
 {
   ImGui::PushStyleColor(ImGuiCol_Text, actionTextColour);
-  ImGui::PushStyleColor(ImGuiCol_Button, schemePlum);
-  const char* addValLabel = width<buttonWidth? "+v##%s": "+ value## %s";
-  char addValId[256]; snprintf(addValId, 256, addValLabel, path);
-  if(ImGui::Button(addValId, ImVec2(width, buttonHeight))){
+  ImGui::PushStyleColor(ImGuiCol_Button, actionTextBG);
+  if(!oneline){
+    ImGui::Button("## blank", ImVec2(shorterValWidth, buttonHeight));
+    track_drag(path);
+  }
+  ImGui::SameLine();
+  char addValId[256]; snprintf(addValId, 256, "+v##%s", path);
+  if(ImGui::Button(addValId, ImVec2(smallButtonWidth, buttonHeight))){
     char* lastcolon=strrchr(path,':');
     if(lastcolon+1-path == strlen(path)){
       *lastcolon=0; char* secondlastcolon=strrchr(path,':'); *secondlastcolon=0;
@@ -347,9 +352,8 @@ void GUI::drawNewValueOrObjectButtons(char* path, uint8_t width)
   }
   track_drag(path);
   ImGui::SameLine();
-  const char* addObjLabel = width<buttonWidth? "+o##%s": "+ object## %s";
-  char addObjId[256]; snprintf(addObjId, 256, addObjLabel, path);
-  if(ImGui::Button(addObjId, ImVec2(width, buttonHeight))){
+  char addObjId[256]; snprintf(addObjId, 256, "+o##%s", path);
+  if(ImGui::Button(addObjId, ImVec2(smallButtonWidth, buttonHeight))){
     object* o = object_new(0, (char*)"editable", evaluate_any_object, 4);
     if(o){
       char* lastcolon=strrchr(path,':');
@@ -371,12 +375,14 @@ void GUI::drawNewValueOrObjectButtons(char* path, uint8_t width)
   ImGui::PopStyleColor(2);
 }
 
-void GUI::drawObjectHeader(char* path)
+void GUI::drawObjectHeader(char* path, bool locallyEditable)
 {
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(3,0));
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0,0));
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));
   ImGui::PushStyleColor(ImGuiCol_Text, actionTextColour);
-  ImGui::PushStyleColor(ImGuiCol_Button, schemePlum);
+  ImGui::PushStyleColor(ImGuiCol_Button, actionTextBG);
+
+  if(locallyEditable) drawNewPropertyCombo(path);
 
   char maxId[256]; snprintf(maxId, 256, "[++]##%s", path);
   if(ImGui::Button(maxId, ImVec2(smallButtonWidth, buttonHeight))){
@@ -411,8 +417,9 @@ void GUI::drawNewPropertyCombo(char* path)
     if(!propNameEditing && propNameChoice){ propNameEditing = strdup(path); if(propNameChoice==1) showOrHideSoftKeyboard(true); }
     ImGui::PopItemWidth();
     ImGui::SameLine();
-    ImGui::Button("## blank", ImVec2(valWidth, buttonHeight));
+    ImGui::Button("## blank", ImVec2(shorterValWidth, buttonHeight));
     track_drag(path);
+    ImGui::SameLine();
   }else{
     if(propNameChoice > 1){
       setPropertyName(path, (char*)propNameStrings[propNameChoice]);
@@ -439,8 +446,9 @@ void GUI::drawNewPropertyCombo(char* path)
         *b=0;
       }
       ImGui::SameLine();
-      ImGui::Button("## blank", ImVec2(valWidth, buttonHeight));
+      ImGui::Button("## blank", ImVec2(shorterValWidth, buttonHeight));
       track_drag(path);
+      ImGui::SameLine();
       ImGui::PopItemWidth();
     }
   }
@@ -448,7 +456,7 @@ void GUI::drawNewPropertyCombo(char* path)
 
 void GUI::drawObjectProperties(char* path, bool locallyEditable)
 {
-  drawObjectHeader(path);
+  drawObjectHeader(path, locallyEditable);
   uint8_t size = object_property_size(user, path);
   for(int i=1; i<=size; i++){
     char* key=object_property_key(user, path, i);
@@ -463,7 +471,6 @@ void GUI::drawObjectProperties(char* path, bool locallyEditable)
       drawPropertyList(pathkey, key, locallyEditable);
     }
   }
-  if(locallyEditable) drawNewPropertyCombo(path);
 }
 
 void GUI::drawPropertyValue(char* path, char* key, char* val, bool locallyEditable)
@@ -480,7 +487,7 @@ void GUI::drawPropertyValue(char* path, char* key, char* val, bool locallyEditab
   if(!isAvailableObject){
     drawNewPropertyValueEditor(path, key, val, locallyEditable, shorterValWidth, height);
     ImGui::SameLine();
-    if(locallyEditable) drawNewValueOrObjectButtons(path, smallButtonWidth);
+    if(locallyEditable) drawNewValueOrObjectButtons(path, true);
   }else{
     bool locallyEditable = object_is_local(val);
     drawNestedObjectProperties(path, locallyEditable, height);
@@ -493,12 +500,12 @@ void GUI::drawNestedObjectProperties(char* path, bool locallyEditable, int heigh
   ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, listBackground);
   ImGui::SameLine();
   ImVec2 start_draggable_pos = ImGui::GetCursorScreenPos();
-  ImGui::BeginChild(childName, ImVec2(0,height), true);
+  ImGui::BeginChild(childName, ImVec2(valWidth,height), true);
   {
-    drawObjectProperties(path, locallyEditable);
+    if(locallyEditable) drawNewValueOrObjectButtons(path, false);
     drawPadding(valWidth, 15);
     track_drag(path);
-    if(locallyEditable) drawNewValueOrObjectButtons(path, buttonWidth);
+    drawObjectProperties(path, locallyEditable);
 
     ImVec2 end_draggable_pos = ImGui::GetCursorScreenPos();
     ImVec2 canvas_size(end_draggable_pos.x-start_draggable_pos.x, end_draggable_pos.y-start_draggable_pos.y);
@@ -553,6 +560,7 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int h
       ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(5,0));
     }
 
+    if(locallyEditable && !oneline){ drawNewValueOrObjectButtons(path, false); drawPadding(valWidth, 15); track_drag(path); }
     uint8_t sz = object_property_size(user, path);
     for(int j=1; j<=sz; j++){
       char* val=object_property_value(user, path, j);
@@ -572,7 +580,7 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int h
       path[l] = 0;
       if(!oneline){ drawPadding(valWidth, 15); track_drag(path); }
     }
-    if(locallyEditable) drawNewValueOrObjectButtons(path, oneline? smallButtonWidth: buttonWidth);
+    if(locallyEditable && oneline) drawNewValueOrObjectButtons(path, true);
 
     ImVec2 end_draggable_pos = ImGui::GetCursorScreenPos();
     ImVec2 canvas_size(end_draggable_pos.x-start_draggable_pos.x, end_draggable_pos.y-start_draggable_pos.y);

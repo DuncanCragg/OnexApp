@@ -42,9 +42,9 @@ public:
   void drawObjectProperties(char* path, bool locallyEditable);
   void drawNestedObjectProperties(char* path, bool locallyEditable, int height);
   void drawNewPropertyValueEditor(char* path, char* key, char* val, bool locallyEditable, uint16_t width, uint16_t height);
-  void drawNewValueOrObjectButtons(char* path, uint8_t width);
+  void drawNewValueOrObjectButtons(char* path, bool oneline);
   void drawNewPropertyCombo(char* path);
-  void drawObjectHeader(char* path);
+  void drawObjectHeader(char* path, bool locallyEditable);
   void drawNestedObjectPropertiesList(char* path, bool locallyEditable, int height);
   void drawPropertyValue(char* path, char* key, char* val, bool locallyEditable);
   void drawPropertyList(char* pathkey, char* key, bool locallyEditable);
