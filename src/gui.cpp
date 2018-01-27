@@ -385,7 +385,8 @@ object* GUI::createNewObjectLikeOthers(char* path)
   for(int i=1; i<=size; i++){
     char* key=object_property_key(user, path, i);
     if(key){
-      object_property_set(r, key, (char*)"--");
+      char* is=0; if(!strcmp(key,"is")) is=object_property_value(user, path, i);
+      object_property_set(r, key, is? is: (char*)"--");
       filled=true;
     }
     else{
@@ -397,7 +398,8 @@ object* GUI::createNewObjectLikeOthers(char* path)
         for(int j=1; j<=size; j++){
           char* key=object_property_key(user, path, j);
           if(key){
-            object_property_set(r, key, (char*)"--");
+            char* is=0; if(!strcmp(key,"is")) is=object_property_value(user, path, j);
+            object_property_set(r, key, is? is: (char*)"--");
             filled=true;
           }
         }
