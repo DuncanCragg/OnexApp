@@ -353,25 +353,44 @@ void GUI::drawNewValueOrObjectButtons(char* path, bool oneline)
   ImGui::SameLine();
   char addObjId[256]; snprintf(addObjId, 256, "+o##%s", path);
   if(ImGui::Button(addObjId, ImVec2(smallButtonWidth, buttonHeight))){
-    object* o = object_new(0, (char*)"editable", evaluate_any_object, 4);
-    if(o){
-      char* lastcolon=strrchr(path,':');
-      if(lastcolon+1-path == strlen(path)){
-        *lastcolon=0; char* secondlastcolon=strrchr(path,':'); *secondlastcolon=0;
-        object* v = object_get_from_cache(object_property(user, path));
-        object_property_add(v, secondlastcolon+1, object_property(o, (char*)"UID"));
-        *secondlastcolon=':'; *lastcolon=':';
-      }
-      else{
-        *lastcolon=0;
-        object* v = object_get_from_cache(object_property(user, path));
-        object_property_add(v, lastcolon+1, object_property(o, (char*)"UID"));
-        *lastcolon=':';
-      }
+    char* lastcolon=strrchr(path,':');
+    char* secondlastcolon=0;
+    char* vkey;
+    if(lastcolon+1-path == strlen(path)){
+      *lastcolon=0;
+      secondlastcolon=strrchr(path,':');
+      *secondlastcolon=0;
+      vkey=strdup(secondlastcolon+1);
     }
+    else{
+      *lastcolon=0;
+      vkey=strdup(lastcolon+1);
+    }
+    object* v = object_get_from_cache(object_property(user, path));
+    if(secondlastcolon) *secondlastcolon=':';
+    *lastcolon=':';
+    object* o = createNewObjectLikeOthers(path);
+    if(o) object_property_add(v, vkey, object_property(o, (char*)"UID"));
+    free(vkey);
   }
   track_drag(path);
   ImGui::PopStyleColor(2);
+}
+
+object* GUI::createNewObjectLikeOthers(char* path)
+{
+  object* r=object_new(0, 0, evaluate_any_object, 4);
+  bool filled=false;
+  uint8_t size = object_property_size(user, path);
+  for(int i=1; i<=size; i++){
+    char* key=object_property_key(user, path, i);
+    if(key){
+      object_property_set(r, key, (char*)"--");
+      filled=true;
+    }
+  }
+  if(!filled) object_property_set(r, (char*)"is", (char*)"editable");
+  return r;
 }
 
 void GUI::drawObjectHeader(char* path, bool locallyEditable)
