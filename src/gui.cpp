@@ -294,7 +294,7 @@ void GUI::drawNewPropertyValueEditor(char* path, char* key, char* val, bool loca
       if(key){
         char* secondlastcolon=strrchr(path, ':'); *secondlastcolon=0;
         object* objectEditing = object_get_from_cache(object_property(user, path));
-        if(!*b) object_property_set(objectEditing, key, "");
+        if(!*b) object_property_set(objectEditing, key, (char*)"");
         else object_property_set(objectEditing, key, strdup(b));
         *secondlastcolon=':';
       }
@@ -303,7 +303,7 @@ void GUI::drawNewPropertyValueEditor(char* path, char* key, char* val, bool loca
         char* thirdlastcolon=strrchr(path, ':'); *thirdlastcolon=0;
         object* objectEditing = object_get_from_cache(object_property(user, path));
         *secondlastcolon=':';
-        if(!*b) object_property_set(objectEditing, thirdlastcolon+1, "");
+        if(!*b) object_property_set(objectEditing, thirdlastcolon+1, (char*)"");
         else object_property_set(objectEditing, thirdlastcolon+1, strdup(b));
         *thirdlastcolon=':';
       }
@@ -429,7 +429,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable)
 
   char linkId[256]; snprintf(linkId, 256, "<<##%s", path);
   if(ImGui::Button(linkId, ImVec2(smallButtonWidth, buttonHeight))){
-    size_t histlen=object_property_size(user, (char*)"history");
+    uint16_t histlen=object_property_size(user, (char*)"history");
     char* viewing = object_property_value(user, (char*)"history", histlen);
     char popPath[64]; snprintf(popPath, 64, "history:%d:", histlen);
     object_property_set(user, (char*)popPath, 0);
@@ -459,7 +459,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable)
     char* thirdlastcolon=strrchr(path, ':'); *thirdlastcolon=0;
     object* objectEditing = object_get_from_cache(object_property(user, path));
     *secondlastcolon=':';
-    object_property_set(objectEditing, thirdlastcolon+1, "");
+    object_property_set(objectEditing, thirdlastcolon+1, (char*)"");
     *thirdlastcolon=':';
     *lastcolon=':';
   }
