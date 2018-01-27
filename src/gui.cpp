@@ -294,7 +294,8 @@ void GUI::drawNewPropertyValueEditor(char* path, char* key, char* val, bool loca
       if(key){
         char* secondlastcolon=strrchr(path, ':'); *secondlastcolon=0;
         object* objectEditing = object_get_from_cache(object_property(user, path));
-        object_property_set(objectEditing, key, strdup(b));
+        if(!*b) object_property_set(objectEditing, key, "");
+        else object_property_set(objectEditing, key, strdup(b));
         *secondlastcolon=':';
       }
       else{
@@ -302,7 +303,8 @@ void GUI::drawNewPropertyValueEditor(char* path, char* key, char* val, bool loca
         char* thirdlastcolon=strrchr(path, ':'); *thirdlastcolon=0;
         object* objectEditing = object_get_from_cache(object_property(user, path));
         *secondlastcolon=':';
-        object_property_set(objectEditing, thirdlastcolon+1, strdup(b));
+        if(!*b) object_property_set(objectEditing, thirdlastcolon+1, "");
+        else object_property_set(objectEditing, thirdlastcolon+1, strdup(b));
         *thirdlastcolon=':';
       }
       *lastcolon=':';
@@ -420,6 +422,18 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable)
 
   if(locallyEditable) drawNewPropertyCombo(path);
 
+  ImGui::SameLine();
+  ImGui::Button("## blank", ImVec2(shorterValWidth-smallButtonWidth, buttonHeight));
+  track_drag(path);
+  ImGui::SameLine();
+
+  char linkId[256]; snprintf(linkId, 256, "-->##%s", path);
+  if(ImGui::Button(linkId, ImVec2(smallButtonWidth, buttonHeight))){
+  }
+  track_drag(path);
+
+  ImGui::SameLine();
+
   char maxId[256]; snprintf(maxId, 256, "[++]##%s", path);
   if(ImGui::Button(maxId, ImVec2(smallButtonWidth, buttonHeight))){
     char* lastcolon=strrchr(path,':');
@@ -432,8 +446,16 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable)
 
   ImGui::SameLine();
 
-  char linkId[256]; snprintf(linkId, 256, "-->##%s", path);
-  if(ImGui::Button(linkId, ImVec2(smallButtonWidth, buttonHeight))){
+  char dropId[256]; snprintf(dropId, 256, "X##%s", path);
+  if(ImGui::Button(dropId, ImVec2(smallButtonWidth, buttonHeight))){
+    char* lastcolon=strrchr(path,':'); *lastcolon=0;
+    char* secondlastcolon=strrchr(path, ':'); *secondlastcolon=0;
+    char* thirdlastcolon=strrchr(path, ':'); *thirdlastcolon=0;
+    object* objectEditing = object_get_from_cache(object_property(user, path));
+    *secondlastcolon=':';
+    object_property_set(objectEditing, thirdlastcolon+1, "");
+    *thirdlastcolon=':';
+    *lastcolon=':';
   }
   track_drag(path);
 
@@ -452,10 +474,6 @@ void GUI::drawNewPropertyCombo(char* path)
     track_drag(path);
     if(!propNameEditing && propNameChoice){ propNameEditing = strdup(path); if(propNameChoice==1) showOrHideSoftKeyboard(true); }
     ImGui::PopItemWidth();
-    ImGui::SameLine();
-    ImGui::Button("## blank", ImVec2(shorterValWidth, buttonHeight));
-    track_drag(path);
-    ImGui::SameLine();
   }else{
     if(propNameChoice > 1){
       setPropertyName(path, (char*)propNameStrings[propNameChoice]);
@@ -481,10 +499,6 @@ void GUI::drawNewPropertyCombo(char* path)
         showOrHideSoftKeyboard(false);
         *b=0;
       }
-      ImGui::SameLine();
-      ImGui::Button("## blank", ImVec2(shorterValWidth, buttonHeight));
-      track_drag(path);
-      ImGui::SameLine();
       ImGui::PopItemWidth();
     }
   }
