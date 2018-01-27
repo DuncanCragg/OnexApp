@@ -427,8 +427,13 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable)
   track_drag(path);
   ImGui::SameLine();
 
-  char linkId[256]; snprintf(linkId, 256, "-->##%s", path);
+  char linkId[256]; snprintf(linkId, 256, "<<##%s", path);
   if(ImGui::Button(linkId, ImVec2(smallButtonWidth, buttonHeight))){
+    size_t histlen=object_property_size(user, (char*)"history");
+    char* viewing = object_property_value(user, (char*)"history", histlen);
+    char popPath[64]; snprintf(popPath, 64, "history:%d:", histlen);
+    object_property_set(user, (char*)popPath, 0);
+    object_property_set(user, (char*)"viewing", viewing);
   }
   track_drag(path);
 
@@ -440,6 +445,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable)
     *lastcolon=0;
     char* viewing=object_property(user, path);
     *lastcolon=':';
+    object_property_add(user, (char*)"history", object_property(user, (char*)"viewing"));
     object_property_set(user, (char*)"viewing", viewing);
   }
   track_drag(path);
