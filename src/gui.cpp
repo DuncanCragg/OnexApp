@@ -253,53 +253,6 @@ static void set_drag_scroll(char* path)
   }
 }
 
-void GUI::drawNewPropertyCombo(char* path)
-{
-  bool editing = propNameEditing && !strcmp(path, propNameEditing);
-  if(!editing){
-    ImGui::PushItemWidth(keyWidth);
-    int c=0;
-    char id[128]; snprintf(id, 128, "## %s", path);
-    ImGui::Combo(id, !propNameEditing? &propNameChoice: &c, propNameChoices);
-    track_drag(path);
-    if(!propNameEditing && propNameChoice){ propNameEditing = strdup(path); if(propNameChoice==1) showOrHideSoftKeyboard(true); }
-    ImGui::PopItemWidth();
-    ImGui::SameLine();
-    ImGui::Button("## blank", ImVec2(valWidth, buttonHeight));
-    track_drag(path);
-  }else{
-    if(propNameChoice > 1){
-      setPropertyName(path, (char*)propNameStrings[propNameChoice]);
-    }
-    else{
-      static char b[64] = "";
-      struct TextFilters {
-        static int FilterImGuiLetters(ImGuiTextEditCallbackData* data) {
-          ImWchar ch = data->EventChar;
-          if(ch >=256) return 1;
-          if(!strlen(b) && !isalpha(ch)) return 1;
-          if(ch == ' '){ data->EventChar = '-'; return 0; }
-          if(ch == '-'){ return 0; }
-          if(!isalnum(ch)) return 1;
-          data->EventChar = tolower(ch);
-          return 0;
-        }
-      };
-      ImGui::SetKeyboardFocusHere();
-      ImGui::PushItemWidth(keyWidth);
-      if(ImGui::InputText("## property name", b, 64, ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue, TextFilters::FilterImGuiLetters)){
-        setPropertyName(path, strdup(b));
-        showOrHideSoftKeyboard(false);
-        *b=0;
-      }
-      ImGui::SameLine();
-      ImGui::Button("## blank", ImVec2(valWidth, buttonHeight));
-      track_drag(path);
-      ImGui::PopItemWidth();
-    }
-  }
-}
-
 void GUI::setPropertyName(char* path , char* name)
 {
   char* lastcolon=strrchr(path,':');
@@ -444,6 +397,53 @@ void GUI::drawObjectHeader(char* path)
 
   ImGui::PopStyleColor(2);
   ImGui::PopStyleVar(2);
+}
+
+void GUI::drawNewPropertyCombo(char* path)
+{
+  bool editing = propNameEditing && !strcmp(path, propNameEditing);
+  if(!editing){
+    ImGui::PushItemWidth(keyWidth);
+    int c=0;
+    char id[128]; snprintf(id, 128, "## %s", path);
+    ImGui::Combo(id, !propNameEditing? &propNameChoice: &c, propNameChoices);
+    track_drag(path);
+    if(!propNameEditing && propNameChoice){ propNameEditing = strdup(path); if(propNameChoice==1) showOrHideSoftKeyboard(true); }
+    ImGui::PopItemWidth();
+    ImGui::SameLine();
+    ImGui::Button("## blank", ImVec2(valWidth, buttonHeight));
+    track_drag(path);
+  }else{
+    if(propNameChoice > 1){
+      setPropertyName(path, (char*)propNameStrings[propNameChoice]);
+    }
+    else{
+      static char b[64] = "";
+      struct TextFilters {
+        static int FilterImGuiLetters(ImGuiTextEditCallbackData* data) {
+          ImWchar ch = data->EventChar;
+          if(ch >=256) return 1;
+          if(!strlen(b) && !isalpha(ch)) return 1;
+          if(ch == ' '){ data->EventChar = '-'; return 0; }
+          if(ch == '-'){ return 0; }
+          if(!isalnum(ch)) return 1;
+          data->EventChar = tolower(ch);
+          return 0;
+        }
+      };
+      ImGui::SetKeyboardFocusHere();
+      ImGui::PushItemWidth(keyWidth);
+      if(ImGui::InputText("## property name", b, 64, ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue, TextFilters::FilterImGuiLetters)){
+        setPropertyName(path, strdup(b));
+        showOrHideSoftKeyboard(false);
+        *b=0;
+      }
+      ImGui::SameLine();
+      ImGui::Button("## blank", ImVec2(valWidth, buttonHeight));
+      track_drag(path);
+      ImGui::PopItemWidth();
+    }
+  }
 }
 
 void GUI::drawObjectProperties(char* path, bool locallyEditable)
