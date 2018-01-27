@@ -193,8 +193,7 @@ void GUI::drawGUI()
   ImGui::Render();
 }
 
-const char* propNameStrings[] = { "", "", "title", "description", "Rules", "Notifying", "Alerted", "Timer" };
-const char* propNameChoices = "+p\0new\0title\0description\0Rules\0Notifying\0Alerted\0Timer\0";
+const char* propNameStrings[] = { "+p", "new", "title", "description", "Rules", "Notifying", "Alerted", "Timer" };
 int         propNameChoice = 0;
 char*       propNameEditing=0;
 
@@ -412,7 +411,7 @@ void GUI::drawNewPropertyCombo(char* path)
     ImGui::PushItemWidth(keyWidth);
     int c=0;
     char id[128]; snprintf(id, 128, "## %s", path);
-    ImGui::Combo(id, !propNameEditing? &propNameChoice: &c, propNameChoices);
+    ImGui::Combo(id, !propNameEditing? &propNameChoice: &c, propNameStrings, IM_ARRAYSIZE(propNameStrings));
     track_drag(path);
     if(!propNameEditing && propNameChoice){ propNameEditing = strdup(path); if(propNameChoice==1) showOrHideSoftKeyboard(true); }
     ImGui::PopItemWidth();
