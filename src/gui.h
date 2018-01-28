@@ -44,12 +44,14 @@ public:
   void drawNewPropertyValueEditor(char* path, char* key, char* val, bool locallyEditable, int16_t width, int16_t height);
   void drawNewValueOrObjectButtons(char* path, int16_t width);
   object* createNewObjectLikeOthers(char* path);
+  object* createNewObjectForPropertyName(char* path, char* name);
   void drawNewPropertyCombo(char* path, int16_t width);
   void drawObjectHeader(char* path, bool locallyEditable, int16_t width);
   void drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16_t width, int16_t height);
   void drawPropertyValue(char* path, char* key, char* val, bool locallyEditable, int16_t width);
   void drawPropertyList(char* pathkey, char* key, bool locallyEditable, int16_t width);
   void setPropertyName(char* path , char* name);
+  void setPropertyNameAndObject(char* path , char* name);
   unsigned char* fontData;
   int texWidth, texHeight;
   VkSampler sampler;

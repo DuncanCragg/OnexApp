@@ -35,7 +35,7 @@ void GUI::prepare()
 // ---------------------------------------------------------------------------------------------
 
 ImVec4 actionTextColour(0.5f, 0.1f, 0.2f, 1.0f);
-ImVec4 actionTextBG(0.90f, 0.90f, 0.95f, 1.0f);
+ImVec4 actionTextBG(0.90f, 0.90f, 0.85f, 1.0f);
 ImVec4 propertyColour(0.2f, 0.5f, 0.3f, 1.0f);
 ImVec4 keywordColour(0.5f, 0.1f, 0.2f, 1.0f);
 ImVec4 propertyBackground(0.90f, 0.90f, 1.00f, 1.00f);
@@ -195,7 +195,7 @@ void GUI::drawGUI()
   ImGui::Render();
 }
 
-const char* propNameStrings[] = { "+p", "new", "title", "description", "Rules", "Notifying", "Alerted", "Timer" };
+const char* propNameStrings[] = { "+", "+value", "+object", "title", "description", "Rules", "Notifying", "Alerted", "Timer" };
 int         propNameChoice = 0;
 char*       propNameEditing=0;
 
@@ -262,6 +262,19 @@ void GUI::setPropertyName(char* path , char* name)
   object* objectEditing = object_get_from_cache(object_property(user, path));
   *lastcolon=':';
   object_property_set(objectEditing, name, (char*)"--");
+  free(propNameEditing); propNameEditing=0;
+  propNameChoice = 0;
+}
+
+void GUI::setPropertyNameAndObject(char* path , char* name)
+{
+  char* lastcolon=strrchr(path,':');
+  *lastcolon=0;
+  object* objectEditing = object_get_from_cache(object_property(user, path));
+  *lastcolon=':';
+  object* o = createNewObjectForPropertyName(path, name);
+  if(o) object_property_set(objectEditing, name, object_property(o, (char*)"UID"));
+  else object_property_set(objectEditing, name, (char*)"---");
   free(propNameEditing); propNameEditing=0;
   propNameChoice = 0;
 }
@@ -382,6 +395,16 @@ void GUI::drawNewValueOrObjectButtons(char* path, int16_t width)
   ImGui::PopStyleColor(2);
 }
 
+object* GUI::createNewObjectForPropertyName(char* path, char* name)
+{
+  object* r=object_new(0, 0, evaluate_any_object, 4);
+  char* is;
+  if(!strcmp(name,"Rules")) is=(char*)"Rule";
+  else is=name;
+  object_property_set(r, (char*)"is", strdup(is));
+  return r;
+}
+
 object* GUI::createNewObjectLikeOthers(char* path)
 {
   object* r=object_new(0, 0, evaluate_any_object, 4);
@@ -489,10 +512,12 @@ void GUI::drawNewPropertyCombo(char* path, int16_t width)
       track_drag(path);
     }
   }else{
-    if(propNameChoice > 1){
-      setPropertyName(path, (char*)propNameStrings[propNameChoice]);
+    if(propNameChoice > 2){
+      char* propname=(char*)propNameStrings[propNameChoice];
+      if(!strcmp(propname, "Rules")) setPropertyNameAndObject(path, propname);
+      else setPropertyName(path, propname);
     }
-    else{
+    else if(propNameChoice==1){
       static char b[64] = "";
       struct TextFilters {
         static int FilterImGuiLetters(ImGuiTextEditCallbackData* data) {
@@ -514,6 +539,35 @@ void GUI::drawNewPropertyCombo(char* path, int16_t width)
         *b=0;
       }
       ImGui::PopItemWidth();
+      ImGui::SameLine();
+      int blankwidth = width - keyWidth;
+      if(blankwidth>10) ImGui::Button("--## blank", ImVec2(blankwidth, buttonHeight));
+    }
+    else if(propNameChoice==2){
+      static char b[64] = "";
+      struct TextFilters {
+        static int FilterImGuiLetters(ImGuiTextEditCallbackData* data) {
+          ImWchar ch = data->EventChar;
+          if(ch >=256) return 1;
+          if(!strlen(b) && !isalpha(ch)) return 1;
+          if(ch == ' '){ data->EventChar = '-'; return 0; }
+          if(ch == '-'){ return 0; }
+          if(!isalnum(ch)) return 1;
+          data->EventChar = tolower(ch);
+          return 0;
+        }
+      };
+      ImGui::SetKeyboardFocusHere();
+      ImGui::PushItemWidth(keyWidth);
+      if(ImGui::InputText("## property name", b, 64, ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue, TextFilters::FilterImGuiLetters)){
+        setPropertyNameAndObject(path, strdup(b));
+        showOrHideSoftKeyboard(false);
+        *b=0;
+      }
+      ImGui::PopItemWidth();
+      ImGui::SameLine();
+      int blankwidth = width - keyWidth;
+      if(blankwidth>10) ImGui::Button("[]## blank", ImVec2(blankwidth, buttonHeight));
     }
   }
 }
