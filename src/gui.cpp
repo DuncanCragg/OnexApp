@@ -525,17 +525,18 @@ void GUI::drawObjectProperties(char* path, bool locallyEditable, uint16_t width)
     pathkey[l-1] = 0;
     if(object_property_is_value(user, pathkey)){
       pathkey[l-1] = ':';
-      drawPropertyValue(pathkey, key, object_property_value(user, path, i), locallyEditable, width);
+      drawPropertyValue(pathkey, key, object_property_value(user, path, i), locallyEditable, width-keyWidth);
     }
     else
     if(object_property_is_list(user, pathkey)){
-      drawPropertyList(pathkey, key, locallyEditable, width);
+      drawPropertyList(pathkey, key, locallyEditable, width-keyWidth);
     }
   }
 }
 
 void GUI::drawPropertyValue(char* path, char* key, char* val, bool locallyEditable, uint16_t width)
 {
+  if(width < 200) return;
   bool isAvailableObject = is_uid(val) && object_property_size(user, path);
   uint16_t height = isAvailableObject? objectHeight: buttonHeight;
   ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
@@ -546,12 +547,12 @@ void GUI::drawPropertyValue(char* path, char* key, char* val, bool locallyEditab
   ImGui::PopStyleColor(2);
   ImGui::SameLine();
   if(!isAvailableObject){
-    drawNewPropertyValueEditor(path, key, val, locallyEditable, width - keyWidth - 2*smallButtonWidth, height);
+    drawNewPropertyValueEditor(path, key, val, locallyEditable, width-2*smallButtonWidth, height);
     ImGui::SameLine();
     if(locallyEditable) drawNewValueOrObjectButtons(path, 0);
   }else{
     bool locallyEditable = object_is_local(val);
-    drawNestedObjectProperties(path, locallyEditable, width - keyWidth, height);
+    drawNestedObjectProperties(path, locallyEditable, width, height);
   }
 }
 
@@ -563,10 +564,10 @@ void GUI::drawNestedObjectProperties(char* path, bool locallyEditable, uint16_t 
   ImVec2 start_draggable_pos = ImGui::GetCursorScreenPos();
   ImGui::BeginChild(childName, ImVec2(width,height), true);
   {
-    if(locallyEditable) drawNewValueOrObjectButtons(path, width);
-    drawPadding(width, 15);
+    if(locallyEditable) drawNewValueOrObjectButtons(path, width-40);
+    drawPadding(width-40, 15);
     track_drag(path);
-    drawObjectProperties(path, locallyEditable, width);
+    drawObjectProperties(path, locallyEditable, width-40);
 
     ImVec2 end_draggable_pos = ImGui::GetCursorScreenPos();
     ImVec2 canvas_size(end_draggable_pos.x-start_draggable_pos.x, end_draggable_pos.y-start_draggable_pos.y);
@@ -613,13 +614,13 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, uint1
   ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, listBackground);
   ImGui::SameLine();
   ImVec2 start_draggable_pos = ImGui::GetCursorScreenPos();
-  ImGui::BeginChild(childName, ImVec2(width - keyWidth,height), true);
+  ImGui::BeginChild(childName, ImVec2(width,height), true);
   {
     if(oneline){
       ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(20,5));
     }
 
-    if(locallyEditable && !oneline){ drawNewValueOrObjectButtons(path, width - keyWidth); drawPadding(width - keyWidth, 15); track_drag(path); }
+    if(locallyEditable && !oneline){ drawNewValueOrObjectButtons(path, width-40); drawPadding(width-40, 15); track_drag(path); }
     uint8_t sz = object_property_size(user, path);
     for(int j=1; j<=sz; j++){
       char* val=object_property_value(user, path, j);
@@ -631,13 +632,13 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, uint1
           drawNewPropertyValueEditor(path, 0, val, locallyEditable, buttonWidth, buttonHeight);
           ImGui::SameLine();
         }
-        else drawNewPropertyValueEditor(path, 0, val, locallyEditable, width - keyWidth, buttonHeight);
+        else drawNewPropertyValueEditor(path, 0, val, locallyEditable, width-40, buttonHeight);
       }else{
         bool locallyEditable = object_is_local(val);
-        drawObjectProperties(path, locallyEditable, width - keyWidth);
+        drawObjectProperties(path, locallyEditable, width-40);
       }
       path[l] = 0;
-      if(!oneline){ drawPadding(width - keyWidth, 15); track_drag(path); }
+      if(!oneline){ drawPadding(width-40, 15); track_drag(path); }
     }
     if(locallyEditable && oneline) drawNewValueOrObjectButtons(path, 0);
 
