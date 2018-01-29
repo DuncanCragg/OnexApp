@@ -485,7 +485,7 @@ void GUI::drawNewPropertyCombo(char* path, int16_t width)
     char id[128]; snprintf(id, 128, "## %s", path);
     ImGui::Combo(id, !propNameEditing? &propNameChoice: &c, propNameStrings, IM_ARRAYSIZE(propNameStrings));
     track_drag(path);
-    if(!propNameEditing && propNameChoice){ propNameEditing = strdup(path); if(propNameChoice==1) showOrHideSoftKeyboard(true); }
+    if(!propNameEditing && propNameChoice){ propNameEditing = strdup(path); if(propNameChoice==1 || propNameChoice==2) showOrHideSoftKeyboard(true); }
     ImGui::PopItemWidth();
     ImGui::SameLine();
     int blankwidth = width - keyWidth;
