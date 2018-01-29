@@ -580,7 +580,7 @@ void GUI::drawObjectProperties(char* path, bool locallyEditable, int16_t width)
 void GUI::drawPropertyValue(char* path, char* key, char* val, bool locallyEditable, int16_t width)
 {
   if(width < 200) return;
-  bool isAvailableObject = is_uid(val) && object_property_size(user, path);
+  bool isAvailableObject = is_uid(val);
   int16_t height = isAvailableObject? objectHeight: buttonHeight;
   ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
   ImGui::PushStyleColor(ImGuiCol_Button, propertyBackground);
@@ -666,7 +666,7 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16
       char* val=object_property_value(user, path, j);
       size_t l=strlen(path);
       snprintf(path+l, 128-l, ":%d:", j);
-      bool isAvailableObject = is_uid(val) && object_property_size(user, path);
+      bool isAvailableObject = is_uid(val);
       if(!isAvailableObject){
         if(oneline){
           drawNewPropertyValueEditor(path, 0, val, locallyEditable, buttonWidth, buttonHeight);
