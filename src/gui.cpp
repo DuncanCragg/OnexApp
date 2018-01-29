@@ -249,7 +249,7 @@ static void track_drag(char* path)
 
 static void set_drag_scroll(char* path)
 {
-  if(drag_path && !strncmp(drag_path, path, strlen(path)) && !drag_handled && MOVING_DELTA(delta_x,delta_y)){
+  if(drag_path && !strncmp(drag_path, path, strlen(path)) && strcmp(drag_path, path) && !drag_handled && MOVING_DELTA(delta_x,delta_y)){
     ImGui::SetScrollX(ImGui::GetScrollX() - delta_x);
     ImGui::SetScrollY(ImGui::GetScrollY() - delta_y);
     drag_handled=true;
