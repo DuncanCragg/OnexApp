@@ -41,7 +41,7 @@ public:
   void drawView();
   void drawObjectProperties(char* path, bool locallyEditable, int16_t width);
   void drawNestedObjectProperties(char* path, bool locallyEditable, int16_t width, int16_t height);
-  void drawNewPropertyValueEditor(char* path, char* key, char* val, bool locallyEditable, int16_t width, int16_t height);
+  void drawNewPropertyValueEditor(char* path, char* val, bool single, bool locallyEditable, int16_t width, int16_t height);
   void drawNewValueOrObjectButtons(char* path, int16_t width);
   object* createNewObjectLikeOthers(char* path);
   object* createNewObjectForPropertyName(char* path, char* name);

@@ -280,7 +280,7 @@ void GUI::setPropertyNameAndObject(char* path , char* name)
   propNameChoice = 0;
 }
 
-void GUI::drawNewPropertyValueEditor(char* path, char* key, char* val, bool locallyEditable, int16_t width, int16_t height)
+void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool locallyEditable, int16_t width, int16_t height)
 {
   bool editing = propNameEditing && !strcmp(path, propNameEditing);
   if(!editing){
@@ -307,11 +307,11 @@ void GUI::drawNewPropertyValueEditor(char* path, char* key, char* val, bool loca
     ImGui::PushItemWidth(width);
     if(ImGui::InputText("## property value", b, 64, ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue, TextFilters::FilterImGuiLetters)){
       char* lastcolon=strrchr(path,':'); *lastcolon=0;
-      if(key){
+      if(single){
         char* secondlastcolon=strrchr(path, ':'); *secondlastcolon=0;
         object* objectEditing = object_get_from_cache(object_property(user, path));
-        if(!*b) object_property_set(objectEditing, key, (char*)"");
-        else object_property_set(objectEditing, key, strdup(b));
+        if(!*b) object_property_set(objectEditing, secondlastcolon+1, (char*)"");
+        else object_property_set(objectEditing, secondlastcolon+1, strdup(b));
         *secondlastcolon=':';
       }
       else{
@@ -590,7 +590,7 @@ void GUI::drawPropertyValue(char* path, char* key, char* val, bool locallyEditab
   ImGui::PopStyleColor(2);
   ImGui::SameLine();
   if(!isAvailableObject){
-    drawNewPropertyValueEditor(path, key, val, locallyEditable, width, height);
+    drawNewPropertyValueEditor(path, val, true, locallyEditable, width, height);
   }else{
     bool locallyEditable = object_is_local(val);
     drawNestedObjectProperties(path, locallyEditable, width, height);
@@ -659,29 +659,36 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16
   {
     if(oneline){
       ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(20,5));
-    }
-
-    uint8_t sz = object_property_size(user, path);
-    for(int j=1; j<=sz; j++){
-      char* val=object_property_value(user, path, j);
-      size_t l=strlen(path);
-      snprintf(path+l, 128-l, ":%d:", j);
-      bool isAvailableObject = is_uid(val);
-      if(!isAvailableObject){
-        if(oneline){
-          drawNewPropertyValueEditor(path, 0, val, locallyEditable, buttonWidth, buttonHeight);
-          ImGui::SameLine();
-        }
-        else drawNewPropertyValueEditor(path, 0, val, locallyEditable, width-rhsPadding, buttonHeight);
-      }else{
-        bool locallyEditable = object_is_local(val);
-        drawObjectProperties(path, locallyEditable, width-rhsPadding);
+      char text[512]; int n=0;
+      uint8_t sz = object_property_size(user, path);
+      for(int j=1; j<=sz; j++){
+        char* val=object_property_value(user, path, j);
+        n+=snprintf(text+n, 512-n, "%s ", val);
       }
+      size_t l=strlen(path);
+      snprintf(path+l, 128-l, ":");
+      drawNewPropertyValueEditor(path, text, true, locallyEditable, width, buttonHeight);
       path[l] = 0;
-      if(!oneline){ drawPadding(path, width-rhsPadding, paddingHeight); }
     }
-    if(locallyEditable && !oneline){
-      drawNewValueOrObjectButtons(path, width-rhsPadding);
+    else{
+      uint8_t sz = object_property_size(user, path);
+      for(int j=1; j<=sz; j++){
+        char* val=object_property_value(user, path, j);
+        size_t l=strlen(path);
+        snprintf(path+l, 128-l, ":%d:", j);
+        bool isAvailableObject = is_uid(val);
+        if(!isAvailableObject){
+          drawNewPropertyValueEditor(path, val, false, locallyEditable, width-rhsPadding, buttonHeight);
+        }else{
+          bool locallyEditable = object_is_local(val);
+          drawObjectProperties(path, locallyEditable, width-rhsPadding);
+        }
+        path[l] = 0;
+        drawPadding(path, width-rhsPadding, paddingHeight);
+      }
+      if(locallyEditable){
+        drawNewValueOrObjectButtons(path, width-rhsPadding);
+      }
     }
 
     ImVec2 end_draggable_pos = ImGui::GetCursorScreenPos();
