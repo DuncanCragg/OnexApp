@@ -201,6 +201,27 @@ void GUI::drawGUI()
 const char* propNameStrings[] = { "+", "+value", "+object", "title", "description", "Rules", "Notifying", "Alerted", "Timer" };
 int         propNameChoice = 0;
 char*       propNameEditing=0;
+uint16_t    yOffsetTarget=0;
+uint16_t    yOffset=0;
+uint16_t    yOffsetCounter=0;
+
+void GUI::showKeyboard(){
+#if defined(__ANDROID__)
+  float y=ImGui::GetCursorScreenPos().y;
+  yOffsetTarget=y/1.85-40;
+  yOffsetCounter=100;
+  showOrHideSoftKeyboard(true);
+#endif
+}
+
+void GUI::hideKeyboard(){
+#if defined(__ANDROID__)
+  yOffsetTarget=0;
+  yOffsetCounter=0;
+  yOffset=0;
+  showOrHideSoftKeyboard(false);
+#endif
+}
 
 void GUI::drawView()
 {
@@ -209,6 +230,15 @@ void GUI::drawView()
     char* uid=object_property(user, (char*)"viewing");
     bool locallyEditable = object_is_local(uid);
     char path[9]; memcpy(path, "viewing:", 9);
+#if defined(__ANDROID__)
+    ImVec2 startingpoint = ImGui::GetCursorScreenPos();
+    if(yOffsetCounter){
+      yOffset=yOffsetTarget*(100-yOffsetCounter)/100;
+      yOffsetCounter-=5;
+    }
+    ImVec2 startpos(startingpoint.x, startingpoint.y - yOffset);
+    ImGui::SetCursorScreenPos(startpos);
+#endif
     if(user) drawObjectProperties(path, locallyEditable, workspace1Width-rhsPadding, workspace1Height);
   }
   ImGui::EndChild();
@@ -290,7 +320,7 @@ void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool lo
     if(ImGui::Button(valId, ImVec2(width, height))){
       if(locallyEditable && (!drag_path || strcmp(path, drag_path))){
         propNameEditing = strdup(path);
-        showOrHideSoftKeyboard(true);
+        showKeyboard();
       }
     }
     track_drag(path);
@@ -327,7 +357,7 @@ void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool lo
       }
       *lastcolon=':';
       free(propNameEditing); propNameEditing=0;
-      showOrHideSoftKeyboard(false);
+      hideKeyboard();
       *b=0;
     }
     ImGui::PopItemWidth();
@@ -487,7 +517,7 @@ void GUI::drawNewPropertyCombo(char* path, int16_t width)
     char id[128]; snprintf(id, 128, "## %s", path);
     ImGui::Combo(id, !propNameEditing? &propNameChoice: &c, propNameStrings, IM_ARRAYSIZE(propNameStrings));
     track_drag(path);
-    if(!propNameEditing && propNameChoice){ propNameEditing = strdup(path); if(propNameChoice==1 || propNameChoice==2) showOrHideSoftKeyboard(true); }
+    if(!propNameEditing && propNameChoice){ propNameEditing = strdup(path); if(propNameChoice==1 || propNameChoice==2) showKeyboard(); }
     ImGui::PopItemWidth();
     ImGui::SameLine();
     int blankwidth = width - keyWidth;
@@ -519,7 +549,7 @@ void GUI::drawNewPropertyCombo(char* path, int16_t width)
       ImGui::PushItemWidth(keyWidth);
       if(ImGui::InputText("## property name", b, 64, ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue, TextFilters::FilterImGuiLetters)){
         setPropertyName(path, strdup(b));
-        showOrHideSoftKeyboard(false);
+        hideKeyboard();
         *b=0;
       }
       ImGui::PopItemWidth();
@@ -545,7 +575,7 @@ void GUI::drawNewPropertyCombo(char* path, int16_t width)
       ImGui::PushItemWidth(keyWidth);
       if(ImGui::InputText("## property name", b, 64, ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue, TextFilters::FilterImGuiLetters)){
         setPropertyNameAndObject(path, strdup(b));
-        showOrHideSoftKeyboard(false);
+        hideKeyboard();
         *b=0;
       }
       ImGui::PopItemWidth();
