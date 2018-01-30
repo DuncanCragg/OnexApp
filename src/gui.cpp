@@ -57,7 +57,7 @@ ImVec4 schemePlum(230.0f/255, 179.0f/255, 230.0f/255, 1.0f);
 #define smallButtonWidth 90
 #define buttonHeight 70
 #define listBackground schemeLightPurple
-#define rhsPadding 60
+#define rhsPadding 20
 #define paddingHeight 15
 
 static uint16_t workspace1Width;
@@ -81,7 +81,7 @@ void GUI::initImGUI(float width, float height)
   style.Colors[ImGuiCol_ChildWindowBg] = ImVec4(0.95f, 0.95f, 0.95f, 1.0f);
   style.Colors[ImGuiCol_TextSelectedBg] = ImVec4(0.9f, 0.9f, 0.9f, 1.0f);
   style.Colors[ImGuiCol_PopupBg] = ImVec4(0.9f, 0.9f, 0.9f, 1.0f);
-  style.Colors[ImGuiCol_ScrollbarBg] = ImVec4(0.9f, 0.9f, 0.9f, 1.0f);
+//style.Colors[ImGuiCol_ScrollbarBg] = ImVec4(0.9f, 0.9f, 0.9f, 1.0f);
   style.Colors[ImGuiCol_ComboBg] = actionTextBG;
   style.Colors[ImGuiCol_FrameBg] = actionTextBG;
 //style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.9f, 0.7f, 0.9f, 1.0f);
@@ -117,13 +117,13 @@ void GUI::initImGUI(float width, float height)
   io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
   io.IniFilename = 0;
   window_flags |= ImGuiWindowFlags_ShowBorders;
-  window_flags |= ImGuiWindowFlags_NoResize;
   window_flags |= ImGuiWindowFlags_NoMove;
-  window_flags |= ImGuiWindowFlags_HorizontalScrollbar;
-  window_flags |= ImGuiWindowFlags_AlwaysVerticalScrollbar;
-  window_flags |= ImGuiWindowFlags_AlwaysHorizontalScrollbar;
+  window_flags |= ImGuiWindowFlags_NoScrollbar;
+//window_flags |= ImGuiWindowFlags_NoResize;
+//window_flags |= ImGuiWindowFlags_HorizontalScrollbar;
+//window_flags |= ImGuiWindowFlags_AlwaysVerticalScrollbar;
+//window_flags |= ImGuiWindowFlags_AlwaysHorizontalScrollbar;
 //  window_flags |= ImGuiWindowFlags_NoTitleBar;
-//  window_flags |= ImGuiWindowFlags_NoScrollbar;
 //  window_flags |= ImGuiWindowFlags_NoCollapse;
 //  window_flags |= ImGuiWindowFlags_MenuBar;
 //  window_flags |= ImGuiWindowFlags_NoScrollWithMouse;
@@ -183,7 +183,7 @@ void GUI::drawGUI()
   ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0.0f,0));
 
   ImGuiStyle& style = ImGui::GetStyle();
-  style.ScrollbarSize = 40.0f;
+  style.ScrollbarSize = 0.0f;
   style.TouchExtraPadding = ImVec2(10.0f,10.0f);
 
   drawView();
@@ -204,7 +204,7 @@ char*       propNameEditing=0;
 
 void GUI::drawView()
 {
-  ImGui::BeginChild("Workspace1", ImVec2(workspace1Width,0), true, ImGuiWindowFlags_HorizontalScrollbar);
+  ImGui::BeginChild("Workspace1", ImVec2(workspace1Width,0), true);
   {
     char* uid=object_property(user, (char*)"viewing");
     bool locallyEditable = object_is_local(uid);
@@ -558,7 +558,7 @@ void GUI::drawNewPropertyCombo(char* path, int16_t width)
 
 int16_t GUI::calculateScrollerHeight(char* path, int16_t height)
 {
-  int16_t heightforscrollers=height-4*buttonHeight;
+  int16_t heightforscrollers=height-3.5*buttonHeight;
   int8_t  numberofscrollers=0;
   uint8_t size = object_property_size(user, path);
   for(int i=1; i<=size; i++){
