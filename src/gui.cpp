@@ -61,10 +61,12 @@ ImVec4 schemePlum(230.0f/255, 179.0f/255, 230.0f/255, 1.0f);
 #define paddingHeight 15
 
 static uint16_t workspace1Width;
+static uint16_t workspace1Height;
 
 void GUI::initImGUI(float width, float height)
 {
   workspace1Width=((int)width)/2-10;
+  workspace1Height=(int)height-10;
   ImGuiStyle& style = ImGui::GetStyle();
   style.Colors[ImGuiCol_Header] = ImVec4(0.8f, 0.7f, 0.9f, 1.0f);
   style.Colors[ImGuiCol_Text] = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
@@ -207,7 +209,7 @@ void GUI::drawView()
     char* uid=object_property(user, (char*)"viewing");
     bool locallyEditable = object_is_local(uid);
     char path[9]; memcpy(path, "viewing:", 9);
-    if(user) drawObjectProperties(path, locallyEditable, workspace1Width-rhsPadding);
+    if(user) drawObjectProperties(path, locallyEditable, workspace1Width-rhsPadding, workspace1Height);
   }
   ImGui::EndChild();
 }
@@ -446,7 +448,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width)
     ImGui::SameLine();
   }
 
-  char maxId[256]; snprintf(maxId, 256, "[++]##%s", path);
+  char maxId[256]; snprintf(maxId, 256, "[+]##%s", path);
   if(ImGui::Button(maxId, ImVec2(smallButtonWidth, buttonHeight))){
     char* lastcolon=strrchr(path,':');
     *lastcolon=0;
@@ -554,12 +556,10 @@ void GUI::drawNewPropertyCombo(char* path, int16_t width)
   }
 }
 
-// ---------------
-
-void GUI::drawObjectProperties(char* path, bool locallyEditable, int16_t width)
+int16_t GUI::calculateScrollerHeight(char* path, int16_t height)
 {
-  drawObjectHeader(path, locallyEditable, width);
-  if(width < 200) return;
+  int16_t heightforscrollers=height-4*buttonHeight;
+  int8_t  numberofscrollers=0;
   uint8_t size = object_property_size(user, path);
   for(int i=1; i<=size; i++){
     char* key=object_property_key(user, path, i);
@@ -567,21 +567,73 @@ void GUI::drawObjectProperties(char* path, bool locallyEditable, int16_t width)
     pathkey[l-1] = 0;
     if(object_property_is_value(user, pathkey)){
       pathkey[l-1] = ':';
-      drawPropertyValue(pathkey, key, object_property_value(user, path, i), locallyEditable, width-keyWidth);
+      char* val=object_property_value(user, path, i);
+      int16_t h = is_uid(val)? objectHeight: buttonHeight;
+      heightforscrollers-=is_uid(val)? 0: buttonHeight;
+      numberofscrollers+=is_uid(val)? 1: 0;
     }
     else
     if(object_property_is_list(user, pathkey)){
-      drawPropertyList(pathkey, key, locallyEditable, width-keyWidth);
+      uint8_t sz = object_property_size(user, pathkey);
+      uint32_t wid=0;
+      for(int j=1; j<=sz; j++){
+        char* val=object_property_value(user, pathkey, j);
+        if(is_uid(val)){ wid=0; break; }
+        wid += strlen(val)+1;
+      }
+      int16_t h = (wid >0 && wid < 20)? buttonHeight: listHeight;
+      heightforscrollers-=(wid >0 && wid < 20)? buttonHeight: 0;
+      numberofscrollers+=(wid >0 && wid < 20)? 0: 1;
+    }
+  }
+  return numberofscrollers? heightforscrollers/numberofscrollers: 0;
+}
+
+// ---------------
+
+void GUI::drawObjectProperties(char* path, bool locallyEditable, int16_t width, int16_t height)
+{
+  drawObjectHeader(path, locallyEditable, width);
+  if(width < 200) return;
+  int16_t scrollerheight=calculateScrollerHeight(path, height);
+  uint8_t size = object_property_size(user, path);
+  for(int i=1; i<=size; i++){
+    char* key=object_property_key(user, path, i);
+    char pathkey[128]; size_t l = snprintf(pathkey, 128, "%s%s:", path, key);
+    pathkey[l-1] = 0;
+    if(object_property_is_value(user, pathkey)){
+      pathkey[l-1] = ':';
+      char* val=object_property_value(user, path, i);
+      int16_t height = is_uid(val)? scrollerheight: buttonHeight;
+      if(height>=buttonHeight) drawPropertyValue(pathkey, key, val, locallyEditable, width-keyWidth, height);
+      else{
+        ImGui::Button("## blank", ImVec2(width, paddingHeight));
+        track_drag(path);
+      }
+    }
+    else
+    if(object_property_is_list(user, pathkey)){
+      uint8_t sz = object_property_size(user, pathkey);
+      uint32_t wid=0;
+      for(int j=1; j<=sz; j++){
+        char* val=object_property_value(user, pathkey, j);
+        if(is_uid(val)){ wid=0; break; }
+        wid += strlen(val)+1;
+      }
+      int16_t height = (wid >0 && wid < 20)? buttonHeight: scrollerheight;
+      if(height>=buttonHeight) drawPropertyList(pathkey, key, locallyEditable, width-keyWidth, height);
+      else{
+        ImGui::Button("## blank", ImVec2(width, paddingHeight));
+        track_drag(path);
+      }
     }
   }
   if(locallyEditable) drawNewPropertyCombo(path, width);
 }
 
-void GUI::drawPropertyValue(char* path, char* key, char* val, bool locallyEditable, int16_t width)
+void GUI::drawPropertyValue(char* path, char* key, char* val, bool locallyEditable, int16_t width, int16_t height)
 {
   if(width < 200) return;
-  bool isAvailableObject = is_uid(val);
-  int16_t height = isAvailableObject? objectHeight: buttonHeight;
   ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
   ImGui::PushStyleColor(ImGuiCol_Button, propertyBackground);
   char keyId[256]; snprintf(keyId, 256, "%s ## %s", key, path);
@@ -589,7 +641,7 @@ void GUI::drawPropertyValue(char* path, char* key, char* val, bool locallyEditab
   track_drag(path);
   ImGui::PopStyleColor(2);
   ImGui::SameLine();
-  if(!isAvailableObject){
+  if(!is_uid(val)){
     drawNewPropertyValueEditor(path, val, true, locallyEditable, width, height);
   }else{
     bool locallyEditable = object_is_local(val);
@@ -605,7 +657,7 @@ void GUI::drawNestedObjectProperties(char* path, bool locallyEditable, int16_t w
   ImVec2 start_draggable_pos = ImGui::GetCursorScreenPos();
   ImGui::BeginChild(childName, ImVec2(width,height), true);
   {
-    drawObjectProperties(path, locallyEditable, width-rhsPadding);
+    drawObjectProperties(path, locallyEditable, width-rhsPadding, height);
     drawPadding(path, width-rhsPadding, paddingHeight);
     if(locallyEditable) drawNewValueOrObjectButtons(path, width-rhsPadding);
 
@@ -624,17 +676,9 @@ void GUI::drawNestedObjectProperties(char* path, bool locallyEditable, int16_t w
   ImGui::End();
 }
 
-void GUI::drawPropertyList(char* path, char* key, bool locallyEditable, int16_t width)
+void GUI::drawPropertyList(char* path, char* key, bool locallyEditable, int16_t width, int16_t height)
 {
   if(width < 200) return;
-  uint8_t sz = object_property_size(user, path);
-  uint32_t wid=0;
-  for(int j=1; j<=sz; j++){
-    char* val=object_property_value(user, path, j);
-    if(is_uid(val)){ wid=0; break; }
-    wid += strlen(val)+1;
-  }
-  int16_t height = (wid >0 && wid < 20)? buttonHeight: listHeight;
   ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
   ImGui::PushStyleColor(ImGuiCol_Button, propertyBackground);
   char keyId[256]; snprintf(keyId, 256, "%s ## %s", key, path);
@@ -676,12 +720,11 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16
         char* val=object_property_value(user, path, j);
         size_t l=strlen(path);
         snprintf(path+l, 128-l, ":%d:", j);
-        bool isAvailableObject = is_uid(val);
-        if(!isAvailableObject){
+        if(!is_uid(val)){
           drawNewPropertyValueEditor(path, val, false, locallyEditable, width-rhsPadding, buttonHeight);
         }else{
           bool locallyEditable = object_is_local(val);
-          drawObjectProperties(path, locallyEditable, width-rhsPadding);
+          drawObjectProperties(path, locallyEditable, width-rhsPadding, height);
         }
         path[l] = 0;
         drawPadding(path, width-rhsPadding, paddingHeight);
