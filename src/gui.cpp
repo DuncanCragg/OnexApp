@@ -87,9 +87,8 @@ void GUI::initImGUI(float width, float height)
   style.Colors[ImGuiCol_MenuBarBg] = ImVec4(0.9f, 0.9f, 0.9f, 1.0f);
   style.Colors[ImGuiCol_ChildWindowBg] = ImVec4(0.95f, 0.95f, 0.95f, 1.0f);
   style.Colors[ImGuiCol_TextSelectedBg] = ImVec4(1.0f, 1.0f, 0.7f, 1.0f);
-  style.Colors[ImGuiCol_PopupBg] = ImVec4(0.9f, 0.9f, 0.9f, 1.0f);
 //style.Colors[ImGuiCol_ScrollbarBg] = ImVec4(0.9f, 0.9f, 0.9f, 1.0f);
-  style.Colors[ImGuiCol_ComboBg] = actionBackground;
+  style.Colors[ImGuiCol_PopupBg] = actionBackground;
   style.Colors[ImGuiCol_FrameBg] = actionBackground;
 //style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.9f, 0.7f, 0.9f, 1.0f);
   style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.9f, 0.7f, 0.9f, 1.0f);
@@ -123,7 +122,6 @@ void GUI::initImGUI(float width, float height)
   io.DisplaySize = ImVec2(width, height);
   io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
   io.IniFilename = 0;
-  window_flags |= ImGuiWindowFlags_ShowBorders;
   window_flags |= ImGuiWindowFlags_NoMove;
   window_flags |= ImGuiWindowFlags_NoScrollbar;
 //window_flags |= ImGuiWindowFlags_NoResize;
@@ -181,13 +179,16 @@ void GUI::drawGUI()
       return;
   }
 
-  int svs = 5;
+// Use ImGui::ShowStyleEditor() to look them up.
 
+  int svs = 7;
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10,5));
   ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0,0));
   ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0,0));
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10,10));
   ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0.0f,0));
+  ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
 
   ImGuiStyle& style = ImGui::GetStyle();
   style.ScrollbarSize = 0.0f;
