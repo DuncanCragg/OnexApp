@@ -34,12 +34,19 @@ void GUI::prepare()
 
 // ---------------------------------------------------------------------------------------------
 
-ImVec4 actionTextColour(0.5f, 0.1f, 0.2f, 1.0f);
-ImVec4 actionTextBG(0.90f, 0.90f, 0.85f, 1.0f);
-ImVec4 propertyColour(0.2f, 0.5f, 0.3f, 1.0f);
-ImVec4 keywordColour(0.5f, 0.1f, 0.2f, 1.0f);
-ImVec4 propertyBackground(0.90f, 0.90f, 1.00f, 1.00f);
-ImVec4 valueBackground(0.9f, 0.8f, 1.0f, 1.0f);
+ImVec4 actionColour            (0.50f, 0.10f, 0.20f, 1.0f);
+ImVec4 actionBackground        (0.90f, 0.90f, 0.85f, 1.0f);
+ImVec4 actionBackgroundHover   (0.95f, 0.95f, 0.90f, 1.0f);
+ImVec4 actionBackgroundActive  (0.85f, 0.85f, 0.80f, 1.0f);
+
+ImVec4 propertyColour          (0.20f, 0.50f, 0.30f, 1.0f);
+ImVec4 propertyBackground      (0.90f, 0.90f, 1.00f, 1.0f);
+ImVec4 propertyBackgroundHover (0.95f, 0.95f, 1.00f, 1.0f);
+ImVec4 propertyBackgroundActive(0.85f, 0.85f, 0.95f, 1.0f);
+
+ImVec4 valueBackground         (0.90f, 0.80f, 1.00f, 1.0f);
+ImVec4 valueBackgroundHover    (0.95f, 0.85f, 1.00f, 1.0f);
+ImVec4 valueBackgroundActive   (0.85f, 0.75f, 0.95f, 1.0f);
 
 ImVec4 schemeBrown(183.0f/255, 142.0f/255, 96.0f/255, 1.0f);
 ImVec4 schemeYellow(255.0f/255, 245.0f/255, 180.0f/255, 1.0f);
@@ -79,25 +86,25 @@ void GUI::initImGUI(float width, float height)
   style.Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.9f, 0.9f, 0.9f, 1.0f);
   style.Colors[ImGuiCol_MenuBarBg] = ImVec4(0.9f, 0.9f, 0.9f, 1.0f);
   style.Colors[ImGuiCol_ChildWindowBg] = ImVec4(0.95f, 0.95f, 0.95f, 1.0f);
-  style.Colors[ImGuiCol_TextSelectedBg] = ImVec4(0.9f, 0.9f, 0.9f, 1.0f);
+  style.Colors[ImGuiCol_TextSelectedBg] = ImVec4(1.0f, 1.0f, 0.7f, 1.0f);
   style.Colors[ImGuiCol_PopupBg] = ImVec4(0.9f, 0.9f, 0.9f, 1.0f);
 //style.Colors[ImGuiCol_ScrollbarBg] = ImVec4(0.9f, 0.9f, 0.9f, 1.0f);
-  style.Colors[ImGuiCol_ComboBg] = actionTextBG;
-  style.Colors[ImGuiCol_FrameBg] = actionTextBG;
+  style.Colors[ImGuiCol_ComboBg] = actionBackground;
+  style.Colors[ImGuiCol_FrameBg] = actionBackground;
 //style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.9f, 0.7f, 0.9f, 1.0f);
   style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.9f, 0.7f, 0.9f, 1.0f);
   style.Colors[ImGuiCol_CheckMark] = ImVec4(0.8f, 0.7f, 0.9f, 1.0f);
   style.Colors[ImGuiCol_Button] = valueBackground;
-  style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.88f, 0.78f, 0.98f, 1.0f);
-  style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.7f, 0.6f, 0.8f, 1.0f);
+  style.Colors[ImGuiCol_ButtonHovered] = valueBackgroundHover;
+  style.Colors[ImGuiCol_ButtonActive] = valueBackgroundActive;
   style.Colors[ImGuiCol_SliderGrab] = valueBackground;
   style.Colors[ImGuiCol_SliderGrabActive] = ImVec4(0.8f, 0.7f, 0.9f, 1.0f);
+  style.Colors[ImGuiCol_Header] = actionBackground;
+  style.Colors[ImGuiCol_HeaderHovered] = actionBackgroundHover;
+  style.Colors[ImGuiCol_HeaderActive] = actionBackgroundActive;
 //  style.Colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
 //  style.Colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
 //  style.Colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
-//  style.Colors[ImGuiCol_Header] = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
-//  style.Colors[ImGuiCol_HeaderHovered] = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
-//  style.Colors[ImGuiCol_HeaderActive] = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
 //  style.Colors[ImGuiCol_Column] = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
 //  style.Colors[ImGuiCol_ColumnHovered] = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
 //  style.Colors[ImGuiCol_ColumnActive] = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
@@ -378,8 +385,10 @@ static void drawPadding(char* path, int16_t width, int16_t height)
 
 void GUI::drawNewObjectButton(char* path, int16_t width, int j)
 {
-  ImGui::PushStyleColor(ImGuiCol_Text, actionTextColour);
-  ImGui::PushStyleColor(ImGuiCol_Button, actionTextBG);
+  ImGui::PushStyleColor(ImGuiCol_Text, actionColour);
+  ImGui::PushStyleColor(ImGuiCol_Button, actionBackground);
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, actionBackgroundHover);
+  ImGui::PushStyleColor(ImGuiCol_ButtonActive, actionBackgroundActive);
   char pathj[256]; snprintf(pathj, 256, "%s:%d:", path, j);
   drawPadding(pathj, width-smallButtonWidth, buttonHeight);
   ImGui::SameLine();
@@ -406,7 +415,7 @@ void GUI::drawNewObjectButton(char* path, int16_t width, int j)
     free(vkey);
   }
   track_drag(pathj);
-  ImGui::PopStyleColor(2);
+  ImGui::PopStyleColor(4);
 }
 
 object* GUI::createNewObjectForPropertyName(char* path, char* name)
@@ -456,8 +465,10 @@ object* GUI::createNewObjectLikeOthers(char* path)
 void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width)
 {
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));
-  ImGui::PushStyleColor(ImGuiCol_Text, actionTextColour);
-  ImGui::PushStyleColor(ImGuiCol_Button, actionTextBG);
+  ImGui::PushStyleColor(ImGuiCol_Text, actionColour);
+  ImGui::PushStyleColor(ImGuiCol_Button, actionBackground);
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, actionBackgroundHover);
+  ImGui::PushStyleColor(ImGuiCol_ButtonActive, actionBackgroundActive);
 
   bool topobj=!strcmp(path, "viewing:");
   if(topobj){
@@ -507,7 +518,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width)
   }
   track_drag(path);
 
-  ImGui::PopStyleColor(2);
+  ImGui::PopStyleColor(4);
   ImGui::PopStyleVar(1);
 }
 
@@ -672,10 +683,12 @@ void GUI::drawPropertyValue(char* path, char* key, char* val, bool locallyEditab
   if(width < 200) return;
   ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
   ImGui::PushStyleColor(ImGuiCol_Button, propertyBackground);
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, propertyBackgroundHover);
+  ImGui::PushStyleColor(ImGuiCol_ButtonActive, propertyBackgroundActive);
   char keyId[256]; snprintf(keyId, 256, "%s ## %s", key, path);
   ImGui::Button(keyId, ImVec2(keyWidth, height));
   track_drag(path);
-  ImGui::PopStyleColor(2);
+  ImGui::PopStyleColor(4);
   ImGui::SameLine();
   if(!is_uid(val)){
     drawNewPropertyValueEditor(path, val, true, locallyEditable, width, height);
@@ -708,10 +721,12 @@ void GUI::drawPropertyList(char* path, char* key, bool locallyEditable, int16_t 
   if(width < 200) return;
   ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
   ImGui::PushStyleColor(ImGuiCol_Button, propertyBackground);
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, propertyBackgroundHover);
+  ImGui::PushStyleColor(ImGuiCol_ButtonActive, propertyBackgroundActive);
   char keyId[256]; snprintf(keyId, 256, "%s ## %s", key, path);
   ImGui::Button(keyId, ImVec2(keyWidth, height));
   track_drag(path);
-  ImGui::PopStyleColor(2);
+  ImGui::PopStyleColor(4);
   ImGui::SameLine();
   drawNestedObjectPropertiesList(path, locallyEditable, width, height);
 }
