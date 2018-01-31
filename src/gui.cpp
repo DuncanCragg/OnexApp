@@ -316,7 +316,7 @@ void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool lo
 {
   bool editing = propNameEditing && !strcmp(path, propNameEditing);
   if(!editing){
-    char valId[256]; snprintf(valId, 256, "%s ## %s", val, path);
+    char valId[256]; snprintf(valId, 256, "%s ## val %s", val, path);
     if(ImGui::Button(valId, ImVec2(width, height))){
       if(locallyEditable && (!drag_path || strcmp(path, drag_path))){
         propNameEditing = strdup(path);
@@ -370,18 +370,20 @@ static void drawPadding(char* path, int16_t width, int16_t height)
   ImGui::PushStyleColor(ImGuiCol_ButtonHovered, listBackground);
   ImGui::PushStyleColor(ImGuiCol_Border, listBackground);
   ImGui::PushStyleColor(ImGuiCol_BorderShadow, listBackground);
-  ImGui::Button("## blank", ImVec2(width, height));
-  ImGui::PopStyleColor(4);
+  char blnId[256]; snprintf(blnId, 256, "##padding %s %d %d", path, width, height);
+  ImGui::Button(blnId, ImVec2(width, height));
   track_drag(path);
+  ImGui::PopStyleColor(4);
 }
 
-void GUI::drawNewValueOrObjectButtons(char* path, int16_t width)
+void GUI::drawNewObjectButton(char* path, int16_t width, int j)
 {
   ImGui::PushStyleColor(ImGuiCol_Text, actionTextColour);
   ImGui::PushStyleColor(ImGuiCol_Button, actionTextBG);
-  drawPadding(path, width-smallButtonWidth, paddingHeight);
+  char pathj[256]; snprintf(pathj, 256, "%s:%d:", path, j);
+  drawPadding(pathj, width-smallButtonWidth, buttonHeight);
   ImGui::SameLine();
-  char addObjId[256]; snprintf(addObjId, 256, "+##%s", path);
+  char addObjId[256]; snprintf(addObjId, 256, "+##%s", pathj);
   if(ImGui::Button(addObjId, ImVec2(smallButtonWidth, buttonHeight))){
     char* lastcolon=strrchr(path,':');
     char* secondlastcolon=0;
@@ -403,7 +405,7 @@ void GUI::drawNewValueOrObjectButtons(char* path, int16_t width)
     if(o) object_property_add(v, vkey, object_property(o, (char*)"UID"));
     free(vkey);
   }
-  track_drag(path);
+  track_drag(pathj);
   ImGui::PopStyleColor(2);
 }
 
@@ -473,7 +475,8 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width)
 
   int blankwidth = width-(topobj? 3: 2)*smallButtonWidth;
   if(blankwidth>10){
-    ImGui::Button("## blank", ImVec2(blankwidth, buttonHeight));
+    char barId[256]; snprintf(barId, 256, "## topbar %s", path);
+    ImGui::Button(barId, ImVec2(blankwidth, buttonHeight));
     track_drag(path);
     ImGui::SameLine();
   }
@@ -514,15 +517,16 @@ void GUI::drawNewPropertyCombo(char* path, int16_t width)
   if(!editing){
     ImGui::PushItemWidth(keyWidth);
     int c=0;
-    char id[128]; snprintf(id, 128, "## %s", path);
-    ImGui::Combo(id, !propNameEditing? &propNameChoice: &c, propNameStrings, IM_ARRAYSIZE(propNameStrings));
+    char comId[256]; snprintf(comId, 256, "## %s combo", path);
+    ImGui::Combo(comId, !propNameEditing? &propNameChoice: &c, propNameStrings, IM_ARRAYSIZE(propNameStrings));
     track_drag(path);
     if(!propNameEditing && propNameChoice){ propNameEditing = strdup(path); if(propNameChoice==1 || propNameChoice==2) showKeyboard(); }
     ImGui::PopItemWidth();
     ImGui::SameLine();
     int blankwidth = width - keyWidth;
     if(blankwidth>10){
-      ImGui::Button("## blank", ImVec2(blankwidth, buttonHeight));
+      char barId[256]; snprintf(barId, 256, "## %s comboblank", path);
+      ImGui::Button(barId, ImVec2(blankwidth, buttonHeight));
       track_drag(path);
     }
   }else{
@@ -637,7 +641,8 @@ void GUI::drawObjectProperties(char* path, bool locallyEditable, int16_t width, 
       int16_t height = is_uid(val)? scrollerheight: buttonHeight;
       if(height>=buttonHeight) drawPropertyValue(pathkey, key, val, locallyEditable, width-keyWidth, height);
       else{
-        ImGui::Button("## blank", ImVec2(width, paddingHeight));
+        char blnId[256]; snprintf(blnId, 256, "##filler %s %d %d", pathkey, width, height);
+        ImGui::Button(blnId, ImVec2(width, paddingHeight));
         track_drag(path);
       }
     }
@@ -653,7 +658,8 @@ void GUI::drawObjectProperties(char* path, bool locallyEditable, int16_t width, 
       int16_t height = (wid >0 && wid < 20)? buttonHeight: scrollerheight;
       if(height>=buttonHeight) drawPropertyList(pathkey, key, locallyEditable, width-keyWidth, height);
       else{
-        ImGui::Button("## blank", ImVec2(width, paddingHeight));
+        char blnId[256]; snprintf(blnId, 256, "##filler %s %d %d", pathkey, width, height);
+        ImGui::Button(blnId, ImVec2(width, paddingHeight));
         track_drag(path);
       }
     }
@@ -684,20 +690,11 @@ void GUI::drawNestedObjectProperties(char* path, bool locallyEditable, int16_t w
   char childName[128]; memcpy(childName, path, strlen(path)+1);
   ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, listBackground);
   ImGui::SameLine();
-  ImVec2 start_draggable_pos = ImGui::GetCursorScreenPos();
   ImGui::BeginChild(childName, ImVec2(width,height), true);
   {
     drawObjectProperties(path, locallyEditable, width-rhsPadding, height);
     drawPadding(path, width-rhsPadding, paddingHeight);
-    if(locallyEditable) drawNewValueOrObjectButtons(path, width-rhsPadding);
-
-    ImVec2 end_draggable_pos = ImGui::GetCursorScreenPos();
-    ImVec2 canvas_size(end_draggable_pos.x-start_draggable_pos.x, end_draggable_pos.y-start_draggable_pos.y);
-    ImGui::SetCursorScreenPos(start_draggable_pos);
-    ImGui::PushID(childName);
-    ImGui::InvisibleButton("dragme", canvas_size);
-    ImGui::PopID();
-    track_drag(path);
+    if(locallyEditable) drawNewObjectButton(path, width-rhsPadding, 2);
   }
   ImGui::EndChild();
   ImGui::PopStyleColor();
@@ -728,7 +725,6 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16
   }
   ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, listBackground);
   ImGui::SameLine();
-  ImVec2 start_draggable_pos = ImGui::GetCursorScreenPos();
   ImGui::BeginChild(childName, ImVec2(width,height), true);
   {
     if(oneline){
@@ -746,9 +742,9 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16
     }
     else{
       uint8_t sz = object_property_size(user, path);
-      for(int j=1; j<=sz; j++){
+      size_t l=strlen(path);
+      int j; for(j=1; j<=sz; j++){
         char* val=object_property_value(user, path, j);
-        size_t l=strlen(path);
         snprintf(path+l, 128-l, ":%d:", j);
         if(!is_uid(val)){
           drawNewPropertyValueEditor(path, val, false, locallyEditable, width-rhsPadding, buttonHeight);
@@ -756,21 +752,11 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16
           bool locallyEditable = object_is_local(val);
           drawObjectProperties(path, locallyEditable, width-rhsPadding, height);
         }
-        path[l] = 0;
         drawPadding(path, width-rhsPadding, paddingHeight);
+        path[l] = 0;
       }
-      if(locallyEditable){
-        drawNewValueOrObjectButtons(path, width-rhsPadding);
-      }
+      if(locallyEditable) drawNewObjectButton(path, width-rhsPadding, j);
     }
-
-    ImVec2 end_draggable_pos = ImGui::GetCursorScreenPos();
-    ImVec2 canvas_size(end_draggable_pos.x-start_draggable_pos.x, end_draggable_pos.y-start_draggable_pos.y);
-    ImGui::SetCursorScreenPos(start_draggable_pos);
-    ImGui::PushID(childName);
-    ImGui::InvisibleButton("dragme", canvas_size);
-    ImGui::PopID();
-    track_drag(path);
     if(oneline){
       ImGui::PopStyleVar(1);
     }
