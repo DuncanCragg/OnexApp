@@ -326,8 +326,6 @@ void GUI::setPropertyName(char* path , char* name)
   object* objectEditing = object_get_from_cache(object_property(user, path));
   *lastcolon=':';
   object_property_set(objectEditing, name, (char*)"--");
-  free(propNameEditing); propNameEditing=0;
-  propNameChoice = 0;
 }
 
 void GUI::setPropertyNameAndObject(char* path , char* name)
@@ -339,8 +337,6 @@ void GUI::setPropertyNameAndObject(char* path , char* name)
   object* o = createNewObjectForPropertyName(path, name);
   if(o) object_property_set(objectEditing, name, object_property(o, (char*)"UID"));
   else object_property_set(objectEditing, name, (char*)"---");
-  free(propNameEditing); propNameEditing=0;
-  propNameChoice = 0;
 }
 
 void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool locallyEditable, int16_t width, int16_t height)
@@ -559,6 +555,7 @@ void GUI::drawNewPropertyCombo(char* path, int16_t width)
       char* propname=(char*)propNameStrings[propNameChoice];
       if(!strcmp(propname, "Rules")) setPropertyNameAndObject(path, propname);
       else setPropertyName(path, propname);
+      free(propNameEditing); propNameEditing=0; propNameChoice = 0;
     }
     else if(propNameChoice==1){
       static char b[64] = "";
@@ -579,6 +576,7 @@ void GUI::drawNewPropertyCombo(char* path, int16_t width)
       if(ImGui::InputText("## property name", b, 64, ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue, TextFilters::FilterImGuiLetters)){
         setPropertyName(path, strdup(b));
         hideKeyboard();
+        free(propNameEditing); propNameEditing=0; propNameChoice = 0;
         *b=0;
       }
       ImGui::PopItemWidth();
@@ -605,6 +603,7 @@ void GUI::drawNewPropertyCombo(char* path, int16_t width)
       if(ImGui::InputText("## property name", b, 64, ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue, TextFilters::FilterImGuiLetters)){
         setPropertyNameAndObject(path, strdup(b));
         hideKeyboard();
+        free(propNameEditing); propNameEditing=0; propNameChoice = 0;
         *b=0;
       }
       ImGui::PopItemWidth();
