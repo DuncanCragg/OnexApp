@@ -215,6 +215,7 @@ uint16_t    yOffsetCounter=0;
 
 void GUI::showKeyboard(){
 #if defined(__ANDROID__)
+  if(yOffsetTarget) return;
   float y=ImGui::GetCursorScreenPos().y;
   yOffsetTarget=y/1.85-40;
   yOffsetCounter=100;
@@ -296,6 +297,28 @@ static void set_drag_scroll(char* path)
   }
 }
 
+void GUI::setNewValue(char* path, char* valBuf, bool single)
+{
+  char* lastcolon=strrchr(path,':'); *lastcolon=0;
+  if(single){
+    char* secondlastcolon=strrchr(path, ':'); *secondlastcolon=0;
+    object* objectEditing = object_get_from_cache(object_property(user, path));
+    if(!*valBuf) object_property_set(objectEditing, secondlastcolon+1, (char*)"");
+    else object_property_set(objectEditing, secondlastcolon+1, strdup(valBuf));
+    *secondlastcolon=':';
+  }
+  else{
+    char* secondlastcolon=strrchr(path, ':'); *secondlastcolon=0;
+    char* thirdlastcolon=strrchr(path, ':'); *thirdlastcolon=0;
+    object* objectEditing = object_get_from_cache(object_property(user, path));
+    *secondlastcolon=':';
+    if(!*valBuf) object_property_set(objectEditing, thirdlastcolon+1, (char*)"");
+    else object_property_set(objectEditing, thirdlastcolon+1, strdup(valBuf));
+    *thirdlastcolon=':';
+  }
+  *lastcolon=':';
+}
+
 void GUI::setPropertyName(char* path , char* name)
 {
   char* lastcolon=strrchr(path,':');
@@ -322,10 +345,24 @@ void GUI::setPropertyNameAndObject(char* path , char* name)
 
 void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool locallyEditable, int16_t width, int16_t height)
 {
+  if(!val) return;
+  char valId[256]; snprintf(valId, 256, "##val%s%s", val, path);
+  static char valBuf[256] = ""; strncpy(valBuf, val, 256); valBuf[255]=0;
+  ImGuiIO& io = ImGui::GetIO();
   bool editing = propNameEditing && !strcmp(path, propNameEditing);
+  if(!io.WantTextInput && editing){
+    hideKeyboard();
+    free(propNameEditing); propNameEditing=0;
+    *valBuf=0;
+    editing=false;
+  }
+  ImGui::PushItemWidth(width);
+  ImGui::PushStyleColor(ImGuiCol_FrameBg, valueBackground);
+  ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, valueBackgroundHover);
+  ImGui::PushStyleColor(ImGuiCol_FrameBgActive, valueBackgroundActive);
   if(!editing){
-    char valId[256]; snprintf(valId, 256, "%s ## val %s", val, path);
-    if(ImGui::Button(valId, ImVec2(width, height))){
+    ImGui::InputText(valId, valBuf, 64, ImGuiInputTextFlags_EnterReturnsTrue|ImGuiInputTextFlags_AutoSelectAll);
+    if(ImGui::IsItemActive()){
       if(locallyEditable && (!drag_path || strcmp(path, drag_path))){
         propNameEditing = strdup(path);
         showKeyboard();
@@ -334,42 +371,16 @@ void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool lo
     track_drag(path);
   }
   else{
-    static char b[64] = "";
-    struct TextFilters {
-      static int FilterImGuiLetters(ImGuiTextEditCallbackData* data) {
-        ImWchar ch = data->EventChar;
-        if(ch >=256) return 1;
-        return 0;
-      }
-    };
-    strncpy(b, val, 64); b[63]=0;
-    ImGui::SetKeyboardFocusHere();
-    ImGui::PushItemWidth(width);
-    if(ImGui::InputText("## property value", b, 64, ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue, TextFilters::FilterImGuiLetters)){
-      char* lastcolon=strrchr(path,':'); *lastcolon=0;
-      if(single){
-        char* secondlastcolon=strrchr(path, ':'); *secondlastcolon=0;
-        object* objectEditing = object_get_from_cache(object_property(user, path));
-        if(!*b) object_property_set(objectEditing, secondlastcolon+1, (char*)"");
-        else object_property_set(objectEditing, secondlastcolon+1, strdup(b));
-        *secondlastcolon=':';
-      }
-      else{
-        char* secondlastcolon=strrchr(path, ':'); *secondlastcolon=0;
-        char* thirdlastcolon=strrchr(path, ':'); *thirdlastcolon=0;
-        object* objectEditing = object_get_from_cache(object_property(user, path));
-        *secondlastcolon=':';
-        if(!*b) object_property_set(objectEditing, thirdlastcolon+1, (char*)"");
-        else object_property_set(objectEditing, thirdlastcolon+1, strdup(b));
-        *thirdlastcolon=':';
-      }
-      *lastcolon=':';
-      free(propNameEditing); propNameEditing=0;
+    if(ImGui::InputText(valId, valBuf, 64, ImGuiInputTextFlags_EnterReturnsTrue|ImGuiInputTextFlags_AutoSelectAll)){
+      setNewValue(path, valBuf, single);
       hideKeyboard();
-      *b=0;
+      free(propNameEditing); propNameEditing=0;
+      *valBuf=0;
     }
-    ImGui::PopItemWidth();
+    track_drag(path);
   }
+  ImGui::PopStyleColor(3);
+  ImGui::PopItemWidth();
 }
 
 static void drawPadding(char* path, int16_t width, int16_t height)

@@ -53,6 +53,7 @@ public:
   void drawPropertyList(char* pathkey, char* key, bool locallyEditable, int16_t width, int16_t height);
   void setPropertyName(char* path , char* name);
   void setPropertyNameAndObject(char* path , char* name);
+  void setNewValue(char* path, char* valBuf, bool single);
   void hideKeyboard();
   void showKeyboard();
   unsigned char* fontData;
