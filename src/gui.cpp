@@ -346,7 +346,7 @@ void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool lo
   static char valBuf[256] = ""; strncpy(valBuf, val, 256); valBuf[255]=0;
   ImGuiIO& io = ImGui::GetIO();
   bool editing = propNameEditing && !strcmp(path, propNameEditing);
-  if(!io.WantTextInput && editing){
+  if(editing && !io.WantTextInput){
     hideKeyboard();
     free(propNameEditing); propNameEditing=0;
     *valBuf=0;
@@ -534,8 +534,17 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width)
 
 void GUI::drawNewPropertyCombo(char* path, int16_t width)
 {
+  static bool grabbedFocus=false;
   static char valBuf[256] = "";
+  ImGuiIO& io = ImGui::GetIO();
   bool editing = propNameEditing && !strcmp(path, propNameEditing);
+  if(editing && grabbedFocus && !io.WantTextInput){
+    hideKeyboard();
+    free(propNameEditing); propNameEditing=0; propNameChoice = 0;
+    *valBuf=0;
+    grabbedFocus=false;
+    editing=false;
+  }
   if(!editing){
     ImGui::PushItemWidth(keyWidth);
     int c=0;
@@ -571,13 +580,17 @@ void GUI::drawNewPropertyCombo(char* path, int16_t width)
           return 0;
         }
       };
-      ImGui::SetKeyboardFocusHere();
+      if(!grabbedFocus){
+        ImGui::SetKeyboardFocusHere();
+        grabbedFocus = io.WantTextInput;
+      }
       ImGui::PushItemWidth(keyWidth);
       if(ImGui::InputText("## property name", valBuf, 256, ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue, TextFilters::FilterImGuiLetters)){
         setPropertyName(path, strdup(valBuf));
         hideKeyboard();
         free(propNameEditing); propNameEditing=0; propNameChoice = 0;
         *valBuf=0;
+        grabbedFocus=false;
       }
       ImGui::PopItemWidth();
       ImGui::SameLine();
@@ -597,13 +610,17 @@ void GUI::drawNewPropertyCombo(char* path, int16_t width)
           return 0;
         }
       };
-      ImGui::SetKeyboardFocusHere();
+      if(!grabbedFocus){
+        ImGui::SetKeyboardFocusHere();
+        grabbedFocus = io.WantTextInput;
+      }
       ImGui::PushItemWidth(keyWidth);
       if(ImGui::InputText("## property name", valBuf, 256, ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue, TextFilters::FilterImGuiLetters)){
         setPropertyNameAndObject(path, strdup(valBuf));
         hideKeyboard();
         free(propNameEditing); propNameEditing=0; propNameChoice = 0;
         *valBuf=0;
+        grabbedFocus=false;
       }
       ImGui::PopItemWidth();
       ImGui::SameLine();
