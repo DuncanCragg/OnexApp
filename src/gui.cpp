@@ -534,6 +534,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width)
 
 void GUI::drawNewPropertyCombo(char* path, int16_t width)
 {
+  static char valBuf[256] = "";
   bool editing = propNameEditing && !strcmp(path, propNameEditing);
   if(!editing){
     ImGui::PushItemWidth(keyWidth);
@@ -558,12 +559,11 @@ void GUI::drawNewPropertyCombo(char* path, int16_t width)
       free(propNameEditing); propNameEditing=0; propNameChoice = 0;
     }
     else if(propNameChoice==1){
-      static char b[64] = "";
       struct TextFilters {
         static int FilterImGuiLetters(ImGuiTextEditCallbackData* data) {
           ImWchar ch = data->EventChar;
           if(ch >=256) return 1;
-          if(!strlen(b) && !isalpha(ch)) return 1;
+          if(!strlen(valBuf) && !isalpha(ch)) return 1;
           if(ch == ' '){ data->EventChar = '-'; return 0; }
           if(ch == '-'){ return 0; }
           if(!isalnum(ch)) return 1;
@@ -573,11 +573,11 @@ void GUI::drawNewPropertyCombo(char* path, int16_t width)
       };
       ImGui::SetKeyboardFocusHere();
       ImGui::PushItemWidth(keyWidth);
-      if(ImGui::InputText("## property name", b, 64, ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue, TextFilters::FilterImGuiLetters)){
-        setPropertyName(path, strdup(b));
+      if(ImGui::InputText("## property name", valBuf, 256, ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue, TextFilters::FilterImGuiLetters)){
+        setPropertyName(path, strdup(valBuf));
         hideKeyboard();
         free(propNameEditing); propNameEditing=0; propNameChoice = 0;
-        *b=0;
+        *valBuf=0;
       }
       ImGui::PopItemWidth();
       ImGui::SameLine();
@@ -585,12 +585,11 @@ void GUI::drawNewPropertyCombo(char* path, int16_t width)
       if(blankwidth>10) ImGui::Button("--## blank", ImVec2(blankwidth, buttonHeight));
     }
     else if(propNameChoice==2){
-      static char b[64] = "";
       struct TextFilters {
         static int FilterImGuiLetters(ImGuiTextEditCallbackData* data) {
           ImWchar ch = data->EventChar;
           if(ch >=256) return 1;
-          if(!strlen(b) && !isalpha(ch)) return 1;
+          if(!strlen(valBuf) && !isalpha(ch)) return 1;
           if(ch == ' '){ data->EventChar = '-'; return 0; }
           if(ch == '-'){ return 0; }
           if(!isalnum(ch)) return 1;
@@ -600,11 +599,11 @@ void GUI::drawNewPropertyCombo(char* path, int16_t width)
       };
       ImGui::SetKeyboardFocusHere();
       ImGui::PushItemWidth(keyWidth);
-      if(ImGui::InputText("## property name", b, 64, ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue, TextFilters::FilterImGuiLetters)){
-        setPropertyNameAndObject(path, strdup(b));
+      if(ImGui::InputText("## property name", valBuf, 256, ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue, TextFilters::FilterImGuiLetters)){
+        setPropertyNameAndObject(path, strdup(valBuf));
         hideKeyboard();
         free(propNameEditing); propNameEditing=0; propNameChoice = 0;
-        *b=0;
+        *valBuf=0;
       }
       ImGui::PopItemWidth();
       ImGui::SameLine();
