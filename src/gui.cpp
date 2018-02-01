@@ -381,6 +381,104 @@ void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool lo
   ImGui::PopItemWidth();
 }
 
+void GUI::drawNewPropertyCombo(char* path, int16_t width)
+{
+  static bool grabbedFocus=false;
+  static char valBuf[256] = "";
+  ImGuiIO& io = ImGui::GetIO();
+  bool editing = propNameEditing && !strcmp(path, propNameEditing);
+  if(editing && grabbedFocus && !io.WantTextInput){
+    hideKeyboard();
+    free(propNameEditing); propNameEditing=0; propNameChoice = 0;
+    *valBuf=0;
+    grabbedFocus=false;
+    editing=false;
+  }
+  if(!editing){
+    ImGui::PushItemWidth(keyWidth);
+    int c=0;
+    char comId[256]; snprintf(comId, 256, "## %s combo", path);
+    ImGui::Combo(comId, !propNameEditing? &propNameChoice: &c, propNameStrings, IM_ARRAYSIZE(propNameStrings));
+    track_drag(path);
+    if(!propNameEditing && propNameChoice){ propNameEditing = strdup(path); if(propNameChoice==1 || propNameChoice==2) showKeyboard(); }
+    ImGui::PopItemWidth();
+    ImGui::SameLine();
+    int blankwidth = width - keyWidth;
+    if(blankwidth>10){
+      char barId[256]; snprintf(barId, 256, "## %s comboblank", path);
+      ImGui::Button(barId, ImVec2(blankwidth, buttonHeight));
+      track_drag(path);
+    }
+  }else{
+    if(propNameChoice > 2){
+      char* propname=(char*)propNameStrings[propNameChoice];
+      if(!strcmp(propname, "Rules")) setPropertyNameAndObject(path, propname);
+      else setPropertyName(path, propname);
+      free(propNameEditing); propNameEditing=0; propNameChoice = 0;
+    }
+    else if(propNameChoice==1){
+      struct TextFilters {
+        static int FilterImGuiLetters(ImGuiTextEditCallbackData* data) {
+          ImWchar ch = data->EventChar;
+          if(ch >=256) return 1;
+          if(!strlen(valBuf) && !isalpha(ch)) return 1;
+          if(ch == ' '){ data->EventChar = '-'; return 0; }
+          if(ch == '-'){ return 0; }
+          if(!isalnum(ch)) return 1;
+          data->EventChar = tolower(ch);
+          return 0;
+        }
+      };
+      if(!grabbedFocus){
+        ImGui::SetKeyboardFocusHere();
+        grabbedFocus = io.WantTextInput;
+      }
+      ImGui::PushItemWidth(keyWidth);
+      if(ImGui::InputText("## property name", valBuf, 256, ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue, TextFilters::FilterImGuiLetters)){
+        setPropertyName(path, strdup(valBuf));
+        hideKeyboard();
+        free(propNameEditing); propNameEditing=0; propNameChoice = 0;
+        *valBuf=0;
+        grabbedFocus=false;
+      }
+      ImGui::PopItemWidth();
+      ImGui::SameLine();
+      int blankwidth = width - keyWidth;
+      if(blankwidth>10) ImGui::Button("--## blank", ImVec2(blankwidth, buttonHeight));
+    }
+    else if(propNameChoice==2){
+      struct TextFilters {
+        static int FilterImGuiLetters(ImGuiTextEditCallbackData* data) {
+          ImWchar ch = data->EventChar;
+          if(ch >=256) return 1;
+          if(!strlen(valBuf) && !isalpha(ch)) return 1;
+          if(ch == ' '){ data->EventChar = '-'; return 0; }
+          if(ch == '-'){ return 0; }
+          if(!isalnum(ch)) return 1;
+          data->EventChar = tolower(ch);
+          return 0;
+        }
+      };
+      if(!grabbedFocus){
+        ImGui::SetKeyboardFocusHere();
+        grabbedFocus = io.WantTextInput;
+      }
+      ImGui::PushItemWidth(keyWidth);
+      if(ImGui::InputText("## property name", valBuf, 256, ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue, TextFilters::FilterImGuiLetters)){
+        setPropertyNameAndObject(path, strdup(valBuf));
+        hideKeyboard();
+        free(propNameEditing); propNameEditing=0; propNameChoice = 0;
+        *valBuf=0;
+        grabbedFocus=false;
+      }
+      ImGui::PopItemWidth();
+      ImGui::SameLine();
+      int blankwidth = width - keyWidth;
+      if(blankwidth>10) ImGui::Button("[]## blank", ImVec2(blankwidth, buttonHeight));
+    }
+  }
+}
+
 static void drawPadding(char* path, int16_t width, int16_t height)
 {
   ImGui::PushStyleColor(ImGuiCol_Button, listBackground);
@@ -530,104 +628,6 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width)
 
   ImGui::PopStyleColor(4);
   ImGui::PopStyleVar(1);
-}
-
-void GUI::drawNewPropertyCombo(char* path, int16_t width)
-{
-  static bool grabbedFocus=false;
-  static char valBuf[256] = "";
-  ImGuiIO& io = ImGui::GetIO();
-  bool editing = propNameEditing && !strcmp(path, propNameEditing);
-  if(editing && grabbedFocus && !io.WantTextInput){
-    hideKeyboard();
-    free(propNameEditing); propNameEditing=0; propNameChoice = 0;
-    *valBuf=0;
-    grabbedFocus=false;
-    editing=false;
-  }
-  if(!editing){
-    ImGui::PushItemWidth(keyWidth);
-    int c=0;
-    char comId[256]; snprintf(comId, 256, "## %s combo", path);
-    ImGui::Combo(comId, !propNameEditing? &propNameChoice: &c, propNameStrings, IM_ARRAYSIZE(propNameStrings));
-    track_drag(path);
-    if(!propNameEditing && propNameChoice){ propNameEditing = strdup(path); if(propNameChoice==1 || propNameChoice==2) showKeyboard(); }
-    ImGui::PopItemWidth();
-    ImGui::SameLine();
-    int blankwidth = width - keyWidth;
-    if(blankwidth>10){
-      char barId[256]; snprintf(barId, 256, "## %s comboblank", path);
-      ImGui::Button(barId, ImVec2(blankwidth, buttonHeight));
-      track_drag(path);
-    }
-  }else{
-    if(propNameChoice > 2){
-      char* propname=(char*)propNameStrings[propNameChoice];
-      if(!strcmp(propname, "Rules")) setPropertyNameAndObject(path, propname);
-      else setPropertyName(path, propname);
-      free(propNameEditing); propNameEditing=0; propNameChoice = 0;
-    }
-    else if(propNameChoice==1){
-      struct TextFilters {
-        static int FilterImGuiLetters(ImGuiTextEditCallbackData* data) {
-          ImWchar ch = data->EventChar;
-          if(ch >=256) return 1;
-          if(!strlen(valBuf) && !isalpha(ch)) return 1;
-          if(ch == ' '){ data->EventChar = '-'; return 0; }
-          if(ch == '-'){ return 0; }
-          if(!isalnum(ch)) return 1;
-          data->EventChar = tolower(ch);
-          return 0;
-        }
-      };
-      if(!grabbedFocus){
-        ImGui::SetKeyboardFocusHere();
-        grabbedFocus = io.WantTextInput;
-      }
-      ImGui::PushItemWidth(keyWidth);
-      if(ImGui::InputText("## property name", valBuf, 256, ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue, TextFilters::FilterImGuiLetters)){
-        setPropertyName(path, strdup(valBuf));
-        hideKeyboard();
-        free(propNameEditing); propNameEditing=0; propNameChoice = 0;
-        *valBuf=0;
-        grabbedFocus=false;
-      }
-      ImGui::PopItemWidth();
-      ImGui::SameLine();
-      int blankwidth = width - keyWidth;
-      if(blankwidth>10) ImGui::Button("--## blank", ImVec2(blankwidth, buttonHeight));
-    }
-    else if(propNameChoice==2){
-      struct TextFilters {
-        static int FilterImGuiLetters(ImGuiTextEditCallbackData* data) {
-          ImWchar ch = data->EventChar;
-          if(ch >=256) return 1;
-          if(!strlen(valBuf) && !isalpha(ch)) return 1;
-          if(ch == ' '){ data->EventChar = '-'; return 0; }
-          if(ch == '-'){ return 0; }
-          if(!isalnum(ch)) return 1;
-          data->EventChar = tolower(ch);
-          return 0;
-        }
-      };
-      if(!grabbedFocus){
-        ImGui::SetKeyboardFocusHere();
-        grabbedFocus = io.WantTextInput;
-      }
-      ImGui::PushItemWidth(keyWidth);
-      if(ImGui::InputText("## property name", valBuf, 256, ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue, TextFilters::FilterImGuiLetters)){
-        setPropertyNameAndObject(path, strdup(valBuf));
-        hideKeyboard();
-        free(propNameEditing); propNameEditing=0; propNameChoice = 0;
-        *valBuf=0;
-        grabbedFocus=false;
-      }
-      ImGui::PopItemWidth();
-      ImGui::SameLine();
-      int blankwidth = width - keyWidth;
-      if(blankwidth>10) ImGui::Button("[]## blank", ImVec2(blankwidth, buttonHeight));
-    }
-  }
 }
 
 int16_t GUI::calculateScrollerHeight(char* path, int16_t height)
