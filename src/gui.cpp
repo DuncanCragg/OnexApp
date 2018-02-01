@@ -90,7 +90,7 @@ void GUI::initImGUI(float width, float height)
 //style.Colors[ImGuiCol_ScrollbarBg] = ImVec4(0.9f, 0.9f, 0.9f, 1.0f);
   style.Colors[ImGuiCol_PopupBg] = actionBackground;
   style.Colors[ImGuiCol_FrameBg] = actionBackground;
-//style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.9f, 0.7f, 0.9f, 1.0f);
+  style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.9f, 0.7f, 0.9f, 1.0f);
   style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.9f, 0.7f, 0.9f, 1.0f);
   style.Colors[ImGuiCol_CheckMark] = ImVec4(0.8f, 0.7f, 0.9f, 1.0f);
   style.Colors[ImGuiCol_Button] = valueBackground;
@@ -361,14 +361,16 @@ void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool lo
   ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, valueBackgroundHover);
   ImGui::PushStyleColor(ImGuiCol_FrameBgActive, valueBackgroundActive);
   if(!editing){
+    ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, valueBackground);
     ImGui::InputText(valId, valBuf, 64, ImGuiInputTextFlags_EnterReturnsTrue|ImGuiInputTextFlags_AutoSelectAll);
-    if(ImGui::IsItemActive()){
-      if(locallyEditable && (!drag_path || strcmp(path, drag_path))){
+    if(ImGui::IsItemActive() && ImGui::IsMouseReleased(0) && !drag_path){
+      if(locallyEditable){
         propNameEditing = strdup(path);
         showKeyboard();
       }
     }
     track_drag(path);
+    ImGui::PopStyleColor();
   }
   else{
     if(ImGui::InputText(valId, valBuf, 64, ImGuiInputTextFlags_EnterReturnsTrue|ImGuiInputTextFlags_AutoSelectAll)){
