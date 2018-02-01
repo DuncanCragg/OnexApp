@@ -580,7 +580,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width)
 
   bool topobj=!strcmp(path, "viewing:");
   if(topobj){
-    char linkId[256]; snprintf(linkId, 256, "<<##%s", path);
+    char linkId[256]; snprintf(linkId, 256, " <<##%s", path);
     if(ImGui::Button(linkId, ImVec2(smallButtonWidth, buttonHeight))){
       uint16_t histlen=object_property_size(user, (char*)"history");
       char* viewing = object_property_value(user, (char*)"history", histlen);
@@ -592,28 +592,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width)
     ImGui::SameLine();
   }
 
-  int blankwidth = width-(topobj? 3: 2)*smallButtonWidth;
-  if(blankwidth>10){
-    char barId[256]; snprintf(barId, 256, "## topbar %s", path);
-    ImGui::Button(barId, ImVec2(blankwidth, buttonHeight));
-    track_drag(path);
-    ImGui::SameLine();
-  }
-
-  char maxId[256]; snprintf(maxId, 256, "[+]##%s", path);
-  if(ImGui::Button(maxId, ImVec2(smallButtonWidth, buttonHeight))){
-    char* lastcolon=strrchr(path,':');
-    *lastcolon=0;
-    char* viewing=object_property(user, path);
-    *lastcolon=':';
-    object_property_add(user, (char*)"history", object_property(user, (char*)"viewing"));
-    object_property_set(user, (char*)"viewing", viewing);
-  }
-  track_drag(path);
-
-  ImGui::SameLine();
-
-  char dropId[256]; snprintf(dropId, 256, "X##%s", path);
+  char dropId[256]; snprintf(dropId, 256, " X##%s", path);
   if(ImGui::Button(dropId, ImVec2(smallButtonWidth, buttonHeight))){
     char* lastcolon=strrchr(path,':'); *lastcolon=0;
     char* secondlastcolon=strrchr(path, ':'); *secondlastcolon=0;
@@ -623,6 +602,27 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width)
     object_property_set(objectEditing, thirdlastcolon+1, (char*)"");
     *thirdlastcolon=':';
     *lastcolon=':';
+  }
+  track_drag(path);
+
+  ImGui::SameLine();
+
+  int blankwidth = width-(topobj? 3: 2)*smallButtonWidth;
+  if(blankwidth>10){
+    char barId[256]; snprintf(barId, 256, "## topbar %s", path);
+    ImGui::Button(barId, ImVec2(blankwidth, buttonHeight));
+    track_drag(path);
+    ImGui::SameLine();
+  }
+
+  char maxId[256]; snprintf(maxId, 256, " [+]##%s", path);
+  if(ImGui::Button(maxId, ImVec2(smallButtonWidth, buttonHeight))){
+    char* lastcolon=strrchr(path,':');
+    *lastcolon=0;
+    char* viewing=object_property(user, path);
+    *lastcolon=':';
+    object_property_add(user, (char*)"history", object_property(user, (char*)"viewing"));
+    object_property_set(user, (char*)"viewing", viewing);
   }
   track_drag(path);
 
