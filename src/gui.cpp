@@ -779,7 +779,6 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16
   ImGui::BeginChild(childName, ImVec2(width,height), true);
   {
     if(oneline){
-      ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(20,5));
       char text[512]; int n=0;
       uint8_t sz = object_property_size(user, path);
       for(int j=1; j<=sz; j++){
@@ -807,9 +806,6 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16
         path[l] = 0;
       }
       if(locallyEditable) drawNewObjectButton(path, width-rhsPadding, j);
-    }
-    if(oneline){
-      ImGui::PopStyleVar(1);
     }
   }
   ImGui::EndChild();
