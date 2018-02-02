@@ -359,7 +359,8 @@ void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool lo
   ImGui::PushStyleColor(ImGuiCol_FrameBgActive, valueBackgroundActive);
   if(!editing){
     ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, valueBackground);
-    ImGui::InputText(valId, valBuf, 64, ImGuiInputTextFlags_EnterReturnsTrue|ImGuiInputTextFlags_AutoSelectAll);
+    if(height==buttonHeight) ImGui::InputText(valId, valBuf, 256, ImGuiInputTextFlags_EnterReturnsTrue|ImGuiInputTextFlags_AutoSelectAll);
+    else                     ImGui::InputTextMultiline(valId, valBuf, 256, ImVec2(-1.0f, height-100), ImGuiInputTextFlags_EnterReturnsTrue|ImGuiInputTextFlags_AutoSelectAll);
     if(ImGui::IsItemActive() && ImGui::IsMouseReleased(0) && !drag_path){
       if(locallyEditable){
         propNameEditing = strdup(path);
@@ -370,7 +371,10 @@ void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool lo
     ImGui::PopStyleColor();
   }
   else{
-    if(ImGui::InputText(valId, valBuf, 64, ImGuiInputTextFlags_EnterReturnsTrue|ImGuiInputTextFlags_AutoSelectAll)){
+    bool done=false;
+    if(height==buttonHeight) done=ImGui::InputText(valId, valBuf, 256, ImGuiInputTextFlags_EnterReturnsTrue|ImGuiInputTextFlags_AutoSelectAll);
+    else                     done=ImGui::InputTextMultiline(valId, valBuf, 256, ImVec2(-1.0f, height-100), ImGuiInputTextFlags_EnterReturnsTrue|ImGuiInputTextFlags_AutoSelectAll);
+    if(done){
       setNewValue(path, valBuf, single);
       hideKeyboard();
       free(propNameEditing); propNameEditing=0;
@@ -787,21 +791,39 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16
       }
       size_t l=strlen(path);
       snprintf(path+l, 128-l, ":");
-      drawNewPropertyValueEditor(path, text, true, locallyEditable, width, buttonHeight);
+      drawNewPropertyValueEditor(path, text, true, locallyEditable, width, height);
       path[l] = 0;
     }
     else{
+      char text[512]; int n=0; int m=0;
       uint8_t sz = object_property_size(user, path);
-      size_t l=strlen(path);
       int j; for(j=1; j<=sz; j++){
         char* val=object_property_value(user, path, j);
-        snprintf(path+l, 128-l, ":%d:", j);
-        if(!is_uid(val)){
-          drawNewPropertyValueEditor(path, val, false, locallyEditable, width-rhsPadding, buttonHeight);
-        }else{
-          bool locallyEditable = object_is_local(val);
-          drawObjectProperties(path, locallyEditable, width-rhsPadding, height);
+        if(is_uid(val)) break;
+        int l=snprintf(text+n, 512-n, "%s ", val);
+        n+=l; m+=l;
+        if(m>20){ n+=snprintf(text+n, 512-n, "\n"); m=0; }
+      }
+      if(j<=sz){
+        uint8_t sz = object_property_size(user, path);
+        size_t l=strlen(path);
+        int j; for(j=1; j<=sz; j++){
+          char* val=object_property_value(user, path, j);
+          snprintf(path+l, 128-l, ":%d:", j);
+          if(!is_uid(val)){
+            drawNewPropertyValueEditor(path, val, false, locallyEditable, width-rhsPadding, buttonHeight);
+          }else{
+            bool locallyEditable = object_is_local(val);
+            drawObjectProperties(path, locallyEditable, width-rhsPadding, height);
+          }
+          drawPadding(path, width-rhsPadding, paddingHeight);
+          path[l] = 0;
         }
+      }
+      else{
+        size_t l=strlen(path);
+        snprintf(path+l, 128-l, ":");
+        drawNewPropertyValueEditor(path, text, true, locallyEditable, width, height);
         drawPadding(path, width-rhsPadding, paddingHeight);
         path[l] = 0;
       }
