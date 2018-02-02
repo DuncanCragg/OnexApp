@@ -680,11 +680,12 @@ void GUI::drawObjectProperties(char* path, bool locallyEditable, int16_t width, 
     char* key=object_property_key(user, path, i);
     char pathkey[128]; size_t l = snprintf(pathkey, 128, "%s%s:", path, key);
     pathkey[l-1] = 0;
+    if(!key) log_write("key=null: path=%s pathkey=%s i=%d size=%d is_value: %d value: %s\n", path, pathkey, i, size, object_property_is_value(user, pathkey), object_property_value(user, path, i));
     if(object_property_is_value(user, pathkey)){
       pathkey[l-1] = ':';
       char* val=object_property_value(user, path, i);
       int16_t height = is_uid(val)? scrollerheight: buttonHeight;
-      if(height>=buttonHeight) drawPropertyValue(pathkey, key, val, locallyEditable, width, height);
+      if(height>=buttonHeight && key) drawPropertyValue(pathkey, key, val, locallyEditable, width, height);
       else{
         char blnId[256]; snprintf(blnId, 256, "##filler %s %d %d", pathkey, width, height);
         ImGui::Button(blnId, ImVec2(width, paddingHeight));
