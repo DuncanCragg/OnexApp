@@ -57,6 +57,7 @@ ImVec4 schemeLightPurple(0.8f, 0.7f, 0.9f, 1.0f);
 ImVec4 schemePlum(230.0f/255, 179.0f/255, 230.0f/255, 1.0f);
 
 #define keyWidth 280
+#define listKeyWidth 10
 #define shorterValWidth 680
 #define objectHeight 400
 #define listHeight 1000
@@ -206,7 +207,7 @@ void GUI::drawGUI()
   ImGui::Render();
 }
 
-const char* propNameStrings[] = { "+", "+value", "+object", "title", "description", "Rules", "Notifying", "Alerted", "Timer" };
+const char* propNameStrings[] = { "+", "+value", "+object", "title", "description", "list", "date", "start-date", "end-date", "Rules", "Timer", "Notifying", "Alerted" };
 int         propNameChoice = 0;
 char*       propNameEditing=0;
 uint16_t    yOffsetTarget=0;
@@ -679,7 +680,7 @@ void GUI::drawObjectProperties(char* path, bool locallyEditable, int16_t width, 
       pathkey[l-1] = ':';
       char* val=object_property_value(user, path, i);
       int16_t height = is_uid(val)? scrollerheight: buttonHeight;
-      if(height>=buttonHeight) drawPropertyValue(pathkey, key, val, locallyEditable, width-keyWidth, height);
+      if(height>=buttonHeight) drawPropertyValue(pathkey, key, val, locallyEditable, width, height);
       else{
         char blnId[256]; snprintf(blnId, 256, "##filler %s %d %d", pathkey, width, height);
         ImGui::Button(blnId, ImVec2(width, paddingHeight));
@@ -696,7 +697,7 @@ void GUI::drawObjectProperties(char* path, bool locallyEditable, int16_t width, 
         wid += strlen(val)+1;
       }
       int16_t height = (wid >0 && wid < 20)? buttonHeight: scrollerheight;
-      if(height>=buttonHeight) drawPropertyList(pathkey, key, locallyEditable, width-keyWidth, height);
+      if(height>=buttonHeight) drawPropertyList(pathkey, key, locallyEditable, width, height);
       else{
         char blnId[256]; snprintf(blnId, 256, "##filler %s %d %d", pathkey, width, height);
         ImGui::Button(blnId, ImVec2(width, paddingHeight));
@@ -710,20 +711,12 @@ void GUI::drawObjectProperties(char* path, bool locallyEditable, int16_t width, 
 void GUI::drawPropertyValue(char* path, char* key, char* val, bool locallyEditable, int16_t width, int16_t height)
 {
   if(width < 200) return;
-  ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
-  ImGui::PushStyleColor(ImGuiCol_Button, propertyBackground);
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, propertyBackgroundHover);
-  ImGui::PushStyleColor(ImGuiCol_ButtonActive, propertyBackgroundActive);
-  char keyId[256]; snprintf(keyId, 256, "%s ## %s", key, path);
-  ImGui::Button(keyId, ImVec2(keyWidth, height));
-  track_drag(path);
-  ImGui::PopStyleColor(4);
-  ImGui::SameLine();
+  bool islist=drawKey(path, key, width, height);
   if(!is_uid(val)){
-    drawNewPropertyValueEditor(path, val, true, locallyEditable, width, height);
+    drawNewPropertyValueEditor(path, val, true, locallyEditable, width-(islist? listKeyWidth: keyWidth), height);
   }else{
     bool locallyEditable = object_is_local(val);
-    drawNestedObjectProperties(path, locallyEditable, width, height);
+    drawNestedObjectProperties(path, locallyEditable, width-(islist? listKeyWidth: keyWidth), height);
   }
 }
 
@@ -748,16 +741,30 @@ void GUI::drawNestedObjectProperties(char* path, bool locallyEditable, int16_t w
 void GUI::drawPropertyList(char* path, char* key, bool locallyEditable, int16_t width, int16_t height)
 {
   if(width < 200) return;
+  bool islist=drawKey(path, key, width, height);
+  drawNestedObjectPropertiesList(path, locallyEditable, width-(islist? listKeyWidth: keyWidth), height);
+}
+
+bool GUI::drawKey(char* path, char* key, int16_t width, int16_t height)
+{
+  bool islist=false;
   ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
   ImGui::PushStyleColor(ImGuiCol_Button, propertyBackground);
   ImGui::PushStyleColor(ImGuiCol_ButtonHovered, propertyBackgroundHover);
   ImGui::PushStyleColor(ImGuiCol_ButtonActive, propertyBackgroundActive);
-  char keyId[256]; snprintf(keyId, 256, "%s ## %s", key, path);
-  ImGui::Button(keyId, ImVec2(keyWidth, height));
+  if(strcmp(key,"list")){
+    char keyId[256]; snprintf(keyId, 256, "%s ## %s", key, path);
+    ImGui::Button(keyId, ImVec2(keyWidth, height));
+  }
+  else{
+    islist=true;
+    char keyId[256]; snprintf(keyId, 256, "## %s", path);
+    ImGui::Button(keyId, ImVec2(listKeyWidth, height));
+  }
   track_drag(path);
   ImGui::PopStyleColor(4);
   ImGui::SameLine();
-  drawNestedObjectPropertiesList(path, locallyEditable, width, height);
+  return islist;
 }
 
 void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16_t width, int16_t height)

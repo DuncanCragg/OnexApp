@@ -49,6 +49,7 @@ public:
   void drawNewPropertyCombo(char* path, int16_t width);
   void drawObjectHeader(char* path, bool locallyEditable, int16_t width);
   void drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16_t width, int16_t height);
+  bool drawKey(char* path, char* key, int16_t width, int16_t height);
   void drawPropertyValue(char* path, char* key, char* val, bool locallyEditable, int16_t width, int16_t height);
   void drawPropertyList(char* pathkey, char* key, bool locallyEditable, int16_t width, int16_t height);
   void setPropertyName(char* path , char* name);
