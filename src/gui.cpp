@@ -371,7 +371,7 @@ void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool lo
     ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, valueBackground);
     float multy=ImGui::GetCursorScreenPos().y-buttonHeight;
     if(height==buttonHeight){ ImGui::InputText(valId, valBuf, 256, flags); multy=0; }
-    else                      ImGui::InputTextMultiline(valId, valBuf, 256, ImVec2(-1.0f, height-100), flags);
+    else                      ImGui::InputTextMultiline(valId, valBuf, 256, ImVec2(-1.0f, height-40), flags);
     if(ImGui::IsItemActive() && ImGui::IsMouseReleased(0) && !dragPathId){
       if(locallyEditable){
         propNameEditing = strdup(path);
@@ -384,7 +384,7 @@ void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool lo
   else{
     bool done=false;
     if(height==buttonHeight) done=ImGui::InputText(valId, valBuf, 256, flags);
-    else                     done=ImGui::InputTextMultiline(valId, valBuf, 256, ImVec2(-1.0f, height-100), flags);
+    else                     done=ImGui::InputTextMultiline(valId, valBuf, 256, ImVec2(-1.0f, height-40), flags);
     if(done){
       setNewValue(path, valBuf, single);
       hideKeyboard();
@@ -677,9 +677,10 @@ int16_t GUI::calculateScrollerHeight(char* path, int16_t height)
         if(is_uid(val)){ wid=0; break; }
         wid += strlen(val)+1;
       }
-      int16_t h = (wid >0 && wid < 20)? buttonHeight: listHeight;
-      heightforscrollers-=(wid >0 && wid < 20)? buttonHeight: 0;
-      numberofscrollers+=(wid >0 && wid < 20)? 0: 1;
+      bool oneline=(wid >0 && wid < 20);
+      int16_t h = oneline? buttonHeight: listHeight;
+      heightforscrollers-=oneline? buttonHeight: 0;
+      numberofscrollers+=oneline? 0: 1;
     }
   }
   return numberofscrollers? heightforscrollers/numberofscrollers: 0;
@@ -821,9 +822,16 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16
         if(is_uid(val)) break;
         int l=snprintf(text+n, 512-n, "%s ", val);
         n+=l; m+=l;
-        if(m>20){ n+=snprintf(text+n, 512-n, "\n"); m=0; }
+        if(m>width/30){ n+=snprintf(text+n, 512-n, "\n"); m=0; }
       }
-      if(j<=sz){
+      if(j>sz){
+        size_t l=strlen(path);
+        snprintf(path+l, 128-l, ":");
+        drawNewPropertyValueEditor(path, text, true, locallyEditable, width, height);
+        drawPadding(path, width-rhsPadding, paddingHeight);
+        path[l] = 0;
+      }
+      else{
         uint8_t sz = object_property_size(user, path);
         size_t l=strlen(path);
         int j; for(j=1; j<=sz; j++){
@@ -838,15 +846,8 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16
           drawPadding(path, width-rhsPadding, paddingHeight);
           path[l] = 0;
         }
+        if(locallyEditable) drawNewObjectButton(path, width-rhsPadding, j);
       }
-      else{
-        size_t l=strlen(path);
-        snprintf(path+l, 128-l, ":");
-        drawNewPropertyValueEditor(path, text, true, locallyEditable, width, height);
-        drawPadding(path, width-rhsPadding, paddingHeight);
-        path[l] = 0;
-      }
-      if(locallyEditable) drawNewObjectButton(path, width-rhsPadding, j);
     }
   }
   ImGui::EndChild();
