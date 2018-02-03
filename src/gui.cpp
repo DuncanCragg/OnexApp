@@ -357,10 +357,11 @@ void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool lo
   ImGui::PushStyleColor(ImGuiCol_FrameBg, valueBackground);
   ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, valueBackgroundHover);
   ImGui::PushStyleColor(ImGuiCol_FrameBgActive, valueBackgroundActive);
+  int flags=ImGuiInputTextFlags_EnterReturnsTrue|ImGuiInputTextFlags_CtrlEnterForNewLine|ImGuiInputTextFlags_AutoSelectAll;
   if(!editing){
     ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, valueBackground);
-    if(height==buttonHeight) ImGui::InputText(valId, valBuf, 256, ImGuiInputTextFlags_EnterReturnsTrue|ImGuiInputTextFlags_AutoSelectAll);
-    else                     ImGui::InputTextMultiline(valId, valBuf, 256, ImVec2(-1.0f, height-100), ImGuiInputTextFlags_EnterReturnsTrue|ImGuiInputTextFlags_AutoSelectAll);
+    if(height==buttonHeight) ImGui::InputText(valId, valBuf, 256, flags);
+    else                     ImGui::InputTextMultiline(valId, valBuf, 256, ImVec2(-1.0f, height-100), flags);
     if(ImGui::IsItemActive() && ImGui::IsMouseReleased(0) && !drag_path){
       if(locallyEditable){
         propNameEditing = strdup(path);
@@ -372,8 +373,8 @@ void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool lo
   }
   else{
     bool done=false;
-    if(height==buttonHeight) done=ImGui::InputText(valId, valBuf, 256, ImGuiInputTextFlags_EnterReturnsTrue|ImGuiInputTextFlags_AutoSelectAll);
-    else                     done=ImGui::InputTextMultiline(valId, valBuf, 256, ImVec2(-1.0f, height-100), ImGuiInputTextFlags_EnterReturnsTrue|ImGuiInputTextFlags_AutoSelectAll);
+    if(height==buttonHeight) done=ImGui::InputText(valId, valBuf, 256, flags);
+    else                     done=ImGui::InputTextMultiline(valId, valBuf, 256, ImVec2(-1.0f, height-100), flags);
     if(done){
       setNewValue(path, valBuf, single);
       hideKeyboard();
@@ -415,6 +416,7 @@ void GUI::drawNewPropertyCombo(char* path, int16_t width)
       track_drag(path);
     }
   }else{
+    int flags=ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue;
     if(propNameChoice > 2){
       char* propname=(char*)propNameStrings[propNameChoice];
       if(!strcmp(propname, "Rules")) setPropertyNameAndObject(path, propname);
@@ -439,7 +441,7 @@ void GUI::drawNewPropertyCombo(char* path, int16_t width)
         grabbedFocus = io.WantTextInput;
       }
       ImGui::PushItemWidth(keyWidth);
-      if(ImGui::InputText("## property name", valBuf, 256, ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue, TextFilters::FilterImGuiLetters)){
+      if(ImGui::InputText("## property name", valBuf, 256, flags, TextFilters::FilterImGuiLetters)){
         setPropertyName(path, strdup(valBuf));
         hideKeyboard();
         free(propNameEditing); propNameEditing=0; propNameChoice = 0;
@@ -469,7 +471,7 @@ void GUI::drawNewPropertyCombo(char* path, int16_t width)
         grabbedFocus = io.WantTextInput;
       }
       ImGui::PushItemWidth(keyWidth);
-      if(ImGui::InputText("## property name", valBuf, 256, ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue, TextFilters::FilterImGuiLetters)){
+      if(ImGui::InputText("## property name", valBuf, 256, flags, TextFilters::FilterImGuiLetters)){
         setPropertyNameAndObject(path, strdup(valBuf));
         hideKeyboard();
         free(propNameEditing); propNameEditing=0; propNameChoice = 0;
