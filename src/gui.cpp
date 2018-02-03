@@ -341,7 +341,7 @@ void GUI::setPropertyNameAndObject(char* path , char* name)
 
 void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool locallyEditable, int16_t width, int16_t height)
 {
-  if(!val) return;
+  if(!val){ log_write("val==null: path=%s\n", path); return; }
   char valId[256]; snprintf(valId, 256, "##val%s%s", val, path);
   static char valBuf[256] = ""; strncpy(valBuf, val, 256); valBuf[255]=0;
   ImGuiIO& io = ImGui::GetIO();
