@@ -456,6 +456,9 @@ void GUI::drawNewPropertyCombo(char* path, int16_t width)
         grabbedFocus = io.WantTextInput;
       }
       ImGui::PushItemWidth(keyWidth);
+      ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
+      ImGui::PushStyleColor(ImGuiCol_PopupBg, propertyBackground);
+      ImGui::PushStyleColor(ImGuiCol_FrameBg, propertyBackground);
       if(ImGui::InputText("## property name", valBuf, 256, flags, TextFilters::FilterImGuiLetters)){
         setPropertyName(path, strdup(valBuf));
         hideKeyboard();
@@ -463,6 +466,7 @@ void GUI::drawNewPropertyCombo(char* path, int16_t width)
         *valBuf=0;
         grabbedFocus=false;
       }
+      ImGui::PopStyleColor(3);
       ImGui::PopItemWidth();
       ImGui::SameLine();
       int blankwidth = width - keyWidth;
@@ -486,6 +490,9 @@ void GUI::drawNewPropertyCombo(char* path, int16_t width)
         grabbedFocus = io.WantTextInput;
       }
       ImGui::PushItemWidth(keyWidth);
+      ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
+      ImGui::PushStyleColor(ImGuiCol_PopupBg, propertyBackground);
+      ImGui::PushStyleColor(ImGuiCol_FrameBg, propertyBackground);
       if(ImGui::InputText("## property name", valBuf, 256, flags, TextFilters::FilterImGuiLetters)){
         setPropertyNameAndObject(path, strdup(valBuf));
         hideKeyboard();
@@ -493,6 +500,7 @@ void GUI::drawNewPropertyCombo(char* path, int16_t width)
         *valBuf=0;
         grabbedFocus=false;
       }
+      ImGui::PopStyleColor(3);
       ImGui::PopItemWidth();
       ImGui::SameLine();
       int blankwidth = width - keyWidth;
