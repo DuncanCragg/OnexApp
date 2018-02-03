@@ -10,7 +10,6 @@ extern "C" {
 static GUI* static_gui;
 
 object* user;
-object* links;
 
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
 extern "C"
@@ -111,11 +110,14 @@ public:
 
     onex_init();
 
-    links=object_new((char*)"uid-2", (char*)"links list", evaluate_list, 4);
-//  object_property_set(links, (char*)"list", (char*)"uid-1-2-3");
-    object_property_add(links, (char*)"list", (char*)"banana");
+    // TODO: use long UIDs here
+    object* intro=object_new((char*)"uid-3", (char*)"article list", evaluate_list, 4);
+    object_property_set(intro, (char*)"list", (char*)"Welcome to Onex, the mobile database!");
+
+    object* links=object_new((char*)"uid-2", (char*)"links list", evaluate_list, 4);
+    object_property_set(links, (char*)"list", (char*)"uid-3");
+
 //  object_property_add(links, (char*)"list", (char*)"uid-1-2-3");
-    object_property_add(links, (char*)"list", (char*)"mango");
 
     user=object_new((char*)"uid-1", (char*)"user", evaluate_user, 4);
     object_property_set(user, (char*)"viewing", (char*)"uid-2");
