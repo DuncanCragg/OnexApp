@@ -513,17 +513,41 @@ static void drawPadding(char* path, int16_t width, int16_t height)
   ImGui::PopStyleColor(4);
 }
 
-void GUI::drawNewObjectButton(char* path, int16_t width, int j)
+void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j)
 {
+  char pathj[256]; snprintf(pathj, 256, "%s:%d:", path, j);
+  char addValId[256]; snprintf(addValId, 256, "+value ## %s", pathj);
+  if(ImGui::Button(addValId, ImVec2(width/2, buttonHeight)) && !dragPathId){
+    char* lastcolon=strrchr(path,':');
+    char* secondlastcolon=0;
+    char* vkey;
+    if(lastcolon+1-path == strlen(path)){
+      *lastcolon=0;
+      secondlastcolon=strrchr(path,':');
+      *secondlastcolon=0;
+      vkey=strdup(secondlastcolon+1);
+    }
+    else{
+      *lastcolon=0;
+      vkey=strdup(lastcolon+1);
+    }
+    object* v = object_get_from_cache(object_property(user, path));
+    if(secondlastcolon) *secondlastcolon=':';
+    *lastcolon=':';
+    object_property_add(v, vkey, (char*)"--");
+    free(vkey);
+  }
+  track_drag(addValId);
+
+  ImGui::SameLine();
+
   ImGui::PushStyleColor(ImGuiCol_Text, actionColour);
   ImGui::PushStyleColor(ImGuiCol_Button, actionBackground);
   ImGui::PushStyleColor(ImGuiCol_ButtonHovered, actionBackgroundHover);
   ImGui::PushStyleColor(ImGuiCol_ButtonActive, actionBackgroundActive);
-  char pathj[256]; snprintf(pathj, 256, "%s:%d:", path, j);
-  drawPadding(pathj, width-smallButtonWidth, buttonHeight);
   ImGui::SameLine();
-  char addObjId[256]; snprintf(addObjId, 256, "+## %s", pathj);
-  if(ImGui::Button(addObjId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
+  char addObjId[256]; snprintf(addObjId, 256, "+object ## %s", pathj);
+  if(ImGui::Button(addObjId, ImVec2(width/2, buttonHeight)) && !dragPathId){
     char* lastcolon=strrchr(path,':');
     char* secondlastcolon=0;
     char* vkey;
@@ -752,7 +776,7 @@ void GUI::drawNestedObjectProperties(char* path, bool locallyEditable, int16_t w
   {
     drawObjectProperties(path, locallyEditable, width-rhsPadding, height);
     drawPadding(path, width-rhsPadding, paddingHeight);
-    if(locallyEditable) drawNewObjectButton(path, width-rhsPadding, 2);
+    if(locallyEditable) drawNewValueOrObjectButton(path, width-rhsPadding, 2);
   }
   ImGui::EndChild();
   ImGui::PopStyleColor();
@@ -846,7 +870,7 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16
           drawPadding(path, width-rhsPadding, paddingHeight);
           path[l] = 0;
         }
-        if(locallyEditable) drawNewObjectButton(path, width-rhsPadding, j);
+        if(locallyEditable) drawNewValueOrObjectButton(path, width-rhsPadding, j);
       }
     }
   }
