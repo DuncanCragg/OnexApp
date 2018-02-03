@@ -88,7 +88,10 @@ void GUI::initImGUI(float width, float height)
   style.Colors[ImGuiCol_MenuBarBg] = ImVec4(0.9f, 0.9f, 0.9f, 1.0f);
   style.Colors[ImGuiCol_ChildWindowBg] = ImVec4(0.95f, 0.95f, 0.95f, 1.0f);
   style.Colors[ImGuiCol_TextSelectedBg] = ImVec4(1.0f, 1.0f, 0.7f, 1.0f);
-//style.Colors[ImGuiCol_ScrollbarBg] = ImVec4(0.9f, 0.9f, 0.9f, 1.0f);
+  style.Colors[ImGuiCol_ScrollbarBg] = propertyBackground;
+  style.Colors[ImGuiCol_ScrollbarGrab] = valueBackground;
+  style.Colors[ImGuiCol_ScrollbarGrabHovered] = valueBackgroundHover;
+  style.Colors[ImGuiCol_ScrollbarGrabActive] = valueBackgroundActive;
   style.Colors[ImGuiCol_PopupBg] = actionBackground;
   style.Colors[ImGuiCol_FrameBg] = actionBackground;
   style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.9f, 0.7f, 0.9f, 1.0f);
@@ -102,9 +105,6 @@ void GUI::initImGUI(float width, float height)
   style.Colors[ImGuiCol_Header] = actionBackground;
   style.Colors[ImGuiCol_HeaderHovered] = actionBackgroundHover;
   style.Colors[ImGuiCol_HeaderActive] = actionBackgroundActive;
-//  style.Colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
-//  style.Colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
-//  style.Colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
 //  style.Colors[ImGuiCol_Column] = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
 //  style.Colors[ImGuiCol_ColumnHovered] = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
 //  style.Colors[ImGuiCol_ColumnActive] = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
@@ -413,7 +413,13 @@ void GUI::drawNewPropertyCombo(char* path, int16_t width)
     ImGui::PushItemWidth(keyWidth);
     int c=0;
     char comId[256]; snprintf(comId, 256, "## combo %s", path);
+    ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, 50);
+    ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
+    ImGui::PushStyleColor(ImGuiCol_PopupBg, propertyBackground);
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, propertyBackground);
     ImGui::Combo(comId, !propNameEditing? &propNameChoice: &c, propNameStrings, IM_ARRAYSIZE(propNameStrings));
+    ImGui::PopStyleColor(3);
+    ImGui::PopStyleVar();
     track_drag(comId);
     if(!propNameEditing && propNameChoice){ propNameEditing = strdup(path); if(propNameChoice==1 || propNameChoice==2) showKeyboard(0); }
     ImGui::PopItemWidth();
