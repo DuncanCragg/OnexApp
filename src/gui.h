@@ -46,8 +46,8 @@ public:
   object* createNewObjectLikeOthers(char* path);
   object* createNewObjectForPropertyName(char* path, char* name);
   int16_t calculateScrollerHeight(char* path, int16_t height);
-  void drawNewPropertyCombo(char* path, int16_t width);
   void drawObjectHeader(char* path, bool locallyEditable, int16_t width);
+  void drawObjectFooter(char* path, bool locallyEditable, int16_t width);
   void drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16_t width, int16_t height);
   bool drawKey(char* path, char* key, int16_t width, int16_t height);
   void drawPropertyValue(char* path, char* key, char* val, bool locallyEditable, int16_t width, int16_t height);
