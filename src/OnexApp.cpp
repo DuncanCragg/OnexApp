@@ -112,7 +112,7 @@ public:
 
     // TODO: use long UIDs here
     object* intro=object_new((char*)"uid-3", (char*)"article list", evaluate_list, 4);
-    object_property_set(intro, (char*)"list", (char*)"Welcome to Onex, the mobile database!");
+    object_property_set(intro, (char*)"list", (char*)"Welcome to Onex, the live personal database!");
 
     object* links=object_new((char*)"uid-2", (char*)"links list", evaluate_list, 4);
     object_property_set(links, (char*)"list", (char*)"uid-3");
