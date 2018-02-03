@@ -261,11 +261,19 @@ static bool evaluate_any_object(object* user)
 static char* dragPathId=0;
 static float delta_x=0.0f;
 static float delta_y=0.0f;
-static bool drag_handled = false;
+static bool drag_handled = true;
 #define MOVING_DELTA(x,y) (((x)*(x)+(y)*(y)) > 0.01f)
 
 static void track_drag(char* pathId)
 {
+  if(ImGui::IsItemActive() && !ImGui::IsMouseDragging() && dragPathId && strcmp(pathId, dragPathId)){
+    free(dragPathId);
+    dragPathId=0;
+    delta_x = 0.0f;
+    delta_y = 0.0f;
+    drag_handled=true;
+  }
+  else
   if(ImGui::IsItemActive() && ImGui::IsMouseDragging()){
     if(!dragPathId || strcmp(dragPathId, pathId)) dragPathId=strdup(pathId);
     ImVec2 mouse_delta = ImGui::GetIO().MouseDelta;
