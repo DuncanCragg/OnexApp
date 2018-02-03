@@ -56,7 +56,7 @@ public:
   void setPropertyNameAndObject(char* path , char* name);
   void setNewValue(char* path, char* valBuf, bool single);
   void hideKeyboard();
-  void showKeyboard();
+  void showKeyboard(float multy);
   unsigned char* fontData;
   int texWidth, texHeight;
   VkSampler sampler;

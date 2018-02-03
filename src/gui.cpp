@@ -214,11 +214,10 @@ uint16_t    yOffsetTarget=0;
 uint16_t    yOffset=0;
 uint16_t    yOffsetCounter=0;
 
-void GUI::showKeyboard(){
+void GUI::showKeyboard(float multy){
 #if defined(__ANDROID__)
   if(yOffsetTarget) return;
-  float y=ImGui::GetCursorScreenPos().y;
-  yOffsetTarget=y/1.85-40;
+  yOffsetTarget=(multy!=0)? multy: (ImGui::GetCursorScreenPos().y-buttonHeight)/1.85;
   yOffsetCounter=100;
   showOrHideSoftKeyboard(true);
 #endif
@@ -360,12 +359,13 @@ void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool lo
   int flags=ImGuiInputTextFlags_EnterReturnsTrue|ImGuiInputTextFlags_CtrlEnterForNewLine|ImGuiInputTextFlags_AutoSelectAll;
   if(!editing){
     ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, valueBackground);
-    if(height==buttonHeight) ImGui::InputText(valId, valBuf, 256, flags);
-    else                     ImGui::InputTextMultiline(valId, valBuf, 256, ImVec2(-1.0f, height-100), flags);
+    float multy=ImGui::GetCursorScreenPos().y-buttonHeight;
+    if(height==buttonHeight){ ImGui::InputText(valId, valBuf, 256, flags); multy=0; }
+    else                      ImGui::InputTextMultiline(valId, valBuf, 256, ImVec2(-1.0f, height-100), flags);
     if(ImGui::IsItemActive() && ImGui::IsMouseReleased(0) && !drag_path){
       if(locallyEditable){
         propNameEditing = strdup(path);
-        showKeyboard();
+        showKeyboard(multy);
       }
     }
     track_drag(path);
@@ -406,7 +406,7 @@ void GUI::drawNewPropertyCombo(char* path, int16_t width)
     char comId[256]; snprintf(comId, 256, "## %s combo", path);
     ImGui::Combo(comId, !propNameEditing? &propNameChoice: &c, propNameStrings, IM_ARRAYSIZE(propNameStrings));
     track_drag(path);
-    if(!propNameEditing && propNameChoice){ propNameEditing = strdup(path); if(propNameChoice==1 || propNameChoice==2) showKeyboard(); }
+    if(!propNameEditing && propNameChoice){ propNameEditing = strdup(path); if(propNameChoice==1 || propNameChoice==2) showKeyboard(0); }
     ImGui::PopItemWidth();
     ImGui::SameLine();
     int blankwidth = width - keyWidth;
