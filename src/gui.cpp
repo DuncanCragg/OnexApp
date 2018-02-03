@@ -366,7 +366,8 @@ void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool lo
     editing=false;
   }
   ImGui::PushItemWidth(width);
-  ImGui::PushStyleColor(ImGuiCol_FrameBg, width > (single? shadingBreak2: shadingBreak1)? valueBackground: valueBackgroundActive);
+  bool nodarken=width > (single? shadingBreak2: shadingBreak1);
+  ImGui::PushStyleColor(ImGuiCol_FrameBg, nodarken? valueBackground: valueBackgroundActive);
   ImGui::PushStyleColor(ImGuiCol_FrameBgActive, valueBackgroundActive);
   int flags=ImGuiInputTextFlags_EnterReturnsTrue|ImGuiInputTextFlags_CtrlEnterForNewLine|ImGuiInputTextFlags_AutoSelectAll;
   if(!editing){
@@ -416,12 +417,13 @@ void GUI::drawObjectFooter(char* path, bool locallyEditable, int16_t width)
     ImGui::PushItemWidth(keyWidth);
     int c=0;
     char comId[256]; snprintf(comId, 256, "## combo %s", path);
+    bool nodarken=width > shadingBreak1;
     ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, 50);
     ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
-    ImGui::PushStyleColor(ImGuiCol_PopupBg, width > shadingBreak1? propertyBackground: propertyBackgroundActive);
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, width > shadingBreak1? propertyBackground: propertyBackgroundActive);
-    ImGui::PushStyleColor(ImGuiCol_Button, width > shadingBreak1? propertyBackground: propertyBackgroundActive);
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, width > shadingBreak1? propertyBackground: propertyBackgroundActive);
+    ImGui::PushStyleColor(ImGuiCol_PopupBg, nodarken? propertyBackground: propertyBackgroundActive);
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, nodarken? propertyBackground: propertyBackgroundActive);
+    ImGui::PushStyleColor(ImGuiCol_Button, nodarken? propertyBackground: propertyBackgroundActive);
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, nodarken? propertyBackground: propertyBackgroundActive);
     ImGui::Combo(comId, !propNameEditing? &propNameChoice: &c, propNameStrings, IM_ARRAYSIZE(propNameStrings));
     ImGui::PopStyleColor(5);
     ImGui::PopStyleVar();
@@ -432,8 +434,8 @@ void GUI::drawObjectFooter(char* path, bool locallyEditable, int16_t width)
     int blankwidth = width - keyWidth;
     if(blankwidth>10){
       char barId[256]; snprintf(barId, 256, "## comboblank %s", path);
-      ImGui::PushStyleColor(ImGuiCol_Button, width > shadingBreak1? valueBackground: valueBackgroundActive);
-      ImGui::PushStyleColor(ImGuiCol_ButtonHovered, width > shadingBreak1? valueBackground: valueBackgroundActive);
+      ImGui::PushStyleColor(ImGuiCol_Button, nodarken? valueBackground: valueBackgroundActive);
+      ImGui::PushStyleColor(ImGuiCol_ButtonHovered, nodarken? valueBackground: valueBackgroundActive);
       ImGui::Button(barId, ImVec2(blankwidth, buttonHeight));
       ImGui::PopStyleColor(2);
       track_drag(barId);
@@ -519,10 +521,11 @@ void GUI::drawObjectFooter(char* path, bool locallyEditable, int16_t width)
 
 static void drawPadding(char* path, int16_t width, int16_t height)
 {
-  ImGui::PushStyleColor(ImGuiCol_Button, width > shadingBreak1? listBackground: listBackgroundDark);
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, width > shadingBreak1? listBackground: listBackgroundDark);
-  ImGui::PushStyleColor(ImGuiCol_Border, width > shadingBreak1? listBackground: listBackgroundDark);
-  ImGui::PushStyleColor(ImGuiCol_BorderShadow, width > shadingBreak1? listBackground: listBackgroundDark);
+  bool nodarken=width > shadingBreak1;
+  ImGui::PushStyleColor(ImGuiCol_Button, nodarken? listBackground: listBackgroundDark);
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, nodarken? listBackground: listBackgroundDark);
+  ImGui::PushStyleColor(ImGuiCol_Border, nodarken? listBackground: listBackgroundDark);
+  ImGui::PushStyleColor(ImGuiCol_BorderShadow, nodarken? listBackground: listBackgroundDark);
   char blnId[256]; snprintf(blnId, 256, "##padding %d %d %s", width, height, path);
   ImGui::Button(blnId, ImVec2(width, height));
   track_drag(blnId);
@@ -533,8 +536,9 @@ void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j)
 {
   char pathj[256]; snprintf(pathj, 256, "%s:%d:", path, j);
   char addValId[256]; snprintf(addValId, 256, "+value ## %s", pathj);
-  ImGui::PushStyleColor(ImGuiCol_Button, width > shadingBreak1? valueBackground: valueBackgroundActive);
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, width > shadingBreak1? valueBackground: valueBackgroundActive);
+  bool nodarken=width > shadingBreak1;
+  ImGui::PushStyleColor(ImGuiCol_Button, nodarken? valueBackground: valueBackgroundActive);
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, nodarken? valueBackground: valueBackgroundActive);
   if(ImGui::Button(addValId, ImVec2(width/2, buttonHeight)) && !dragPathId){
     char* lastcolon=strrchr(path,':');
     char* secondlastcolon=0;
@@ -561,8 +565,8 @@ void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j)
   ImGui::SameLine();
 
   ImGui::PushStyleColor(ImGuiCol_Text, actionColour);
-  ImGui::PushStyleColor(ImGuiCol_Button, width > shadingBreak1? actionBackground: actionBackgroundActive);
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, width > shadingBreak1? actionBackground: actionBackgroundActive);
+  ImGui::PushStyleColor(ImGuiCol_Button, nodarken? actionBackground: actionBackgroundActive);
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, nodarken? actionBackground: actionBackgroundActive);
   ImGui::PushStyleColor(ImGuiCol_ButtonActive, actionBackgroundActive);
   ImGui::SameLine();
   char addObjId[256]; snprintf(addObjId, 256, "+object ## %s", pathj);
@@ -637,10 +641,11 @@ object* GUI::createNewObjectLikeOthers(char* path)
 
 void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width)
 {
+  bool nodarken=width > shadingBreak1;
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));
   ImGui::PushStyleColor(ImGuiCol_Text, actionColour);
-  ImGui::PushStyleColor(ImGuiCol_Button, width > shadingBreak1? actionBackground: actionBackgroundActive);
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, width > shadingBreak1? actionBackground: actionBackgroundActive);
+  ImGui::PushStyleColor(ImGuiCol_Button, nodarken? actionBackground: actionBackgroundActive);
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, nodarken? actionBackground: actionBackgroundActive);
   ImGui::PushStyleColor(ImGuiCol_ButtonActive, actionBackgroundActive);
 
   bool topobj=!strcmp(path, "viewing:");
@@ -789,7 +794,8 @@ void GUI::drawPropertyValue(char* path, char* key, char* val, bool locallyEditab
 void GUI::drawNestedObjectProperties(char* path, bool locallyEditable, int16_t width, int16_t height)
 {
   char childName[128]; memcpy(childName, path, strlen(path)+1);
-  ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, width > shadingBreak1? listBackground: listBackgroundDark);
+  bool nodarken=width > shadingBreak1;
+  ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, nodarken? listBackground: listBackgroundDark);
   ImGui::SameLine();
   ImGui::BeginChild(childName, ImVec2(width,height), true);
   {
@@ -814,9 +820,10 @@ void GUI::drawPropertyList(char* path, char* key, bool locallyEditable, int16_t 
 bool GUI::drawKey(char* path, char* key, int16_t width, int16_t height)
 {
   bool islist=false;
+  bool nodarken=width > shadingBreak1;
   ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
-  ImGui::PushStyleColor(ImGuiCol_Button, width > shadingBreak1? propertyBackground: propertyBackgroundActive);
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, width > shadingBreak1? propertyBackground: propertyBackgroundActive);
+  ImGui::PushStyleColor(ImGuiCol_Button, nodarken? propertyBackground: propertyBackgroundActive);
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, nodarken? propertyBackground: propertyBackgroundActive);
   ImGui::PushStyleColor(ImGuiCol_ButtonActive, propertyBackgroundActive);
   if(strcmp(key,"list")){
     char keyId[256]; snprintf(keyId, 256, "%s ## %s", key, path);
@@ -841,7 +848,8 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16
   if(oneline){
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));
   }
-  ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, width > shadingBreak1? listBackground: listBackgroundDark);
+  bool nodarken=width > shadingBreak1;
+  ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, nodarken? listBackground: listBackgroundDark);
   ImGui::SameLine();
   ImGui::BeginChild(childName, ImVec2(width,height), true);
   {
