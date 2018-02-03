@@ -258,16 +258,16 @@ static bool evaluate_any_object(object* user)
   return true;
 }
 
-static char*  drag_path=0;
+static char* dragPathId=0;
 static float delta_x=0.0f;
 static float delta_y=0.0f;
 static bool drag_handled = false;
 #define MOVING_DELTA(x,y) (((x)*(x)+(y)*(y)) > 0.01f)
 
-static void track_drag(char* path)
+static void track_drag(char* pathId)
 {
   if(ImGui::IsItemActive() && ImGui::IsMouseDragging()){
-    if(!drag_path || strcmp(drag_path, path)) drag_path=strdup(path);
+    if(!dragPathId || strcmp(dragPathId, pathId)) dragPathId=strdup(pathId);
     ImVec2 mouse_delta = ImGui::GetIO().MouseDelta;
     if(MOVING_DELTA(mouse_delta.x, mouse_delta.y)){
       delta_x=mouse_delta.x;
@@ -276,21 +276,23 @@ static void track_drag(char* path)
     }
   }
   else
-  if(MOVING_DELTA(delta_x, delta_y) && drag_path && !strcmp(path, drag_path)){
+  if(MOVING_DELTA(delta_x, delta_y) && dragPathId && !strcmp(pathId, dragPathId)){
     delta_x *= 0.99f;
     delta_y *= 0.99f;
     drag_handled=false;
   }
   else
-  if(!ImGui::IsMouseDragging() && drag_path && !strcmp(path, drag_path)){
-    free(drag_path);
-    drag_path=0;
+  if(!ImGui::IsMouseDragging() && dragPathId && !strcmp(pathId, dragPathId)){
+    free(dragPathId);
+    dragPathId=0;
   }
 }
 
 static void set_drag_scroll(char* path)
 {
-  if(drag_path && !strncmp(drag_path, path, strlen(path)) && strcmp(drag_path, path) && !drag_handled && MOVING_DELTA(delta_x,delta_y)){
+  if(!dragPathId) return;
+  char* dragPathPath=strstr(dragPathId, "viewing:");
+  if(!strncmp(dragPathPath, path, strlen(path)) && strcmp(dragPathPath, path) && !drag_handled && MOVING_DELTA(delta_x,delta_y)){
     ImGui::SetScrollX(ImGui::GetScrollX() - delta_x);
     ImGui::SetScrollY(ImGui::GetScrollY() - delta_y);
     drag_handled=true;
@@ -342,7 +344,7 @@ void GUI::setPropertyNameAndObject(char* path , char* name)
 void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool locallyEditable, int16_t width, int16_t height)
 {
   if(!val){ log_write("val==null: path=%s\n", path); return; }
-  char valId[256]; snprintf(valId, 256, "##val%s%s", val, path);
+  char valId[256]; snprintf(valId, 256, "## val %s %s", val, path);
   static char valBuf[256] = ""; strncpy(valBuf, val, 256); valBuf[255]=0;
   ImGuiIO& io = ImGui::GetIO();
   bool editing = propNameEditing && !strcmp(path, propNameEditing);
@@ -362,13 +364,13 @@ void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool lo
     float multy=ImGui::GetCursorScreenPos().y-buttonHeight;
     if(height==buttonHeight){ ImGui::InputText(valId, valBuf, 256, flags); multy=0; }
     else                      ImGui::InputTextMultiline(valId, valBuf, 256, ImVec2(-1.0f, height-100), flags);
-    if(ImGui::IsItemActive() && ImGui::IsMouseReleased(0) && !drag_path){
+    if(ImGui::IsItemActive() && ImGui::IsMouseReleased(0) && !dragPathId){
       if(locallyEditable){
         propNameEditing = strdup(path);
         showKeyboard(multy);
       }
     }
-    track_drag(path);
+    track_drag(valId);
     ImGui::PopStyleColor();
   }
   else{
@@ -381,7 +383,6 @@ void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool lo
       free(propNameEditing); propNameEditing=0;
       *valBuf=0;
     }
-    track_drag(path);
   }
   ImGui::PopStyleColor(3);
   ImGui::PopItemWidth();
@@ -403,17 +404,17 @@ void GUI::drawNewPropertyCombo(char* path, int16_t width)
   if(!editing){
     ImGui::PushItemWidth(keyWidth);
     int c=0;
-    char comId[256]; snprintf(comId, 256, "## %s combo", path);
+    char comId[256]; snprintf(comId, 256, "## combo %s", path);
     ImGui::Combo(comId, !propNameEditing? &propNameChoice: &c, propNameStrings, IM_ARRAYSIZE(propNameStrings));
-    track_drag(path);
+    track_drag(comId);
     if(!propNameEditing && propNameChoice){ propNameEditing = strdup(path); if(propNameChoice==1 || propNameChoice==2) showKeyboard(0); }
     ImGui::PopItemWidth();
     ImGui::SameLine();
     int blankwidth = width - keyWidth;
     if(blankwidth>10){
-      char barId[256]; snprintf(barId, 256, "## %s comboblank", path);
+      char barId[256]; snprintf(barId, 256, "## comboblank %s", path);
       ImGui::Button(barId, ImVec2(blankwidth, buttonHeight));
-      track_drag(path);
+      track_drag(barId);
     }
   }else{
     int flags=ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue;
@@ -492,9 +493,9 @@ static void drawPadding(char* path, int16_t width, int16_t height)
   ImGui::PushStyleColor(ImGuiCol_ButtonHovered, listBackground);
   ImGui::PushStyleColor(ImGuiCol_Border, listBackground);
   ImGui::PushStyleColor(ImGuiCol_BorderShadow, listBackground);
-  char blnId[256]; snprintf(blnId, 256, "##padding %s %d %d", path, width, height);
+  char blnId[256]; snprintf(blnId, 256, "##padding %d %d %s", width, height, path);
   ImGui::Button(blnId, ImVec2(width, height));
-  track_drag(path);
+  track_drag(blnId);
   ImGui::PopStyleColor(4);
 }
 
@@ -507,8 +508,8 @@ void GUI::drawNewObjectButton(char* path, int16_t width, int j)
   char pathj[256]; snprintf(pathj, 256, "%s:%d:", path, j);
   drawPadding(pathj, width-smallButtonWidth, buttonHeight);
   ImGui::SameLine();
-  char addObjId[256]; snprintf(addObjId, 256, "+##%s", pathj);
-  if(ImGui::Button(addObjId, ImVec2(smallButtonWidth, buttonHeight))){
+  char addObjId[256]; snprintf(addObjId, 256, "+## %s", pathj);
+  if(ImGui::Button(addObjId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
     char* lastcolon=strrchr(path,':');
     char* secondlastcolon=0;
     char* vkey;
@@ -529,7 +530,7 @@ void GUI::drawNewObjectButton(char* path, int16_t width, int j)
     if(o) object_property_add(v, vkey, object_property(o, (char*)"UID"));
     free(vkey);
   }
-  track_drag(pathj);
+  track_drag(addObjId);
   ImGui::PopStyleColor(4);
 }
 
@@ -587,7 +588,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width)
 
   bool topobj=!strcmp(path, "viewing:");
   if(topobj){
-    char linkId[256]; snprintf(linkId, 256, " <<##%s", path);
+    char linkId[256]; snprintf(linkId, 256, " <<## %s", path);
     if(ImGui::Button(linkId, ImVec2(smallButtonWidth, buttonHeight))){
       uint16_t histlen=object_property_size(user, (char*)"history");
       char* viewing = object_property_value(user, (char*)"history", histlen);
@@ -595,12 +596,12 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width)
       object_property_set(user, (char*)popPath, 0);
       object_property_set(user, (char*)"viewing", viewing);
     }
-    track_drag(path);
+    track_drag(linkId);
     ImGui::SameLine();
   }
 
-  char dropId[256]; snprintf(dropId, 256, " X##%s", path);
-  if(ImGui::Button(dropId, ImVec2(smallButtonWidth, buttonHeight))){
+  char dropId[256]; snprintf(dropId, 256, " X## %s", path);
+  if(ImGui::Button(dropId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
     char* lastcolon=strrchr(path,':'); *lastcolon=0;
     char* secondlastcolon=strrchr(path, ':'); *secondlastcolon=0;
     char* thirdlastcolon=strrchr(path, ':'); *thirdlastcolon=0;
@@ -610,7 +611,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width)
     *thirdlastcolon=':';
     *lastcolon=':';
   }
-  track_drag(path);
+  track_drag(dropId);
 
   ImGui::SameLine();
 
@@ -618,12 +619,12 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width)
   if(blankwidth>10){
     char barId[256]; snprintf(barId, 256, "## topbar %s", path);
     ImGui::Button(barId, ImVec2(blankwidth, buttonHeight));
-    track_drag(path);
+    track_drag(barId);
     ImGui::SameLine();
   }
 
-  char maxId[256]; snprintf(maxId, 256, " [+]##%s", path);
-  if(ImGui::Button(maxId, ImVec2(smallButtonWidth, buttonHeight))){
+  char maxId[256]; snprintf(maxId, 256, " [+]## %s", path);
+  if(ImGui::Button(maxId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
     char* lastcolon=strrchr(path,':');
     *lastcolon=0;
     char* viewing=object_property(user, path);
@@ -631,7 +632,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width)
     object_property_add(user, (char*)"history", object_property(user, (char*)"viewing"));
     object_property_set(user, (char*)"viewing", viewing);
   }
-  track_drag(path);
+  track_drag(maxId);
 
   ImGui::PopStyleColor(4);
   ImGui::PopStyleVar(1);
@@ -689,9 +690,9 @@ void GUI::drawObjectProperties(char* path, bool locallyEditable, int16_t width, 
       int16_t height = is_uid(val)? scrollerheight: buttonHeight;
       if(height>=buttonHeight && key) drawPropertyValue(pathkey, key, val, locallyEditable, width, height);
       else{
-        char blnId[256]; snprintf(blnId, 256, "##filler %s %d %d", pathkey, width, height);
+        char blnId[256]; snprintf(blnId, 256, "##filler %d %d %s", width, height, pathkey);
         ImGui::Button(blnId, ImVec2(width, paddingHeight));
-        track_drag(path);
+        track_drag(blnId);
       }
     }
     else
@@ -706,9 +707,9 @@ void GUI::drawObjectProperties(char* path, bool locallyEditable, int16_t width, 
       int16_t height = (wid >0 && wid < 20)? buttonHeight: scrollerheight;
       if(height>=buttonHeight) drawPropertyList(pathkey, key, locallyEditable, width, height);
       else{
-        char blnId[256]; snprintf(blnId, 256, "##filler %s %d %d", pathkey, width, height);
+        char blnId[256]; snprintf(blnId, 256, "##filler %d %d %s", width, height, pathkey);
         ImGui::Button(blnId, ImVec2(width, paddingHeight));
-        track_drag(path);
+        track_drag(blnId);
       }
     }
   }
@@ -762,13 +763,14 @@ bool GUI::drawKey(char* path, char* key, int16_t width, int16_t height)
   if(strcmp(key,"list")){
     char keyId[256]; snprintf(keyId, 256, "%s ## %s", key, path);
     ImGui::Button(keyId, ImVec2(keyWidth, height));
+    track_drag(keyId);
   }
   else{
     islist=true;
     char keyId[256]; snprintf(keyId, 256, "## %s", path);
     ImGui::Button(keyId, ImVec2(listKeyWidth, height));
+    track_drag(keyId);
   }
-  track_drag(path);
   ImGui::PopStyleColor(4);
   ImGui::SameLine();
   return islist;
