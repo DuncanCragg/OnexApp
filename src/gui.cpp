@@ -55,7 +55,6 @@ ImVec4 schemeDarkerPurple(0.73f, 0.63f, 0.83f, 1.0f);
 ImVec4 schemePlum(230.0f/255, 179.0f/255, 230.0f/255, 1.0f);
 
 #define keyWidth 280
-#define listKeyWidth 10
 #define shorterValWidth 680
 #define objectHeight 400
 #define listHeight 1000
@@ -76,8 +75,8 @@ void GUI::initImGUI(float width, float height)
 {
   workspace1Width=((int)width)/2-10;
   workspace1Height=(int)height-10;
-  shadingBreak1=width/2.56;
-  shadingBreak2=width/3.65;
+  shadingBreak1=width/3.5;
+  shadingBreak2=width/4.5;
   ImGuiStyle& style = ImGui::GetStyle();
   style.Colors[ImGuiCol_Header] = ImVec4(0.8f, 0.7f, 0.9f, 1.0f);
   style.Colors[ImGuiCol_Text] = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
@@ -782,12 +781,12 @@ void GUI::drawObjectProperties(char* path, bool locallyEditable, int16_t width, 
 void GUI::drawPropertyValue(char* path, char* key, char* val, bool locallyEditable, int16_t width, int16_t height)
 {
   if(width < 200) return;
-  bool islist=drawKey(path, key, width, height);
+  drawKey(path, key, width, height);
   if(!is_uid(val)){
-    drawNewPropertyValueEditor(path, val, true, locallyEditable, width-(islist? listKeyWidth: keyWidth), height);
+    drawNewPropertyValueEditor(path, val, true, locallyEditable, width-keyWidth, height);
   }else{
     bool locallyEditable = object_is_local(val);
-    drawNestedObjectProperties(path, locallyEditable, width-(islist? listKeyWidth: keyWidth), height);
+    drawNestedObjectProperties(path, locallyEditable, width-keyWidth, height);
   }
 }
 
@@ -813,32 +812,22 @@ void GUI::drawNestedObjectProperties(char* path, bool locallyEditable, int16_t w
 void GUI::drawPropertyList(char* path, char* key, bool locallyEditable, int16_t width, int16_t height)
 {
   if(width < 200) return;
-  bool islist=drawKey(path, key, width, height);
-  drawNestedObjectPropertiesList(path, locallyEditable, width-(islist? listKeyWidth: keyWidth), height);
+  drawKey(path, key, width, height);
+  drawNestedObjectPropertiesList(path, locallyEditable, width-keyWidth, height);
 }
 
-bool GUI::drawKey(char* path, char* key, int16_t width, int16_t height)
+void GUI::drawKey(char* path, char* key, int16_t width, int16_t height)
 {
-  bool islist=false;
   bool nodarken=width > shadingBreak1;
   ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
   ImGui::PushStyleColor(ImGuiCol_Button, nodarken? propertyBackground: propertyBackgroundActive);
   ImGui::PushStyleColor(ImGuiCol_ButtonHovered, nodarken? propertyBackground: propertyBackgroundActive);
   ImGui::PushStyleColor(ImGuiCol_ButtonActive, propertyBackgroundActive);
-  if(strcmp(key,"list")){
-    char keyId[256]; snprintf(keyId, 256, "%s ## %s", key, path);
-    ImGui::Button(keyId, ImVec2(keyWidth, height));
-    track_drag(keyId);
-  }
-  else{
-    islist=true;
-    char keyId[256]; snprintf(keyId, 256, "## %s", path);
-    ImGui::Button(keyId, ImVec2(listKeyWidth, height));
-    track_drag(keyId);
-  }
+  char keyId[256]; snprintf(keyId, 256, "%s ## %s", key, path);
+  ImGui::Button(keyId, ImVec2(keyWidth, height));
+  track_drag(keyId);
   ImGui::PopStyleColor(4);
   ImGui::SameLine();
-  return islist;
 }
 
 void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16_t width, int16_t height)
