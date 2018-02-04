@@ -54,7 +54,6 @@ ImVec4 schemeLightPurple(0.8f, 0.7f, 0.9f, 1.0f);
 ImVec4 schemeDarkerPurple(0.73f, 0.63f, 0.83f, 1.0f);
 ImVec4 schemePlum(230.0f/255, 179.0f/255, 230.0f/255, 1.0f);
 
-#define keyWidth 280
 #define shorterValWidth 680
 #define objectHeight 400
 #define listHeight 1000
@@ -75,8 +74,8 @@ void GUI::initImGUI(float width, float height)
 {
   workspace1Width=((int)width)/2-10;
   workspace1Height=(int)height-10;
-  shadingBreak1=width/3.5;
-  shadingBreak2=width/4.5;
+  shadingBreak1=width/2.5;
+  shadingBreak2=width/3.5;
   ImGuiStyle& style = ImGui::GetStyle();
   style.Colors[ImGuiCol_Header] = ImVec4(0.8f, 0.7f, 0.9f, 1.0f);
   style.Colors[ImGuiCol_Text] = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
@@ -398,7 +397,7 @@ void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool lo
   ImGui::PopItemWidth();
 }
 
-void GUI::drawObjectFooter(char* path, bool locallyEditable, int16_t width)
+void GUI::drawObjectFooter(char* path, bool locallyEditable, int16_t width, int16_t keyWidth)
 {
   if(!locallyEditable) return;
   static bool grabbedFocus=false;
@@ -699,6 +698,20 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width)
   ImGui::PopStyleVar(1);
 }
 
+int16_t GUI::calculateKeyWidth(char* path)
+{
+  int16_t w=0;
+  uint8_t size = object_property_size(user, path);
+  for(int i=1; i<=size; i++){
+    char* key=object_property_key(user, path, i);
+    if(key){
+      int16_t l=strlen(key);
+      if(l > w) w=l;
+    }
+  }
+  return w>7? w*28: 196;
+}
+
 int16_t GUI::calculateScrollerHeight(char* path, int16_t height)
 {
   int16_t heightforscrollers=height-3.5*buttonHeight;
@@ -740,6 +753,7 @@ void GUI::drawObjectProperties(char* path, bool locallyEditable, int16_t width, 
   drawObjectHeader(path, locallyEditable, width);
   if(width < 200) return;
   int16_t scrollerheight=calculateScrollerHeight(path, height);
+  int16_t keyWidth=calculateKeyWidth(path);
   uint8_t size = object_property_size(user, path);
   for(int i=1; i<=size; i++){
     char* key=object_property_key(user, path, i);
@@ -750,7 +764,7 @@ void GUI::drawObjectProperties(char* path, bool locallyEditable, int16_t width, 
       pathkey[l-1] = ':';
       char* val=object_property_value(user, path, i);
       int16_t height = is_uid(val)? scrollerheight: buttonHeight;
-      if(height>=buttonHeight && key) drawPropertyValue(pathkey, key, val, locallyEditable, width, height);
+      if(height>=buttonHeight && key) drawPropertyValue(pathkey, key, val, locallyEditable, width, height, keyWidth);
       else{
         char blnId[256]; snprintf(blnId, 256, "##filler %d %d %s", width, height, pathkey);
         ImGui::Button(blnId, ImVec2(width, paddingHeight));
@@ -767,7 +781,7 @@ void GUI::drawObjectProperties(char* path, bool locallyEditable, int16_t width, 
         wid += strlen(val)+1;
       }
       int16_t height = (wid >0 && wid < 20)? buttonHeight: scrollerheight;
-      if(height>=buttonHeight) drawPropertyList(pathkey, key, locallyEditable, width, height);
+      if(height>=buttonHeight) drawPropertyList(pathkey, key, locallyEditable, width, height, keyWidth);
       else{
         char blnId[256]; snprintf(blnId, 256, "##filler %d %d %s", width, height, pathkey);
         ImGui::Button(blnId, ImVec2(width, paddingHeight));
@@ -775,13 +789,13 @@ void GUI::drawObjectProperties(char* path, bool locallyEditable, int16_t width, 
       }
     }
   }
-  drawObjectFooter(path, locallyEditable, width);
+  drawObjectFooter(path, locallyEditable, width, keyWidth);
 }
 
-void GUI::drawPropertyValue(char* path, char* key, char* val, bool locallyEditable, int16_t width, int16_t height)
+void GUI::drawPropertyValue(char* path, char* key, char* val, bool locallyEditable, int16_t width, int16_t height, int16_t keyWidth)
 {
   if(width < 200) return;
-  drawKey(path, key, width, height);
+  drawKey(path, key, width, height, keyWidth);
   if(!is_uid(val)){
     drawNewPropertyValueEditor(path, val, true, locallyEditable, width-keyWidth, height);
   }else{
@@ -809,14 +823,14 @@ void GUI::drawNestedObjectProperties(char* path, bool locallyEditable, int16_t w
   ImGui::End();
 }
 
-void GUI::drawPropertyList(char* path, char* key, bool locallyEditable, int16_t width, int16_t height)
+void GUI::drawPropertyList(char* path, char* key, bool locallyEditable, int16_t width, int16_t height, int16_t keyWidth)
 {
   if(width < 200) return;
-  drawKey(path, key, width, height);
+  drawKey(path, key, width, height, keyWidth);
   drawNestedObjectPropertiesList(path, locallyEditable, width-keyWidth, height);
 }
 
-void GUI::drawKey(char* path, char* key, int16_t width, int16_t height)
+void GUI::drawKey(char* path, char* key, int16_t width, int16_t height, int16_t keyWidth)
 {
   bool nodarken=width > shadingBreak1;
   ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);

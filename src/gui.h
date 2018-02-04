@@ -46,12 +46,13 @@ public:
   object* createNewObjectLikeOthers(char* path);
   object* createNewObjectForPropertyName(char* path, char* name);
   int16_t calculateScrollerHeight(char* path, int16_t height);
+  int16_t calculateKeyWidth(char* path);
   void drawObjectHeader(char* path, bool locallyEditable, int16_t width);
-  void drawObjectFooter(char* path, bool locallyEditable, int16_t width);
+  void drawObjectFooter(char* path, bool locallyEditable, int16_t width, int16_t keyWidth);
   void drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16_t width, int16_t height);
-  void drawKey(char* path, char* key, int16_t width, int16_t height);
-  void drawPropertyValue(char* path, char* key, char* val, bool locallyEditable, int16_t width, int16_t height);
-  void drawPropertyList(char* pathkey, char* key, bool locallyEditable, int16_t width, int16_t height);
+  void drawKey(char* path, char* key, int16_t width, int16_t height, int16_t keyWidth);
+  void drawPropertyValue(char* path, char* key, char* val, bool locallyEditable, int16_t width, int16_t height, int16_t keyWidth);
+  void drawPropertyList(char* pathkey, char* key, bool locallyEditable, int16_t width, int16_t height, int16_t keyWidth);
   void setPropertyName(char* path , char* name);
   void setPropertyNameAndObject(char* path , char* name);
   void setNewValue(char* path, char* valBuf, bool single);
