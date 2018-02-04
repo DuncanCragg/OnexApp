@@ -395,6 +395,7 @@ void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool lo
 
 void GUI::drawObjectFooter(char* path, bool locallyEditable, int16_t width, int16_t keyWidth, int8_t depth)
 {
+  if(depth>=3) return;
   if(!locallyEditable) return;
   static bool grabbedFocus=false;
   static char valBuf[256] = "";
@@ -642,8 +643,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
   ImGui::PushStyleColor(ImGuiCol_ButtonHovered, nodarken? actionBackground: actionBackgroundActive);
   ImGui::PushStyleColor(ImGuiCol_ButtonActive, actionBackgroundActive);
 
-  bool topobj=!strcmp(path, "viewing:");
-  if(topobj){
+  if(depth==1){
     char linkId[256]; snprintf(linkId, 256, " <<## %s", path);
     if(ImGui::Button(linkId, ImVec2(smallButtonWidth, buttonHeight))){
       uint16_t histlen=object_property_size(user, (char*)"history");
@@ -656,31 +656,35 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
     ImGui::SameLine();
   }
 
-  char dropId[256]; snprintf(dropId, 256, " X## %s", path);
-  if(ImGui::Button(dropId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
-    char* lastcolon=strrchr(path,':'); *lastcolon=0;
-    char* secondlastcolon=strrchr(path, ':'); *secondlastcolon=0;
-    char* thirdlastcolon=strrchr(path, ':'); *thirdlastcolon=0;
-    object* objectEditing = object_get_from_cache(object_property(user, path));
-    *secondlastcolon=':';
-    object_property_set(objectEditing, thirdlastcolon+1, (char*)"");
-    *thirdlastcolon=':';
-    *lastcolon=':';
-  }
-  track_drag(dropId);
+  if(depth<3){
+    char dropId[256]; snprintf(dropId, 256, " X## %s", path);
+    if(ImGui::Button(dropId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
+      char* lastcolon=strrchr(path,':'); *lastcolon=0;
+      char* secondlastcolon=strrchr(path, ':'); *secondlastcolon=0;
+      char* thirdlastcolon=strrchr(path, ':'); *thirdlastcolon=0;
+      object* objectEditing = object_get_from_cache(object_property(user, path));
+      *secondlastcolon=':';
+      object_property_set(objectEditing, thirdlastcolon+1, (char*)"");
+      *thirdlastcolon=':';
+      *lastcolon=':';
+    }
+    track_drag(dropId);
 
-  ImGui::SameLine();
-
-  int blankwidth = width-(topobj? 3: 2)*smallButtonWidth;
-  if(blankwidth>10){
-    char barId[256]; snprintf(barId, 256, "## topbar %s", path);
-    ImGui::Button(barId, ImVec2(blankwidth, buttonHeight));
-    track_drag(barId);
     ImGui::SameLine();
   }
 
-  char maxId[256]; snprintf(maxId, 256, " [+]## %s", path);
-  if(ImGui::Button(maxId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
+  if(depth<3){
+    int blankwidth = width-(depth==1? 3: 2)*smallButtonWidth;
+    if(blankwidth>10){
+      char barId[256]; snprintf(barId, 256, "## topbar %s", path);
+      ImGui::Button(barId, ImVec2(blankwidth, buttonHeight));
+      track_drag(barId);
+      ImGui::SameLine();
+    }
+  }
+
+  char maxId[256]; snprintf(maxId, 256, depth<3? " [+]## %s": "## %s", path);
+  if(ImGui::Button(maxId, ImVec2(depth<3? smallButtonWidth: width, buttonHeight)) && !dragPathId){
     char* lastcolon=strrchr(path,':');
     *lastcolon=0;
     char* viewing=object_property(user, path);
