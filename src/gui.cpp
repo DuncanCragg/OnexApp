@@ -204,7 +204,7 @@ void GUI::drawGUI()
   ImGui::Render();
 }
 
-const char* propNameStrings[] = { "+", "+value", "+object", "title", "description", "list", "date", "start-date", "end-date", "Rules", "Timer", "Notifying", "Alerted" };
+const char* propNameStrings[] = { "+", "+value(s)..", "+object(s)..", "title", "description", "text", "date", "start-date", "end-date", "list", "Rules", "Timer" };
 int         propNameChoice = 0;
 char*       propNameEditing=0;
 uint16_t    yOffsetTarget=0;
@@ -309,7 +309,7 @@ void GUI::setNewValue(char* path, char* valBuf, bool single)
   char* lastcolon=strrchr(path,':'); *lastcolon=0;
   if(single){
     char* secondlastcolon=strrchr(path, ':'); *secondlastcolon=0;
-    object* objectEditing = object_get_from_cache(object_property(user, path));
+    object* objectEditing = onex_get_from_cache(object_property(user, path));
     if(!*valBuf) object_property_set(objectEditing, secondlastcolon+1, (char*)"");
     else object_property_set(objectEditing, secondlastcolon+1, strdup(valBuf));
     *secondlastcolon=':';
@@ -317,7 +317,7 @@ void GUI::setNewValue(char* path, char* valBuf, bool single)
   else{
     char* secondlastcolon=strrchr(path, ':'); *secondlastcolon=0;
     char* thirdlastcolon=strrchr(path, ':'); *thirdlastcolon=0;
-    object* objectEditing = object_get_from_cache(object_property(user, path));
+    object* objectEditing = onex_get_from_cache(object_property(user, path));
     *secondlastcolon=':';
     if(!*valBuf) object_property_set(objectEditing, thirdlastcolon+1, (char*)"");
     else object_property_set(objectEditing, thirdlastcolon+1, strdup(valBuf));
@@ -330,7 +330,7 @@ void GUI::setPropertyName(char* path , char* name)
 {
   char* lastcolon=strrchr(path,':');
   *lastcolon=0;
-  object* objectEditing = object_get_from_cache(object_property(user, path));
+  object* objectEditing = onex_get_from_cache(object_property(user, path));
   *lastcolon=':';
   object_property_set(objectEditing, name, (char*)"--");
 }
@@ -339,7 +339,7 @@ void GUI::setPropertyNameAndObject(char* path , char* name)
 {
   char* lastcolon=strrchr(path,':');
   *lastcolon=0;
-  object* objectEditing = object_get_from_cache(object_property(user, path));
+  object* objectEditing = onex_get_from_cache(object_property(user, path));
   *lastcolon=':';
   object* o = createNewObjectForPropertyName(path, name);
   if(o) object_property_set(objectEditing, name, object_property(o, (char*)"UID"));
@@ -439,7 +439,7 @@ void GUI::drawObjectFooter(char* path, bool locallyEditable, int16_t width, int1
     int flags=ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue;
     if(propNameChoice > 2){
       char* propname=(char*)propNameStrings[propNameChoice];
-      if(!strcmp(propname, "Rules")) setPropertyNameAndObject(path, propname);
+      if(!strcmp(propname, "list") || !strcmp(propname, "Rules")) setPropertyNameAndObject(path, propname);
       else setPropertyName(path, propname);
       free(propNameEditing); propNameEditing=0; propNameChoice = 0;
     }
@@ -548,7 +548,7 @@ void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t de
       *lastcolon=0;
       vkey=strdup(lastcolon+1);
     }
-    object* v = object_get_from_cache(object_property(user, path));
+    object* v = onex_get_from_cache(object_property(user, path));
     if(secondlastcolon) *secondlastcolon=':';
     *lastcolon=':';
     object_property_add(v, vkey, (char*)"--");
@@ -579,7 +579,7 @@ void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t de
       *lastcolon=0;
       vkey=strdup(lastcolon+1);
     }
-    object* v = object_get_from_cache(object_property(user, path));
+    object* v = onex_get_from_cache(object_property(user, path));
     if(secondlastcolon) *secondlastcolon=':';
     *lastcolon=':';
     object* o = createNewObjectLikeOthers(path);
@@ -662,7 +662,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
       char* lastcolon=strrchr(path,':'); *lastcolon=0;
       char* secondlastcolon=strrchr(path, ':'); *secondlastcolon=0;
       char* thirdlastcolon=strrchr(path, ':'); *thirdlastcolon=0;
-      object* objectEditing = object_get_from_cache(object_property(user, path));
+      object* objectEditing = onex_get_from_cache(object_property(user, path));
       *secondlastcolon=':';
       object_property_set(objectEditing, thirdlastcolon+1, (char*)"");
       *thirdlastcolon=':';
@@ -737,7 +737,7 @@ int16_t GUI::calculateScrollerHeight(char* path, int16_t height)
         if(is_uid(val)){ wid=0; break; }
         wid += strlen(val)+1;
       }
-      bool oneline=(wid >0 && wid < 20);
+      bool oneline=(wid >0 && wid < 30);
       int16_t h = oneline? buttonHeight: listHeight;
       heightforscrollers-=oneline? buttonHeight: 0;
       numberofscrollers+=oneline? 0: 1;
@@ -780,7 +780,7 @@ void GUI::drawObjectProperties(char* path, bool locallyEditable, int16_t width, 
         if(is_uid(val)){ wid=0; break; }
         wid += strlen(val)+1;
       }
-      int16_t height = (wid >0 && wid < 20)? buttonHeight: scrollerheight;
+      int16_t height = (wid >0 && wid < 30)? buttonHeight: scrollerheight;
       if(height>=buttonHeight) drawPropertyList(pathkey, key, locallyEditable, width, height, keyWidth, depth);
       else{
         char blnId[256]; snprintf(blnId, 256, "##filler %d %d %s", width, height, pathkey);

@@ -110,13 +110,16 @@ public:
 
     onex_init();
 
-    // TODO: use long UIDs here
-    object* intro=object_new((char*)"uid-3", (char*)"article list", evaluate_list, 4);
-    object_property_set(intro, (char*)"list", (char*)"Welcome to Onex, the live personal database!");
+    object* art1=object_new_from(strdup("is: article title: First steps.. text: Welcome to Onex! First thing to do is to go around trying all the buttons .."), evaluate_list, 4);
+    object* art2=object_new_from(strdup("is: article title: Going deeper.. text: Now that you've had a chance to try things out.."), evaluate_list, 4);
+
+    object* intro=object_new(0, (char*)"article list", evaluate_list, 4);
+    object_property_set(intro, (char*)"title", (char*)"Introduction to Onex, the live personal database");
+    object_property_set(intro, (char*)"list", object_property(art1, (char*)"UID"));
+    object_property_add(intro, (char*)"list", object_property(art2, (char*)"UID"));
 
     object* links=object_new((char*)"uid-2", (char*)"links list", evaluate_list, 4);
-    object_property_set(links, (char*)"list", (char*)"uid-3");
-
+    object_property_set(links, (char*)"list", object_property(intro, (char*)"UID"));
 //  object_property_add(links, (char*)"list", (char*)"uid-1-2-3");
 
     user=object_new((char*)"uid-1", (char*)"user", evaluate_user, 4);
