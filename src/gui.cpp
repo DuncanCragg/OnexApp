@@ -683,7 +683,30 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
     }
   }
 
-  char maxId[256]; snprintf(maxId, 256, depth<3? " [+]## %s": "## %s", path);
+  char summary[128]=""; uint8_t s=0;
+  if(depth>=3){
+    uint8_t size = object_property_size(user, path);
+    for(int i=1; i<=size; i++){
+      char* key=object_property_key(user, path, i);
+      if(strcmp(key, "title")) continue;
+      char pathkey[128]; size_t l = snprintf(pathkey, 128, "%s%s:", path, key);
+      pathkey[l-1] = 0;
+      if(object_property_is_value(user, pathkey)){
+        pathkey[l-1] = ':';
+        char* val=object_property_value(user, path, i);
+        s+=snprintf(summary+s, 128-s, "%s ", val);
+      }
+      else
+      if(object_property_is_list(user, pathkey)){
+        uint8_t sz = object_property_size(user, pathkey);
+        for(int j=1; j<=sz; j++){
+          char* val=object_property_value(user, pathkey, j);
+          if(!is_uid(val)) s+=snprintf(summary+s, 128-s, "%s ", val);
+        }
+      }
+    }
+  }
+  char maxId[256]; snprintf(maxId, 256, depth<3? " [+]## %s%s": "%s ## %s", summary, path);
   if(ImGui::Button(maxId, ImVec2(depth<3? smallButtonWidth: width, buttonHeight)) && !dragPathId){
     char* lastcolon=strrchr(path,':');
     *lastcolon=0;
@@ -751,7 +774,7 @@ int16_t GUI::calculateScrollerHeight(char* path, int16_t height)
 void GUI::drawObjectProperties(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth)
 {
   drawObjectHeader(path, locallyEditable, width, depth);
-  if(width < 200) return;
+  if(depth>=3) return;
   int16_t scrollerheight=calculateScrollerHeight(path, height);
   int16_t keyWidth=calculateKeyWidth(path);
   uint8_t size = object_property_size(user, path);
