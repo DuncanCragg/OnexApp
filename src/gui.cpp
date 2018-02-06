@@ -870,6 +870,7 @@ void GUI::drawKey(char* path, char* key, int16_t width, int16_t height, int16_t 
 void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth)
 {
   bool oneline=(height==buttonHeight);
+  bool multiln=false;
   char childName[128]; memcpy(childName, path, strlen(path)+1);
   if(oneline){
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));
@@ -880,31 +881,32 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16
   ImGui::BeginChild(childName, ImVec2(width,height), true);
   {
     if(oneline){
-      char text[512]; int n=0;
+      char onelinetext[512]; int n=0;
       uint8_t sz = object_property_size(user, path);
       for(int j=1; j<=sz; j++){
         char* val=object_property_value(user, path, j);
-        n+=snprintf(text+n, 512-n, "%s ", val);
+        n+=snprintf(onelinetext+n, 512-n, "%s ", val);
       }
       size_t l=strlen(path);
       snprintf(path+l, 128-l, ":");
-      drawNewPropertyValueEditor(path, text, true, locallyEditable, width, height, depth);
+      drawNewPropertyValueEditor(path, onelinetext, true, locallyEditable, width, height, depth);
       path[l] = 0;
     }
     else{
-      char text[512]; int n=0; int m=0;
+      multiln=true;
+      char multilinetext[512]; int n=0; int m=0;
       uint8_t sz = object_property_size(user, path);
       int j; for(j=1; j<=sz; j++){
         char* val=object_property_value(user, path, j);
-        if(is_uid(val)) break;
-        int l=snprintf(text+n, 512-n, "%s ", val);
+        if(is_uid(val)){ multiln=false; break; }
+        int l=snprintf(multilinetext+n, 512-n, "%s ", val);
         n+=l; m+=l;
-        if(m>width/30){ n+=snprintf(text+n, 512-n, "\n"); m=0; }
+        if(m>width/30){ n+=snprintf(multilinetext+n, 512-n, "\n"); m=0; }
       }
-      if(j>sz){
+      if(multiln){
         size_t l=strlen(path);
         snprintf(path+l, 128-l, ":");
-        drawNewPropertyValueEditor(path, text, true, locallyEditable, width, height, depth);
+        drawNewPropertyValueEditor(path, multilinetext, true, locallyEditable, width, height, depth);
         drawPadding(path, width-rhsPadding, paddingHeight, depth);
         path[l] = 0;
       }
@@ -929,9 +931,11 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16
   }
   ImGui::EndChild();
   ImGui::PopStyleColor();
-  ImGui::BeginChild(childName);
-  set_drag_scroll(path);
-  ImGui::End();
+  if(!oneline && !multiln){
+    ImGui::BeginChild(childName);
+    set_drag_scroll(path);
+    ImGui::End();
+  }
   if(oneline){
     ImGui::PopStyleVar(1);
   }
