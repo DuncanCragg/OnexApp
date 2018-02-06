@@ -35,15 +35,18 @@ void GUI::prepare()
 // ---------------------------------------------------------------------------------------------
 
 ImVec4 actionColour            (0.50f, 0.10f, 0.20f, 1.0f);
-ImVec4 actionBackground        (0.90f, 0.90f, 0.85f, 1.0f);
-ImVec4 actionBackgroundActive  (0.82f, 0.82f, 0.78f, 1.0f);
+ImVec4 actionBackground        (0.96f, 0.96f, 0.87f, 1.0f);
+ImVec4 actionBackgroundActive  (0.92f, 0.92f, 0.83f, 1.0f);
 
 ImVec4 propertyColour          (0.20f, 0.50f, 0.30f, 1.0f);
 ImVec4 propertyBackground      (0.90f, 0.90f, 1.00f, 1.0f);
-ImVec4 propertyBackgroundActive(0.82f, 0.82f, 0.92f, 1.0f);
+ImVec4 propertyBackgroundActive(0.86f, 0.86f, 0.95f, 1.0f);
 
-ImVec4 valueBackground         (0.90f, 0.80f, 1.00f, 1.0f);
-ImVec4 valueBackgroundActive   (0.82f, 0.72f, 0.92f, 1.0f);
+ImVec4 valueBackground         (0.96f, 0.87f, 1.00f, 1.0f);
+ImVec4 valueBackgroundActive   (0.92f, 0.82f, 0.96f, 1.0f);
+
+ImVec4 listBackground          (0.90f, 0.80f, 1.00f, 1.0f);
+ImVec4 listBackgroundDark      (0.86f, 0.76f, 0.96f, 1.0f);
 
 ImVec4 schemeBrown(183.0f/255, 142.0f/255, 96.0f/255, 1.0f);
 ImVec4 schemeYellow(255.0f/255, 245.0f/255, 180.0f/255, 1.0f);
@@ -60,8 +63,6 @@ ImVec4 schemePlum(230.0f/255, 179.0f/255, 230.0f/255, 1.0f);
 #define buttonWidth 190
 #define smallButtonWidth 90
 #define buttonHeight 70
-#define listBackground schemeLightPurple
-#define listBackgroundDark schemeDarkerPurple
 #define rhsPadding 20
 #define paddingHeight 15
 
@@ -76,8 +77,8 @@ void GUI::initImGUI(float width, float height)
   style.Colors[ImGuiCol_Header] = ImVec4(0.8f, 0.7f, 0.9f, 1.0f);
   style.Colors[ImGuiCol_Text] = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
   style.Colors[ImGuiCol_TextDisabled] = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
-  style.Colors[ImGuiCol_Border] = ImVec4(0.8f, 0.8f, 0.8f, 1.0f);
-  style.Colors[ImGuiCol_BorderShadow] = ImVec4(0.7f, 0.7f, 0.7f, 1.0f);
+  style.Colors[ImGuiCol_Border] = propertyBackgroundActive;
+  style.Colors[ImGuiCol_BorderShadow] = propertyBackgroundActive;
   style.Colors[ImGuiCol_WindowBg] = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
   style.Colors[ImGuiCol_TitleBg] = ImVec4(1.0f, 0.9f, 1.0f, 1.0f);
   style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.9f, 0.9f, 0.9f, 1.0f);
@@ -634,6 +635,8 @@ object* GUI::createNewObjectLikeOthers(char* path)
   return r;
 }
 
+static bool open[]={ true, true, true, false, false };
+
 void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8_t depth)
 {
   bool nodarken=depth<3;
@@ -655,8 +658,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
     track_drag(linkId);
     ImGui::SameLine();
   }
-
-  if(depth<3){
+  if(depth!=1 && depth<3){
     char dropId[256]; snprintf(dropId, 256, " X## %s", path);
     if(ImGui::Button(dropId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
       char* lastcolon=strrchr(path,':'); *lastcolon=0;
@@ -673,41 +675,23 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
     ImGui::SameLine();
   }
 
-  if(depth<3){
-    int blankwidth = width-(depth==1? 3: 2)*smallButtonWidth;
-    if(blankwidth>10){
-      char barId[256]; snprintf(barId, 256, "## topbar %s", path);
-      ImGui::Button(barId, ImVec2(blankwidth, buttonHeight));
-      track_drag(barId);
-      ImGui::SameLine();
-    }
+  int blankwidth = width-(depth<3? 2: 1)*smallButtonWidth-buttonHeight;
+  if(blankwidth>10){
+    char summary[128]="";
+    getSummary(path, summary);
+    char barId[256]; snprintf(barId, 256, "%s ## topbar %s", summary, path);
+    ImGui::Button(barId, ImVec2(blankwidth, buttonHeight));
+    track_drag(barId);
+    ImGui::SameLine();
   }
+  char expId[256]; snprintf(expId, 256, "## %s", path);
+  ImGui::Checkbox(expId, &open[depth]);
+  track_drag(expId);
 
-  char summary[128]=""; uint8_t s=0;
-  if(depth>=3){
-    uint8_t size = object_property_size(user, path);
-    for(int i=1; i<=size; i++){
-      char* key=object_property_key(user, path, i);
-      if(strcmp(key, "title")) continue;
-      char pathkey[128]; size_t l = snprintf(pathkey, 128, "%s%s:", path, key);
-      pathkey[l-1] = 0;
-      if(object_property_is_value(user, pathkey)){
-        pathkey[l-1] = ':';
-        char* val=object_property_value(user, path, i);
-        s+=snprintf(summary+s, 128-s, "%s ", val);
-      }
-      else
-      if(object_property_is_list(user, pathkey)){
-        uint8_t sz = object_property_size(user, pathkey);
-        for(int j=1; j<=sz; j++){
-          char* val=object_property_value(user, pathkey, j);
-          if(!is_uid(val)) s+=snprintf(summary+s, 128-s, "%s ", val);
-        }
-      }
-    }
-  }
-  char maxId[256]; snprintf(maxId, 256, depth<3? " [+]## %s%s": "%s ## %s", summary, path);
-  if(ImGui::Button(maxId, ImVec2(depth<3? smallButtonWidth: width, buttonHeight)) && !dragPathId){
+  ImGui::SameLine();
+
+  char maxId[256]; snprintf(maxId, 256, " [+]## %s", path);
+  if(ImGui::Button(maxId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
     char* lastcolon=strrchr(path,':');
     *lastcolon=0;
     char* viewing=object_property(user, path);
@@ -719,6 +703,31 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
 
   ImGui::PopStyleColor(4);
   ImGui::PopStyleVar(1);
+}
+
+void GUI::getSummary(char* path, char* summary)
+{
+  uint8_t s=0;
+  uint8_t size = object_property_size(user, path);
+  for(int i=1; i<=size; i++){
+    char* key=object_property_key(user, path, i);
+    if(strcmp(key, "title")) continue;
+    char pathkey[128]; size_t l = snprintf(pathkey, 128, "%s%s:", path, key);
+    pathkey[l-1] = 0;
+    if(object_property_is_value(user, pathkey)){
+      pathkey[l-1] = ':';
+      char* val=object_property_value(user, path, i);
+      s+=snprintf(summary+s, 128-s, "%s ", val);
+    }
+    else
+    if(object_property_is_list(user, pathkey)){
+      uint8_t sz = object_property_size(user, pathkey);
+      for(int j=1; j<=sz; j++){
+        char* val=object_property_value(user, pathkey, j);
+        if(!is_uid(val)) s+=snprintf(summary+s, 128-s, "%s ", val);
+      }
+    }
+  }
 }
 
 int16_t GUI::calculateKeyWidth(char* path)
@@ -774,7 +783,7 @@ int16_t GUI::calculateScrollerHeight(char* path, int16_t height)
 void GUI::drawObjectProperties(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth)
 {
   drawObjectHeader(path, locallyEditable, width, depth);
-  if(depth>=3) return;
+  if(!open[depth]) return;
   int16_t scrollerheight=calculateScrollerHeight(path, height);
   int16_t keyWidth=calculateKeyWidth(path);
   uint8_t size = object_property_size(user, path);
