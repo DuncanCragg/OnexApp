@@ -48,6 +48,7 @@ public:
   object* createNewObjectForPropertyName(char* path, char* name);
   int16_t calculateScrollerHeight(char* path, int16_t height);
   void getSummary(char* path, char* summary);
+  bool getSummaryFrom(char* path, char* summary, const char* key);
   int16_t calculateKeyWidth(char* path);
   void drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8_t depth);
   void drawObjectFooter(char* path, bool locallyEditable, int16_t width, int16_t keyWidth, int8_t depth);

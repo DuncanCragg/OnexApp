@@ -729,27 +729,34 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
 
 void GUI::getSummary(char* path, char* summary)
 {
-  uint8_t s=0;
-  uint8_t size = object_property_size(user, path);
-  for(int i=1; i<=size; i++){
-    char* key=object_property_key(user, path, i);
-    if(strcmp(key, "title")) continue;
-    char pathkey[128]; size_t l = snprintf(pathkey, 128, "%s%s:", path, key);
-    pathkey[l-1] = 0;
-    if(object_property_is_value(user, pathkey)){
-      pathkey[l-1] = ':';
-      char* val=object_property_value(user, path, i);
-      s+=snprintf(summary+s, 128-s, "%s ", val);
-    }
-    else
-    if(object_property_is_list(user, pathkey)){
-      uint8_t sz = object_property_size(user, pathkey);
-      for(int j=1; j<=sz; j++){
-        char* val=object_property_value(user, pathkey, j);
-        if(!is_uid(val)) s+=snprintf(summary+s, 128-s, "%s ", val);
-      }
-    }
+  *summary=0;
+  if(getSummaryFrom(path, summary, "title")) return;
+  if(getSummaryFrom(path, summary, "name")) return;
+  if(getSummaryFrom(path, summary, "summary")) return;
+  if(getSummaryFrom(path, summary, "description")) return;
+  if(getSummaryFrom(path, summary, "text")) return;
+  if(getSummaryFrom(path, summary, "content")) return;
+  if(getSummaryFrom(path, summary, "is")) return;
+}
+
+bool GUI::getSummaryFrom(char* path, char* summary, const char* key)
+{
+  char pathkey[128]; size_t l = snprintf(pathkey, 128, "%s%s", path, key);
+  if(object_property_is_value(user, pathkey)){
+    char* val=object_property(user, pathkey);
+    snprintf(summary, 128, "%s", val);
+    return true;
   }
+  if(object_property_is_list(user, pathkey)){
+    uint8_t sz = object_property_size(user, pathkey);
+    uint8_t s=0;
+    for(int j=1; j<=sz; j++){
+      char* val=object_property_value(user, pathkey, j);
+      if(!is_uid(val)) s+=snprintf(summary+s, 128-s, "%s ", val);
+    }
+    return true;
+  }
+  return false;
 }
 
 int16_t GUI::calculateKeyWidth(char* path)
