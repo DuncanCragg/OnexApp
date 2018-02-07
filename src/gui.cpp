@@ -528,14 +528,50 @@ void GUI::drawPadding(char* path, int16_t width, int16_t height, int8_t depth)
   ImGui::PopStyleColor(4);
 }
 
+static char* pickeduplink;
+
 void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t depth)
 {
-  char pathj[256]; snprintf(pathj, 256, "%s:%d:", path, j);
-  char addValId[256]; snprintf(addValId, 256, "+value ## %s", pathj);
   bool nodarken=depth<3;
-  ImGui::PushStyleColor(ImGuiCol_Button, nodarken? valueBackground: valueBackgroundActive);
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, nodarken? valueBackground: valueBackgroundActive);
-  if(ImGui::Button(addValId, ImVec2(width/2, buttonHeight)) && !dragPathId){
+  char pathj[256]; snprintf(pathj, 256, "%s:%d:", path, j);
+  bool showValueAdder=false;
+  if(showValueAdder){
+    ImGui::PushStyleColor(ImGuiCol_Button, nodarken? valueBackground: valueBackgroundActive);
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, nodarken? valueBackground: valueBackgroundActive);
+    char addValId[256]; snprintf(addValId, 256, "+value ## %s", pathj);
+    if(ImGui::Button(addValId, ImVec2(width/2, buttonHeight)) && !dragPathId){
+      char* lastcolon=strrchr(path,':');
+      char* secondlastcolon=0;
+      char* vkey;
+      if(lastcolon+1-path == strlen(path)){
+        *lastcolon=0;
+        secondlastcolon=strrchr(path,':');
+        *secondlastcolon=0;
+        vkey=strdup(secondlastcolon+1);
+      }
+      else{
+        *lastcolon=0;
+        vkey=strdup(lastcolon+1);
+      }
+      object* v = onex_get_from_cache(object_property(user, path));
+      if(secondlastcolon) *secondlastcolon=':';
+      *lastcolon=':';
+      object_property_add(v, vkey, (char*)"--");
+      free(vkey);
+    }
+    ImGui::PopStyleColor(2);
+    track_drag(addValId);
+
+    ImGui::SameLine();
+  }
+
+  ImGui::PushStyleColor(ImGuiCol_Text, actionColour);
+  ImGui::PushStyleColor(ImGuiCol_Button, nodarken? actionBackground: actionBackgroundActive);
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, nodarken? actionBackground: actionBackgroundActive);
+  ImGui::PushStyleColor(ImGuiCol_ButtonActive, actionBackgroundActive);
+
+  char addLnkId[256]; snprintf(addLnkId, 256, "*-> ## %s", pathj);
+  if(ImGui::Button(addLnkId, ImVec2(width/2, buttonHeight)) && !dragPathId && pickeduplink){
     char* lastcolon=strrchr(path,':');
     char* secondlastcolon=0;
     char* vkey;
@@ -552,19 +588,13 @@ void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t de
     object* v = onex_get_from_cache(object_property(user, path));
     if(secondlastcolon) *secondlastcolon=':';
     *lastcolon=':';
-    object_property_add(v, vkey, (char*)"--");
+    object_property_add(v, vkey, pickeduplink);
     free(vkey);
   }
-  ImGui::PopStyleColor(2);
-  track_drag(addValId);
+  track_drag(addLnkId);
 
   ImGui::SameLine();
 
-  ImGui::PushStyleColor(ImGuiCol_Text, actionColour);
-  ImGui::PushStyleColor(ImGuiCol_Button, nodarken? actionBackground: actionBackgroundActive);
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, nodarken? actionBackground: actionBackgroundActive);
-  ImGui::PushStyleColor(ImGuiCol_ButtonActive, actionBackgroundActive);
-  ImGui::SameLine();
   char addObjId[256]; snprintf(addObjId, 256, "+object ## %s", pathj);
   if(ImGui::Button(addObjId, ImVec2(width/2, buttonHeight)) && !dragPathId){
     char* lastcolon=strrchr(path,':');
@@ -675,7 +705,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
     ImGui::SameLine();
   }
 
-  int blankwidth = width-(depth<3? 2: 1)*smallButtonWidth-buttonHeight;
+  int blankwidth = width-(depth<3? 3: 2)*smallButtonWidth-buttonHeight;
   if(blankwidth>10){
     char summary[128]="";
     getSummary(path, summary);
@@ -687,6 +717,17 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
   char expId[256]; snprintf(expId, 256, "## %s", path);
   ImGui::Checkbox(expId, &open[depth]);
   track_drag(expId);
+
+  ImGui::SameLine();
+
+  char pikId[256]; snprintf(pikId, 256, "->*## %s", path);
+  if(ImGui::Button(pikId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
+    char* lastcolon=strrchr(path,':');
+    *lastcolon=0;
+    pickeduplink=object_property(user, path);
+    *lastcolon=':';
+  }
+  track_drag(pikId);
 
   ImGui::SameLine();
 
