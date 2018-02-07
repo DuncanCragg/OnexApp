@@ -436,7 +436,7 @@ void GUI::drawObjectFooter(char* path, bool locallyEditable, int16_t width, int1
     ImGui::PopStyleColor(5);
     ImGui::PopStyleVar();
     track_drag(comId);
-    if(!propNameEditing && propNameChoice){ propNameEditing = strdup(path); if(propNameChoice==1 || propNameChoice==2) showKeyboard(0); }
+    if(!propNameEditing && propNameChoice){ propNameEditing = strdup(path); if(propNameChoice==1 || propNameChoice==2 || propNameChoice==3) showKeyboard(0); }
     ImGui::PopItemWidth();
     ImGui::SameLine();
     int blankwidth = width - keyWidth;
