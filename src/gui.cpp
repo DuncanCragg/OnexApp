@@ -205,7 +205,7 @@ void GUI::drawGUI()
   ImGui::Render();
 }
 
-const char* propNameStrings[] = { "+", "+value(s)..", "+object(s)..", "title", "description", "text", "date", "start-date", "end-date", "list", "Rules", "Timer" };
+const char* propNameStrings[] = { "+", "+value(s)..", "+object(s)..", "+link", "title", "description", "text", "date", "start-date", "end-date", "list", "Rules", "Timer" };
 int         propNameChoice = 0;
 char*       propNameEditing=0;
 uint16_t    yOffsetTarget=0;
@@ -255,6 +255,8 @@ static bool evaluate_any_object(object* user)
 {
   return true;
 }
+
+static char* pickeduplink;
 
 static char* dragPathId=0;
 static float delta_x=0.0f;
@@ -344,6 +346,16 @@ void GUI::setPropertyNameAndObject(char* path , char* name)
   *lastcolon=':';
   object* o = createNewObjectForPropertyName(path, name);
   if(o) object_property_set(objectEditing, name, object_property(o, (char*)"UID"));
+  else object_property_set(objectEditing, name, (char*)"---");
+}
+
+void GUI::setPropertyNameAndLink(char* path , char* name)
+{
+  char* lastcolon=strrchr(path,':');
+  *lastcolon=0;
+  object* objectEditing = onex_get_from_cache(object_property(user, path));
+  *lastcolon=':';
+  if(pickeduplink) object_property_set(objectEditing, name, pickeduplink);
   else object_property_set(objectEditing, name, (char*)"---");
 }
 
@@ -438,13 +450,13 @@ void GUI::drawObjectFooter(char* path, bool locallyEditable, int16_t width, int1
     }
   }else{
     int flags=ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue;
-    if(propNameChoice > 2){
+    if(propNameChoice > 3){
       char* propname=(char*)propNameStrings[propNameChoice];
       if(!strcmp(propname, "list") || !strcmp(propname, "Rules")) setPropertyNameAndObject(path, propname);
       else setPropertyName(path, propname);
       free(propNameEditing); propNameEditing=0; propNameChoice = 0;
     }
-    else if(propNameChoice==1){
+    else if(propNameChoice==1 || propNameChoice==2 || propNameChoice==3){
       struct TextFilters {
         static int FilterImGuiLetters(ImGuiTextEditCallbackData* data) {
           ImWchar ch = data->EventChar;
@@ -466,7 +478,12 @@ void GUI::drawObjectFooter(char* path, bool locallyEditable, int16_t width, int1
       ImGui::PushStyleColor(ImGuiCol_PopupBg, propertyBackground);
       ImGui::PushStyleColor(ImGuiCol_FrameBg, propertyBackground);
       if(ImGui::InputText("## property name", valBuf, 256, flags, TextFilters::FilterImGuiLetters)){
-        setPropertyName(path, strdup(valBuf));
+        char* pn=strdup(valBuf);
+        if(propNameChoice==1) setPropertyName(path, pn);
+        else
+        if(propNameChoice==2) setPropertyNameAndObject(path, pn);
+        else
+        if(propNameChoice==3) setPropertyNameAndLink(path, pn);
         hideKeyboard();
         free(propNameEditing); propNameEditing=0; propNameChoice = 0;
         *valBuf=0;
@@ -477,40 +494,6 @@ void GUI::drawObjectFooter(char* path, bool locallyEditable, int16_t width, int1
       ImGui::SameLine();
       int blankwidth = width - keyWidth;
       if(blankwidth>10) ImGui::Button("--## blank", ImVec2(blankwidth, buttonHeight));
-    }
-    else if(propNameChoice==2){
-      struct TextFilters {
-        static int FilterImGuiLetters(ImGuiTextEditCallbackData* data) {
-          ImWchar ch = data->EventChar;
-          if(ch >=256) return 1;
-          if(!strlen(valBuf) && !isalpha(ch)) return 1;
-          if(ch == ' '){ data->EventChar = '-'; return 0; }
-          if(ch == '-'){ return 0; }
-          if(!isalnum(ch)) return 1;
-          data->EventChar = tolower(ch);
-          return 0;
-        }
-      };
-      if(!grabbedFocus){
-        ImGui::SetKeyboardFocusHere();
-        grabbedFocus = io.WantTextInput;
-      }
-      ImGui::PushItemWidth(keyWidth);
-      ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
-      ImGui::PushStyleColor(ImGuiCol_PopupBg, propertyBackground);
-      ImGui::PushStyleColor(ImGuiCol_FrameBg, propertyBackground);
-      if(ImGui::InputText("## property name", valBuf, 256, flags, TextFilters::FilterImGuiLetters)){
-        setPropertyNameAndObject(path, strdup(valBuf));
-        hideKeyboard();
-        free(propNameEditing); propNameEditing=0; propNameChoice = 0;
-        *valBuf=0;
-        grabbedFocus=false;
-      }
-      ImGui::PopStyleColor(3);
-      ImGui::PopItemWidth();
-      ImGui::SameLine();
-      int blankwidth = width - keyWidth;
-      if(blankwidth>10) ImGui::Button("[]## blank", ImVec2(blankwidth, buttonHeight));
     }
   }
 }
@@ -527,8 +510,6 @@ void GUI::drawPadding(char* path, int16_t width, int16_t height, int8_t depth)
   track_drag(blnId);
   ImGui::PopStyleColor(4);
 }
-
-static char* pickeduplink;
 
 void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t depth)
 {
@@ -570,7 +551,7 @@ void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t de
   ImGui::PushStyleColor(ImGuiCol_ButtonHovered, nodarken? actionBackground: actionBackgroundActive);
   ImGui::PushStyleColor(ImGuiCol_ButtonActive, actionBackgroundActive);
 
-  char addLnkId[256]; snprintf(addLnkId, 256, "*-> ## %s", pathj);
+  char addLnkId[256]; snprintf(addLnkId, 256, "+link ## %s", pathj);
   if(ImGui::Button(addLnkId, ImVec2(width/2, buttonHeight)) && !dragPathId && pickeduplink){
     char* lastcolon=strrchr(path,':');
     char* secondlastcolon=0;
@@ -720,7 +701,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
 
   ImGui::SameLine();
 
-  char pikId[256]; snprintf(pikId, 256, "->*## %s", path);
+  char pikId[256]; snprintf(pikId, 256, "-->## %s", path);
   if(ImGui::Button(pikId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
     char* lastcolon=strrchr(path,':');
     *lastcolon=0;
