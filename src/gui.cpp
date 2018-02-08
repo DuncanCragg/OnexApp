@@ -171,8 +171,8 @@ void GUI::drawGUI()
 
   ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiSetCond_FirstUseEver);
   ImGui::SetNextWindowSize(ImVec2((float)app->width, (float)app->height), ImGuiSetCond_FirstUseEver);
-  if (!ImGui::Begin("Onex App Maker", NULL, window_flags))
-  {
+
+  if(!ImGui::Begin("Onex Live Personal Database", NULL, window_flags)){
       ImGui::End();
       ImGui::Render();
       return;
@@ -200,7 +200,7 @@ void GUI::drawGUI()
   ImGui::End();
 
   ImGui::SetNextWindowPos(ImVec2(650, 650), ImGuiSetCond_FirstUseEver);
-  ImGui::ShowTestWindow();
+//ImGui::ShowTestWindow();
 
   ImGui::Render();
 }
@@ -284,7 +284,7 @@ static void track_drag(char* pathId)
     }
   }
   else
-  if(MOVING_DELTA(delta_x, delta_y) && dragPathId && !strcmp(pathId, dragPathId)){
+  if(!ImGui::IsMouseDown(0) && MOVING_DELTA(delta_x, delta_y) && dragPathId && !strcmp(pathId, dragPathId)){
     delta_x *= 0.99f;
     delta_y *= 0.99f;
     drag_handled=false;
