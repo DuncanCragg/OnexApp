@@ -56,6 +56,7 @@ public:
   void drawKey(char* path, char* key, int16_t width, int16_t height, int16_t keyWidth, int8_t depth);
   void drawPropertyValue(char* path, char* key, char* val, bool locallyEditable, int16_t width, int16_t height, int16_t keyWidth, int8_t depth);
   void drawPropertyList(char* pathkey, char* key, bool locallyEditable, int16_t width, int16_t height, int16_t keyWidth, int8_t depth);
+  char* getLastLink();
   void setPropertyName(char* path , char* name);
   void setPropertyNameAndObject(char* path , char* name);
   void setPropertyNameAndLink(char* path , char* name);

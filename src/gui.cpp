@@ -286,8 +286,6 @@ static bool evaluate_any_object(object* user)
   return true;
 }
 
-static char* pickeduplink;
-
 static char* dragPathId=0;
 static float delta_x=0.0f;
 static float delta_y=0.0f;
@@ -381,14 +379,24 @@ void GUI::setPropertyNameAndObject(char* path , char* name)
   else object_property_set(objectEditing, name, (char*)"---");
 }
 
+char* GUI::getLastLink()
+{
+  uint16_t viewrlen=object_property_size(user, (char*)"viewing-r");
+  char* lastlink = object_property_value(user, (char*)"viewing-r", viewrlen);
+  char popPath[64]; snprintf(popPath, 64, "viewing-r:%d:", viewrlen);
+  object_property_set(user, (char*)popPath, 0);
+  return lastlink;
+}
+
 void GUI::setPropertyNameAndLink(char* path , char* name)
 {
+  char* lastlink=getLastLink();
+  if(!lastlink) return;
   char* lastcolon=strrchr(path,':');
   *lastcolon=0;
   object* objectEditing = onex_get_from_cache(object_property(user, path));
   *lastcolon=':';
-  if(pickeduplink) object_property_set(objectEditing, name, pickeduplink);
-  else object_property_set(objectEditing, name, (char*)"---");
+  object_property_set(objectEditing, name, lastlink);
 }
 
 void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool locallyEditable, int16_t width, int16_t height, int8_t depth)
@@ -584,25 +592,28 @@ void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t de
   ImGui::PushStyleColor(ImGuiCol_ButtonActive, actionBackgroundActive);
 
   char addLnkId[256]; snprintf(addLnkId, 256, "+link ## %s", pathj);
-  if(ImGui::Button(addLnkId, ImVec2(width/2, buttonHeight)) && !dragPathId && pickeduplink){
-    char* lastcolon=strrchr(path,':');
-    char* secondlastcolon=0;
-    char* vkey;
-    if(lastcolon+1-path == strlen(path)){
-      *lastcolon=0;
-      secondlastcolon=strrchr(path,':');
-      *secondlastcolon=0;
-      vkey=strdup(secondlastcolon+1);
+  if(ImGui::Button(addLnkId, ImVec2(width/2, buttonHeight)) && !dragPathId){
+    char* lastlink=getLastLink();
+    if(lastlink){
+      char* lastcolon=strrchr(path,':');
+      char* secondlastcolon=0;
+      char* vkey;
+      if(lastcolon+1-path == strlen(path)){
+        *lastcolon=0;
+        secondlastcolon=strrchr(path,':');
+        *secondlastcolon=0;
+        vkey=strdup(secondlastcolon+1);
+      }
+      else{
+        *lastcolon=0;
+        vkey=strdup(lastcolon+1);
+      }
+      object* v = onex_get_from_cache(object_property(user, path));
+      if(secondlastcolon) *secondlastcolon=':';
+      *lastcolon=':';
+      object_property_add(v, vkey, lastlink);
+      free(vkey);
     }
-    else{
-      *lastcolon=0;
-      vkey=strdup(lastcolon+1);
-    }
-    object* v = onex_get_from_cache(object_property(user, path));
-    if(secondlastcolon) *secondlastcolon=':';
-    *lastcolon=':';
-    object_property_add(v, vkey, pickeduplink);
-    free(vkey);
   }
   track_drag(addLnkId);
 
@@ -732,8 +743,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
   if(ImGui::Button(pikId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
     char* lastcolon=strrchr(path,':');
     *lastcolon=0;
-    pickeduplink=object_property(user, path);
-    object_property_add(user, (char*)"viewing-r", pickeduplink);
+    object_property_add(user, (char*)"viewing-r", object_property(user, path));
     *lastcolon=':';
   }
   track_drag(pikId);
