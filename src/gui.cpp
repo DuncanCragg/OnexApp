@@ -686,7 +686,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
     ImGui::SameLine();
   }
 
-  int blankwidth = width-(depth<3? 3: 2)*smallButtonWidth-buttonHeight;
+  int blankwidth = width-(depth<3? 4: 3)*smallButtonWidth;
   if(blankwidth>10){
     char summary[128]="";
     getSummary(path, summary);
@@ -695,11 +695,6 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
     track_drag(barId);
     ImGui::SameLine();
   }
-  char expId[256]; snprintf(expId, 256, "## %s", path);
-  ImGui::Checkbox(expId, &open[depth]);
-  track_drag(expId);
-
-  ImGui::SameLine();
 
   char pikId[256]; snprintf(pikId, 256, "-->## %s", path);
   if(ImGui::Button(pikId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
@@ -712,7 +707,15 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
 
   ImGui::SameLine();
 
-  char maxId[256]; snprintf(maxId, 256, " [+]## %s", path);
+  char expId[256]; snprintf(expId, 256, open[depth]? " ^## %s": " V## %s", path);
+  if(ImGui::Button(expId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
+    open[depth] = !open[depth];
+  }
+  track_drag(expId);
+
+  ImGui::SameLine();
+
+  char maxId[256]; snprintf(maxId, 256, " +## %s", path);
   if(ImGui::Button(maxId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
     char* lastcolon=strrchr(path,':');
     *lastcolon=0;
