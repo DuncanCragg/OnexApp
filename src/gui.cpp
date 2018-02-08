@@ -68,11 +68,15 @@ ImVec4 schemePlum(230.0f/255, 179.0f/255, 230.0f/255, 1.0f);
 
 static uint16_t workspace1Width;
 static uint16_t workspace1Height;
+static uint16_t workspace2Width;
+static uint16_t workspace2Height;
 
 void GUI::initImGUI(float width, float height)
 {
   workspace1Width=((int)width)/2-10;
   workspace1Height=(int)height-10;
+  workspace2Width=((int)width)/2-10;
+  workspace2Height=(int)height-10;
   ImGuiStyle& style = ImGui::GetStyle();
   style.Colors[ImGuiCol_Header] = ImVec4(0.8f, 0.7f, 0.9f, 1.0f);
   style.Colors[ImGuiCol_Text] = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
@@ -234,9 +238,9 @@ void GUI::drawView()
 {
   ImGui::BeginChild("Workspace1", ImVec2(workspace1Width,0), true);
   {
-    char* uid=object_property(user, (char*)"viewing");
+    char* uid=object_property(user, (char*)"viewing-l");
     bool locallyEditable = object_is_local(uid);
-    char path[9]; memcpy(path, "viewing:", 9);
+    char path[9]; memcpy(path, "viewing-l:", strlen("viewing-l:")+1);
 #if defined(__ANDROID__)
     ImVec2 startingpoint = ImGui::GetCursorScreenPos();
     if(yOffsetCounter){
@@ -247,6 +251,22 @@ void GUI::drawView()
     ImGui::SetCursorScreenPos(startpos);
 #endif
     if(user) drawObjectProperties(path, locallyEditable, workspace1Width-rhsPadding, workspace1Height, 1);
+  }
+  ImGui::EndChild();
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(-1,0));
+  ImGui::SameLine();
+  ImGui::PopStyleVar();
+  ImGui::BeginChild("Workspace2", ImVec2(workspace2Width,0), true);
+  {
+    char* uid=object_property(user, (char*)"viewing-r");
+    bool locallyEditable = object_is_local(uid);
+    char path[9]; memcpy(path, "viewing-r:", strlen("viewing-r:")+1);
+#if defined(__ANDROID__)
+    ImVec2 startingpoint = ImGui::GetCursorScreenPos();
+    ImVec2 startpos(startingpoint.x, startingpoint.y - yOffset);
+    ImGui::SetCursorScreenPos(startpos);
+#endif
+    if(user) drawObjectProperties(path, locallyEditable, workspace2Width-rhsPadding, workspace2Height, 1);
   }
   ImGui::EndChild();
 }
@@ -299,7 +319,7 @@ static void track_drag(char* pathId)
 static void set_drag_scroll(char* path)
 {
   if(!dragPathId) return;
-  char* dragPathPath=strstr(dragPathId, "viewing:");
+  char* dragPathPath=strstr(dragPathId, "viewing-l:");
   if(!strncmp(dragPathPath, path, strlen(path)) && strcmp(dragPathPath, path) && !drag_handled && MOVING_DELTA(delta_x,delta_y)){
     ImGui::SetScrollX(ImGui::GetScrollX() - delta_x);
     ImGui::SetScrollY(ImGui::GetScrollY() - delta_y);
@@ -664,7 +684,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
       char* viewing = object_property_value(user, (char*)"history", histlen);
       char popPath[64]; snprintf(popPath, 64, "history:%d:", histlen);
       object_property_set(user, (char*)popPath, 0);
-      object_property_set(user, (char*)"viewing", viewing);
+      object_property_set(user, (char*)"viewing-l", viewing);
     }
     track_drag(linkId);
     ImGui::SameLine();
@@ -721,8 +741,8 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
     *lastcolon=0;
     char* viewing=object_property(user, path);
     *lastcolon=':';
-    object_property_add(user, (char*)"history", object_property(user, (char*)"viewing"));
-    object_property_set(user, (char*)"viewing", viewing);
+    object_property_add(user, (char*)"history", object_property(user, (char*)"viewing-l"));
+    object_property_set(user, (char*)"viewing-l", viewing);
   }
   track_drag(maxId);
 
