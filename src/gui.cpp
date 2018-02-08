@@ -61,7 +61,7 @@ ImVec4 schemePlum(230.0f/255, 179.0f/255, 230.0f/255, 1.0f);
 #define objectHeight 400
 #define listHeight 1000
 #define buttonWidth 190
-#define smallButtonWidth 90
+#define smallButtonWidth 65
 #define buttonHeight 70
 #define rhsPadding 20
 #define paddingHeight 15
@@ -658,7 +658,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
   ImGui::PushStyleColor(ImGuiCol_ButtonActive, actionBackgroundActive);
 
   if(depth==1){
-    char linkId[256]; snprintf(linkId, 256, " <<## %s", path);
+    char linkId[256]; snprintf(linkId, 256, " <## %s", path);
     if(ImGui::Button(linkId, ImVec2(smallButtonWidth, buttonHeight))){
       uint16_t histlen=object_property_size(user, (char*)"history");
       char* viewing = object_property_value(user, (char*)"history", histlen);
@@ -696,7 +696,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
     ImGui::SameLine();
   }
 
-  char pikId[256]; snprintf(pikId, 256, "-->## %s", path);
+  char pikId[256]; snprintf(pikId, 256, " >## %s", path);
   if(ImGui::Button(pikId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
     char* lastcolon=strrchr(path,':');
     *lastcolon=0;
@@ -707,7 +707,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
 
   ImGui::SameLine();
 
-  char expId[256]; snprintf(expId, 256, open[depth]? " ^## %s": " V## %s", path);
+  char expId[256]; snprintf(expId, 256, open[depth]? " ^## %s": " v## %s", path);
   if(ImGui::Button(expId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
     open[depth] = !open[depth];
   }
