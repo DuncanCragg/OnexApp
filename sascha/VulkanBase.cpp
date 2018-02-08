@@ -1299,20 +1299,7 @@ int32_t VulkanBase::handleAppInput(struct android_app* app, AInputEvent* event)
             break;
           }
           case AMOTION_EVENT_ACTION_DOWN: {
-            // Detect double tap
-            int64_t eventTime = AMotionEvent_getEventTime(event);
-            if (eventTime - vulkanApp->lastTapTime <= vks::android::DOUBLE_TAP_TIMEOUT) {
-              float deadZone = (160.f / vks::android::screenDensity) * vks::android::DOUBLE_TAP_SLOP * vks::android::DOUBLE_TAP_SLOP;
-              float x = AMotionEvent_getX(event, 0) - vulkanApp->touchPos.x;
-              float y = AMotionEvent_getY(event, 0) - vulkanApp->touchPos.y;
-              if ((x * x + y * y) < deadZone) {
-                vulkanApp->keyPressed(TOUCH_DOUBLE_TAP, 0);
-                vulkanApp->touchDown = false;
-              }
-            }
-            else {
-              vulkanApp->touchDown = true;
-            }
+            vulkanApp->touchDown = true;
             vulkanApp->touchPos.x = AMotionEvent_getX(event, 0);
             vulkanApp->touchPos.y = AMotionEvent_getY(event, 0);
             break;
