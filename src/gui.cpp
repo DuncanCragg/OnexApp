@@ -240,7 +240,8 @@ void GUI::drawView()
   {
     char* uid=object_property(user, (char*)"viewing-l");
     bool locallyEditable = object_is_local(uid);
-    char path[9]; memcpy(path, "viewing-l:", strlen("viewing-l:")+1);
+    int8_t s=strlen("viewing-l:")+1;
+    char path[s]; memcpy(path, "viewing-l:", s);
 #if defined(__ANDROID__)
     ImVec2 startingpoint = ImGui::GetCursorScreenPos();
     if(yOffsetCounter){
@@ -258,15 +259,24 @@ void GUI::drawView()
   ImGui::PopStyleVar();
   ImGui::BeginChild("Workspace2", ImVec2(workspace2Width,0), true);
   {
-    char* uid=object_property(user, (char*)"viewing-r");
-    bool locallyEditable = object_is_local(uid);
-    char path[9]; memcpy(path, "viewing-r:", strlen("viewing-r:")+1);
 #if defined(__ANDROID__)
     ImVec2 startingpoint = ImGui::GetCursorScreenPos();
     ImVec2 startpos(startingpoint.x, startingpoint.y - yOffset);
     ImGui::SetCursorScreenPos(startpos);
 #endif
-    if(user) drawObjectProperties(path, locallyEditable, workspace2Width-rhsPadding, workspace2Height, 1);
+    if(user){
+      int8_t s=strlen("viewing-r:")+1;
+      char path[s]; memcpy(path, "viewing-r:", s);
+      path[s-2]=0;
+      if(object_property_is_value(user, path)){
+        path[s-2]=':';
+        drawObjectProperties(path, false, workspace2Width-rhsPadding, workspace2Height, 1);
+      }
+      else
+      if(object_property_is_list(user, path)){
+        drawNestedObjectPropertiesList(path, false, workspace2Width-rhsPadding, workspace2Height, 1);
+      }
+    }
   }
   ImGui::EndChild();
 }
@@ -320,6 +330,8 @@ static void set_drag_scroll(char* path)
 {
   if(!dragPathId) return;
   char* dragPathPath=strstr(dragPathId, "viewing-l:");
+  if(!dragPathPath) dragPathPath=strstr(dragPathId, "viewing-r:");
+  if(!dragPathPath) return;
   if(!strncmp(dragPathPath, path, strlen(path)) && strcmp(dragPathPath, path) && !drag_handled && MOVING_DELTA(delta_x,delta_y)){
     ImGui::SetScrollX(ImGui::GetScrollX() - delta_x);
     ImGui::SetScrollY(ImGui::GetScrollY() - delta_y);
@@ -721,6 +733,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
     char* lastcolon=strrchr(path,':');
     *lastcolon=0;
     pickeduplink=object_property(user, path);
+    object_property_add(user, (char*)"viewing-r", pickeduplink);
     *lastcolon=':';
   }
   track_drag(pikId);

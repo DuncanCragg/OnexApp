@@ -146,7 +146,6 @@ public:
 
     user=object_new((char*)"uid-1", (char*)"user", evaluate_user, 4);
     object_property_set(user, (char*)"viewing-l", (char*)"uid-2");
-    object_property_set(user, (char*)"viewing-r", (char*)"uid-2");
 
     gui = new GUI(this, user);
     static_gui = gui;
