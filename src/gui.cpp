@@ -734,14 +734,19 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
   if(depth!=1 && depth<3){
     char dropId[256]; snprintf(dropId, 256, " X## %s", path);
     if(ImGui::Button(dropId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
-      char* lastcolon=strrchr(path,':'); *lastcolon=0;
-      char* secondlastcolon=strrchr(path, ':'); *secondlastcolon=0;
-      char* thirdlastcolon=strrchr(path, ':'); *thirdlastcolon=0;
-      object* objectEditing = onex_get_from_cache(object_property(user, path));
-      *secondlastcolon=':';
-      object_property_set(objectEditing, thirdlastcolon+1, (char*)"");
-      *thirdlastcolon=':';
-      *lastcolon=':';
+      if(!strncmp(path, "viewing-l:", strlen("viewing-l:"))){
+        char* lastcolon=strrchr(path,':'); *lastcolon=0;
+        char* secondlastcolon=strrchr(path, ':'); *secondlastcolon=0;
+        char* thirdlastcolon=strrchr(path, ':'); *thirdlastcolon=0;
+        object* objectEditing = onex_get_from_cache(object_property(user, path));
+        *secondlastcolon=':';
+        object_property_set(objectEditing, thirdlastcolon+1, (char*)"");
+        *thirdlastcolon=':';
+        *lastcolon=':';
+      }
+      else{
+        object_property_set(user, path, (char*)"");
+      }
     }
     track_drag(dropId);
 
