@@ -737,12 +737,24 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
       if(!strncmp(path, "viewing-l:", strlen("viewing-l:"))){
         char* lastcolon=strrchr(path,':'); *lastcolon=0;
         char* secondlastcolon=strrchr(path, ':'); *secondlastcolon=0;
-        char* thirdlastcolon=strrchr(path, ':'); *thirdlastcolon=0;
-        object* objectEditing = onex_get_from_cache(object_property(user, path));
-        *secondlastcolon=':';
-        object_property_set(objectEditing, thirdlastcolon+1, (char*)"");
-        *thirdlastcolon=':';
+        char* thirdlastcolon=strrchr(path, ':');
+        object* objectEditing;
+        char* vkey;
+        if(thirdlastcolon){
+          *thirdlastcolon=0;
+          objectEditing = onex_get_from_cache(object_property(user, path));
+          *secondlastcolon=':';
+          vkey=strdup(thirdlastcolon+1);
+          *thirdlastcolon=':';
+        }
+        else{
+          objectEditing = onex_get_from_cache(object_property(user, path));
+          vkey=strdup(secondlastcolon+1);
+          *secondlastcolon=':';
+        }
         *lastcolon=':';
+        object_property_set(objectEditing, vkey, (char*)"");
+        free(vkey);
       }
       else{
         object_property_set(user, path, (char*)"");
