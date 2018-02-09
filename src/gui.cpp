@@ -877,7 +877,7 @@ int16_t GUI::calculateScrollerHeight(char* path, int16_t height)
 void GUI::drawObjectProperties(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth)
 {
   drawObjectHeader(path, locallyEditable, width, depth);
-  if(!isOpen(path)) return;
+  if(/*strcmp(path, "viewing-l:") && */!isOpen(path)) return;
   int16_t scrollerheight=calculateScrollerHeight(path, height);
   int16_t keyWidth=calculateKeyWidth(path);
   uint8_t size = object_property_size(user, path);
