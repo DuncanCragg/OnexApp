@@ -238,10 +238,6 @@ void GUI::drawView()
 {
   ImGui::BeginChild("Workspace1", ImVec2(workspace1Width,0), true);
   {
-    char* uid=object_property(user, (char*)"viewing-l");
-    bool locallyEditable = object_is_local(uid);
-    int8_t s=strlen("viewing-l:")+1;
-    char path[s]; memcpy(path, "viewing-l:", s);
 #if defined(__ANDROID__)
     ImVec2 startingpoint = ImGui::GetCursorScreenPos();
     if(yOffsetCounter){
@@ -251,6 +247,10 @@ void GUI::drawView()
     ImVec2 startpos(startingpoint.x, startingpoint.y - yOffset);
     ImGui::SetCursorScreenPos(startpos);
 #endif
+    int8_t s=strlen("viewing-l:")+1;
+    char path[s]; memcpy(path, "viewing-l:", s);
+    char* uid=object_property(user, (char*)"viewing-l");
+    bool locallyEditable = object_is_local(uid);
     if(user) drawObjectProperties(path, locallyEditable, workspace1Width-rhsPadding, workspace1Height, 1);
   }
   ImGui::EndChild();
@@ -274,7 +274,7 @@ void GUI::drawView()
       }
       else
       if(object_property_is_list(user, path)){
-        drawNestedObjectPropertiesList(path, false, workspace2Width-rhsPadding, workspace2Height, 1);
+        drawNestedObjectPropertiesList(path, false, workspace2Width-rhsPadding, workspace2Height-100, 1);
       }
     }
   }
@@ -689,7 +689,26 @@ object* GUI::createNewObjectLikeOthers(char* path)
   return r;
 }
 
-static bool open[]={ true, true, true, false, false };
+#define MAX_OPEN 64
+static char* open[MAX_OPEN];
+
+static bool isOpen(char* path)
+{
+  for(int i=0; i<MAX_OPEN; i++){
+    if(open[i] && !strcmp(open[i], path)) return true;
+  }
+  return false;
+}
+
+static void toggleOpen(char* path)
+{
+  for(int i=0; i<MAX_OPEN; i++){
+    if(open[i] && !strcmp(open[i], path)){ free(open[i]); open[i]=0; return; }
+  }
+  for(int i=0; i<MAX_OPEN; i++){
+    if(!open[i]){ open[i]=strdup(path); return; }
+  }
+}
 
 void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8_t depth)
 {
@@ -750,9 +769,9 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
 
   ImGui::SameLine();
 
-  char expId[256]; snprintf(expId, 256, open[depth]? " ^## %s": " v## %s", path);
+  char expId[256]; snprintf(expId, 256, isOpen(path)? " ^## %s": " v## %s", path);
   if(ImGui::Button(expId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
-    open[depth] = !open[depth];
+    toggleOpen(path);
   }
   track_drag(expId);
 
@@ -858,7 +877,7 @@ int16_t GUI::calculateScrollerHeight(char* path, int16_t height)
 void GUI::drawObjectProperties(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth)
 {
   drawObjectHeader(path, locallyEditable, width, depth);
-  if(!open[depth]) return;
+  if(!isOpen(path)) return;
   int16_t scrollerheight=calculateScrollerHeight(path, height);
   int16_t keyWidth=calculateKeyWidth(path);
   uint8_t size = object_property_size(user, path);
