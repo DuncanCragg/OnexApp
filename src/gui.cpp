@@ -209,7 +209,7 @@ void GUI::drawGUI()
   ImGui::Render();
 }
 
-const char* propNameStrings[] = { "+", "+value(s)..", "+object(s)..", "+link", "title", "description", "text", "date", "start-date", "end-date", "list", "Rules", "Timer" };
+const char* propNameStrings[] = { "+", "+value(s)..", "+object(s)..", "+link", "title", "description", "text", "date", "start-date", "end-date", "list", "Rules", "Timer", "Notifying" };
 int         propNameChoice = 0;
 char*       propNameEditing=0;
 uint16_t    yOffsetTarget=0;
@@ -500,6 +500,7 @@ void GUI::drawObjectFooter(char* path, bool locallyEditable, int16_t width, int1
     if(propNameChoice > 3){
       char* propname=(char*)propNameStrings[propNameChoice];
       if(!strcmp(propname, "list") || !strcmp(propname, "Rules")) setPropertyNameAndObject(path, propname);
+      else if(!strcmp(propname, "Notifying")) setPropertyNameAndLink(path, propname);
       else setPropertyName(path, propname);
       free(propNameEditing); propNameEditing=0; propNameChoice = 0;
     }
