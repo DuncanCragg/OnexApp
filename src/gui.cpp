@@ -265,6 +265,13 @@ void GUI::drawView()
     ImGui::SetCursorScreenPos(startpos);
 #endif
     if(user){
+      ImGui::PushStyleColor(ImGuiCol_Text, actionColour);
+      ImGui::PushStyleColor(ImGuiCol_Button, actionBackground);
+      ImGui::PushStyleColor(ImGuiCol_ButtonHovered, actionBackground);
+      ImGui::PushStyleColor(ImGuiCol_ButtonActive, actionBackground);
+      ImGui::Button(" +link", ImVec2(workspace2Width-rhsPadding, buttonHeight));
+      ImGui::PopStyleColor(4);
+      ImGui::Separator();
       int8_t s=strlen("viewing-r:")+1;
       char path[s]; memcpy(path, "viewing-r:", s);
       path[s-2]=0;
