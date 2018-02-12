@@ -40,7 +40,6 @@ public:
   void drawGUI();
   void drawView();
   void drawObjectProperties(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth);
-  void drawNestedObjectProperties(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth);
   void drawNewPropertyValueEditor(char* path, char* val, bool single, bool locallyEditable, int16_t width, int16_t height, int8_t depth);
   void drawPadding(char* path, int16_t width, int16_t height, int8_t depth);
   void drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t depth);
@@ -54,7 +53,6 @@ public:
   void drawObjectFooter(char* path, bool locallyEditable, int16_t width, int16_t keyWidth, int8_t depth);
   void drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth);
   void drawKey(char* path, char* key, int16_t width, int16_t height, int16_t keyWidth, int8_t depth);
-  void drawPropertyValue(char* path, char* key, char* val, bool locallyEditable, int16_t width, int16_t height, int16_t keyWidth, int8_t depth);
   void drawPropertyList(char* pathkey, char* key, bool locallyEditable, int16_t width, int16_t height, int16_t keyWidth, int8_t depth);
   char* getLastLink();
   void setPropertyName(char* path , char* name);

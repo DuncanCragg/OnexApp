@@ -274,13 +274,7 @@ void GUI::drawView()
       ImGui::Separator();
       int8_t s=strlen("viewing-r")+1;
       char path[s]; memcpy(path, "viewing-r", s);
-      path[s-2]=0;
-      if(object_property_is_value(user, path)){
-        path[s-2]=':';
-        drawObjectProperties(path, false, workspace2Width-rhsPadding, workspace2Height, 1);
-      }
-      else
-      if(object_property_is_list(user, path)){
+      if(object_property(user, path)){
         drawNestedObjectPropertiesList(path, false, workspace2Width-rhsPadding, workspace2Height-100, 1);
       }
     }
@@ -346,41 +340,33 @@ static void set_drag_scroll(char* path)
 
 void GUI::setNewValue(char* path, char* valBuf, bool single)
 {
-  char* lastcolon=strrchr(path,':'); *lastcolon=0;
   if(single){
-    char* secondlastcolon=strrchr(path, ':'); *secondlastcolon=0;
+    char* lastcolon=strrchr(path,':'); *lastcolon=0;
     object* objectEditing = onex_get_from_cache(object_property(user, path));
-    if(!*valBuf) object_property_set(objectEditing, secondlastcolon+1, (char*)"");
-    else object_property_set(objectEditing, secondlastcolon+1, strdup(valBuf));
-    *secondlastcolon=':';
+    if(!*valBuf) object_property_set(objectEditing, lastcolon+1, (char*)"");
+    else object_property_set(objectEditing, lastcolon+1, strdup(valBuf));
+    *lastcolon=':';
   }
   else{
+    char* lastcolon=strrchr(path,':'); *lastcolon=0;
     char* secondlastcolon=strrchr(path, ':'); *secondlastcolon=0;
-    char* thirdlastcolon=strrchr(path, ':'); *thirdlastcolon=0;
     object* objectEditing = onex_get_from_cache(object_property(user, path));
     *secondlastcolon=':';
-    if(!*valBuf) object_property_set(objectEditing, thirdlastcolon+1, (char*)"");
-    else object_property_set(objectEditing, thirdlastcolon+1, strdup(valBuf));
-    *thirdlastcolon=':';
+    *lastcolon=':';
+    if(!*valBuf) object_property_set(objectEditing, secondlastcolon+1, (char*)"");
+    else object_property_set(objectEditing, secondlastcolon+1, strdup(valBuf));
   }
-  *lastcolon=':';
 }
 
 void GUI::setPropertyName(char* path , char* name)
 {
-  char* lastcolon=strrchr(path,':');
-  *lastcolon=0;
   object* objectEditing = onex_get_from_cache(object_property(user, path));
-  *lastcolon=':';
   object_property_set(objectEditing, name, (char*)"--");
 }
 
 void GUI::setPropertyNameAndObject(char* path , char* name)
 {
-  char* lastcolon=strrchr(path,':');
-  *lastcolon=0;
   object* objectEditing = onex_get_from_cache(object_property(user, path));
-  *lastcolon=':';
   object* o = createNewObjectForPropertyName(path, name);
   if(o) object_property_set(objectEditing, name, object_property(o, (char*)"UID"));
   else object_property_set(objectEditing, name, (char*)"---");
@@ -388,10 +374,10 @@ void GUI::setPropertyNameAndObject(char* path , char* name)
 
 char* GUI::getLastLink()
 {
-  uint16_t viewrlen=object_property_size(user, (char*)"viewing-r");
-  char* lastlink = object_property_value(user, (char*)"viewing-r", viewrlen);
+  uint16_t viewrlen=object_property_length(user, (char*)"viewing-r");
   char popPath[64]; snprintf(popPath, 64, "viewing-r:%d", viewrlen);
-  object_property_set(user, (char*)popPath, 0);
+  char* lastlink = object_property(user, popPath);
+  object_property_set(user, popPath, 0);
   return lastlink;
 }
 
@@ -399,10 +385,7 @@ void GUI::setPropertyNameAndLink(char* path , char* name)
 {
   char* lastlink=getLastLink();
   if(!lastlink) return;
-  char* lastcolon=strrchr(path,':');
-  *lastcolon=0;
   object* objectEditing = onex_get_from_cache(object_property(user, path));
-  *lastcolon=':';
   object_property_set(objectEditing, name, lastlink);
 }
 
@@ -569,24 +552,10 @@ void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t de
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, nodarken? valueBackground: valueBackgroundActive);
     char addValId[256]; snprintf(addValId, 256, "+value ## %s", pathj);
     if(ImGui::Button(addValId, ImVec2(width/2, buttonHeight)) && !dragPathId){
-      char* lastcolon=strrchr(path,':');
-      char* secondlastcolon=0;
-      char* vkey;
-      if(lastcolon+1-path == strlen(path)){
-        *lastcolon=0;
-        secondlastcolon=strrchr(path,':');
-        *secondlastcolon=0;
-        vkey=strdup(secondlastcolon+1);
-      }
-      else{
-        *lastcolon=0;
-        vkey=strdup(lastcolon+1);
-      }
+      char* lastcolon=strrchr(path,':'); *lastcolon=0;
       object* v = onex_get_from_cache(object_property(user, path));
-      if(secondlastcolon) *secondlastcolon=':';
       *lastcolon=':';
-      object_property_add(v, vkey, (char*)"--");
-      free(vkey);
+      object_property_add(v, lastcolon+1, (char*)"--");
     }
     ImGui::PopStyleColor(2);
     track_drag(addValId);
@@ -603,24 +572,10 @@ void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t de
   if(ImGui::Button(addLnkId, ImVec2(width/2, buttonHeight)) && !dragPathId){
     char* lastlink=getLastLink();
     if(lastlink){
-      char* lastcolon=strrchr(path,':');
-      char* secondlastcolon=0;
-      char* vkey;
-      if(lastcolon+1-path == strlen(path)){
-        *lastcolon=0;
-        secondlastcolon=strrchr(path,':');
-        *secondlastcolon=0;
-        vkey=strdup(secondlastcolon+1);
-      }
-      else{
-        *lastcolon=0;
-        vkey=strdup(lastcolon+1);
-      }
+      char* lastcolon=strrchr(path,':'); *lastcolon=0;
       object* v = onex_get_from_cache(object_property(user, path));
-      if(secondlastcolon) *secondlastcolon=':';
       *lastcolon=':';
-      object_property_add(v, vkey, lastlink);
-      free(vkey);
+      object_property_add(v, lastcolon+1, lastlink);
     }
   }
   track_drag(addLnkId);
@@ -629,25 +584,11 @@ void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t de
 
   char addObjId[256]; snprintf(addObjId, 256, "+object ## %s", pathj);
   if(ImGui::Button(addObjId, ImVec2(width/2, buttonHeight)) && !dragPathId){
-    char* lastcolon=strrchr(path,':');
-    char* secondlastcolon=0;
-    char* vkey;
-    if(lastcolon+1-path == strlen(path)){
-      *lastcolon=0;
-      secondlastcolon=strrchr(path,':');
-      *secondlastcolon=0;
-      vkey=strdup(secondlastcolon+1);
-    }
-    else{
-      *lastcolon=0;
-      vkey=strdup(lastcolon+1);
-    }
+    char* lastcolon=strrchr(path,':'); *lastcolon=0;
     object* v = onex_get_from_cache(object_property(user, path));
-    if(secondlastcolon) *secondlastcolon=':';
     *lastcolon=':';
     object* o = createNewObjectLikeOthers(path);
-    if(o) object_property_add(v, vkey, object_property(o, (char*)"UID"));
-    free(vkey);
+    if(o) object_property_add(v, lastcolon+1, object_property(o, (char*)"UID"));
   }
   track_drag(addObjId);
   ImGui::PopStyleColor(4);
@@ -667,31 +608,18 @@ object* GUI::createNewObjectLikeOthers(char* path)
 {
   object* r=object_new(0, 0, evaluate_any_object, 4);
   bool filled=false;
-  uint8_t size = object_property_size(user, path);
-  for(int i=1; i<=size; i++){
-    char* key=object_property_key(user, path, i);
-    if(key){
-      char* is=0; if(!strcmp(key,"is")) is=object_property_value(user, path, i);
+  int16_t ln = object_property_length(user, path);
+  for(int i=1; i<=ln; i++){
+    size_t l=strlen(path);
+    snprintf(path+l, 128-l, ":%d", i);
+    int8_t sz=object_property_size(user, path);
+    if(sz>0) for(int j=1; j<=sz; j++){
+      char* key=object_property_key(user, path, j);
+      char* is=0; if(!strcmp(key,"is")) is=object_property_val(user, path, j);
       object_property_set(r, key, is? is: (char*)"--");
       filled=true;
     }
-    else{
-      char* val=object_property_value(user, path, i);
-      size_t l=strlen(path);
-      snprintf(path+l, 128-l, ":%d", i);
-      size_t size=object_property_size(user, path);
-      if(is_uid(val) && size){
-        for(int j=1; j<=size; j++){
-          char* key=object_property_key(user, path, j);
-          if(key){
-            char* is=0; if(!strcmp(key,"is")) is=object_property_value(user, path, j);
-            object_property_set(r, key, is? is: (char*)"--");
-            filled=true;
-          }
-        }
-      }
-      path[l] = 0;
-    }
+    path[l] = 0;
   }
   if(!filled) object_property_set(r, (char*)"is", (char*)"editable");
   return r;
@@ -730,11 +658,13 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
   if(depth==1){
     char linkId[256]; snprintf(linkId, 256, " <## %s", path);
     if(ImGui::Button(linkId, ImVec2(smallButtonWidth, buttonHeight))){
-      uint16_t histlen=object_property_size(user, (char*)"history");
-      char* viewing = object_property_value(user, (char*)"history", histlen);
-      char popPath[64]; snprintf(popPath, 64, "history:%d", histlen);
-      object_property_set(user, (char*)popPath, 0);
-      object_property_set(user, (char*)"viewing-l", viewing);
+      uint16_t histlen=object_property_length(user, (char*)"history");
+      if(histlen){
+        char popPath[64]; snprintf(popPath, 64, "history:%d", histlen);
+        char* viewing = object_property(user, popPath);
+        object_property_set(user, (char*)popPath, 0);
+        object_property_set(user, (char*)"viewing-l", viewing);
+      }
     }
     track_drag(linkId);
     ImGui::SameLine();
@@ -745,31 +675,15 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
       if(!strncmp(path, "viewing-l", strlen("viewing-l"))){
         char* lastcolon=strrchr(path,':'); *lastcolon=0;
         char* secondlastcolon=strrchr(path, ':'); *secondlastcolon=0;
-        char* thirdlastcolon=strrchr(path, ':');
-        object* objectEditing;
-        char* vkey;
-        if(thirdlastcolon){
-          *thirdlastcolon=0;
-          objectEditing = onex_get_from_cache(object_property(user, path));
-          *secondlastcolon=':';
-          vkey=strdup(thirdlastcolon+1);
-          *thirdlastcolon=':';
-        }
-        else{
-          objectEditing = onex_get_from_cache(object_property(user, path));
-          vkey=strdup(secondlastcolon+1);
-          *secondlastcolon=':';
-        }
-        *lastcolon=':';
-        object_property_set(objectEditing, vkey, (char*)"");
-        free(vkey);
+        object* objectEditing = onex_get_from_cache(object_property(user, path));
+        *lastcolon=':'; *secondlastcolon=':';
+        object_property_set(objectEditing, secondlastcolon+1, (char*)"");
       }
       else{
         object_property_set(user, path, (char*)"");
       }
     }
     track_drag(dropId);
-
     ImGui::SameLine();
   }
 
@@ -785,10 +699,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
 
   char pikId[256]; snprintf(pikId, 256, " >## %s", path);
   if(ImGui::Button(pikId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
-    char* lastcolon=strrchr(path,':');
-    *lastcolon=0;
     object_property_add(user, (char*)"viewing-r", object_property(user, path));
-    *lastcolon=':';
   }
   track_drag(pikId);
 
@@ -804,10 +715,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
 
   char maxId[256]; snprintf(maxId, 256, " +## %s", path);
   if(ImGui::Button(maxId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
-    char* lastcolon=strrchr(path,':');
-    *lastcolon=0;
     char* viewing=object_property(user, path);
-    *lastcolon=':';
     object_property_add(user, (char*)"history", object_property(user, (char*)"viewing-l"));
     object_property_set(user, (char*)"viewing-l", viewing);
   }
@@ -831,19 +739,9 @@ void GUI::getSummary(char* path, char* summary)
 
 bool GUI::getSummaryFrom(char* path, char* summary, const char* key)
 {
-  char pathkey[128]; size_t l = snprintf(pathkey, 128, "%s%s", path, key);
-  if(object_property_is_value(user, pathkey)){
-    char* val=object_property(user, pathkey);
-    snprintf(summary, 128, "%s", val);
-    return true;
-  }
-  if(object_property_is_list(user, pathkey)){
-    uint8_t sz = object_property_size(user, pathkey);
-    uint8_t s=0;
-    for(int j=1; j<=sz; j++){
-      char* val=object_property_value(user, pathkey, j);
-      if(!is_uid(val)) s+=snprintf(summary+s, 128-s, "%s ", val);
-    }
+  char pathkey[128]; size_t l = snprintf(pathkey, 128, "%s:%s", path, key);
+  if(object_property(user, pathkey)){
+    snprintf(summary, 128, "%s ", object_property_values(user, pathkey));
     return true;
   }
   return false;
@@ -852,8 +750,8 @@ bool GUI::getSummaryFrom(char* path, char* summary, const char* key)
 int16_t GUI::calculateKeyWidth(char* path)
 {
   int16_t w=0;
-  uint8_t size = object_property_size(user, path);
-  for(int i=1; i<=size; i++){
+  int8_t sz = object_property_size(user, path);
+  if(sz>0) for(int i=1; i<=sz; i++){
     char* key=object_property_key(user, path, i);
     if(key){
       int16_t l=strlen(key);
@@ -867,24 +765,15 @@ int16_t GUI::calculateScrollerHeight(char* path, int16_t height)
 {
   int16_t heightforscrollers=height-3.5*buttonHeight;
   int8_t  numberofscrollers=0;
-  uint8_t size = object_property_size(user, path);
-  for(int i=1; i<=size; i++){
+  int8_t sz = object_property_size(user, path);
+  if(sz>0) for(int i=1; i<=sz; i++){
     char* key=object_property_key(user, path, i);
     char pathkey[128]; size_t l = snprintf(pathkey, 128, "%s:%s", path, key);
-    pathkey[l-1] = 0;
-    if(object_property_is_value(user, pathkey)){
-      pathkey[l-1] = ':';
-      char* val=object_property_value(user, path, i);
-      int16_t h = is_uid(val)? objectHeight: buttonHeight;
-      heightforscrollers-=is_uid(val)? 0: buttonHeight;
-      numberofscrollers+=is_uid(val)? 1: 0;
-    }
-    else
-    if(object_property_is_list(user, pathkey)){
-      uint8_t sz = object_property_size(user, pathkey);
+    if(object_property(user, pathkey)){
+      uint16_t ln = object_property_length(user, pathkey);
       uint32_t wid=0;
-      for(int j=1; j<=sz; j++){
-        char* val=object_property_value(user, pathkey, j);
+      for(int j=1; j<=ln; j++){
+        char* val=object_property_get_n(user, pathkey, j);
         if(is_uid(val)){ wid=0; break; }
         wid += strlen(val)+1;
       }
@@ -902,32 +791,19 @@ int16_t GUI::calculateScrollerHeight(char* path, int16_t height)
 void GUI::drawObjectProperties(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth)
 {
   drawObjectHeader(path, locallyEditable, width, depth);
-  if(/*strcmp(path, "viewing-l") && */!isOpen(path)) return;
+  if(strcmp(path, "viewing-l") && !isOpen(path)) return;
   int16_t scrollerheight=calculateScrollerHeight(path, height);
   int16_t keyWidth=calculateKeyWidth(path);
-  uint8_t size = object_property_size(user, path);
-  for(int i=1; i<=size; i++){
+  int8_t sz = object_property_size(user, path);
+  if(sz>0) for(int i=1; i<=sz; i++){
     char* key=object_property_key(user, path, i);
     char pathkey[128]; size_t l = snprintf(pathkey, 128, "%s:%s", path, key);
-    pathkey[l-1] = 0;
-    if(!key) log_write("key=null: path=%s pathkey=%s i=%d size=%d is_value: %d value: %s\n", path, pathkey, i, size, object_property_is_value(user, pathkey), object_property_value(user, path, i));
-    if(object_property_is_value(user, pathkey)){
-      pathkey[l-1] = ':';
-      char* val=object_property_value(user, path, i);
-      int16_t height = is_uid(val)? scrollerheight: buttonHeight;
-      if(height>=buttonHeight && key) drawPropertyValue(pathkey, key, val, locallyEditable, width, height, keyWidth, depth);
-      else{
-        char blnId[256]; snprintf(blnId, 256, "##filler %d %d %s", width, height, pathkey);
-        ImGui::Button(blnId, ImVec2(width, paddingHeight));
-        track_drag(blnId);
-      }
-    }
-    else
-    if(object_property_is_list(user, pathkey)){
-      uint8_t sz = object_property_size(user, pathkey);
+    if(!key) log_write("key=null: path=%s pathkey=%s i=%d sz=%d values: %s value: %s\n", path, pathkey, i, sz, object_property(user, pathkey), object_property_val(user, path, i));
+    if(object_property(user, pathkey)){
+      uint16_t ln = object_property_length(user, pathkey);
       uint32_t wid=0;
-      for(int j=1; j<=sz; j++){
-        char* val=object_property_value(user, pathkey, j);
+      for(int j=1; j<=ln; j++){
+        char* val=object_property_get_n(user, pathkey, j);
         if(is_uid(val)){ wid=0; break; }
         wid += strlen(val)+1;
       }
@@ -941,37 +817,6 @@ void GUI::drawObjectProperties(char* path, bool locallyEditable, int16_t width, 
     }
   }
   drawObjectFooter(path, locallyEditable, width, keyWidth, depth);
-}
-
-void GUI::drawPropertyValue(char* path, char* key, char* val, bool locallyEditable, int16_t width, int16_t height, int16_t keyWidth, int8_t depth)
-{
-  if(width < 200) return;
-  drawKey(path, key, width, height, keyWidth, depth);
-  if(!is_uid(val)){
-    drawNewPropertyValueEditor(path, val, true, locallyEditable, width-keyWidth, height, depth);
-  }else{
-    bool locallyEditable = object_is_local(val);
-    drawNestedObjectProperties(path, locallyEditable, width-keyWidth, height, depth);
-  }
-}
-
-void GUI::drawNestedObjectProperties(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth)
-{
-  char childName[128]; memcpy(childName, path, strlen(path)+1);
-  bool nodarken=depth<3;
-  ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, nodarken? listBackground: listBackgroundDark);
-  ImGui::SameLine();
-  ImGui::BeginChild(childName, ImVec2(width,height), true);
-  {
-    drawObjectProperties(path, locallyEditable, width-rhsPadding, height, depth+1);
-    drawPadding(path, width-rhsPadding, paddingHeight, depth);
-    if(locallyEditable) drawNewValueOrObjectButton(path, width-rhsPadding, 2, depth);
-  }
-  ImGui::EndChild();
-  ImGui::PopStyleColor();
-  ImGui::BeginChild(childName);
-  set_drag_scroll(path);
-  ImGui::End();
 }
 
 void GUI::drawPropertyList(char* path, char* key, bool locallyEditable, int16_t width, int16_t height, int16_t keyWidth, int8_t depth)
@@ -1010,39 +855,33 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16
   {
     if(oneline){
       char onelinetext[512]; int n=0;
-      uint8_t sz = object_property_size(user, path);
-      for(int j=1; j<=sz; j++){
-        char* val=object_property_value(user, path, j);
+      uint16_t ln = object_property_length(user, path);
+      for(int j=1; j<=ln; j++){
+        char* val=object_property_get_n(user, path, j);
         n+=snprintf(onelinetext+n, 512-n, "%s ", val);
       }
-      size_t l=strlen(path);
-      snprintf(path+l, 128-l, ":");
       drawNewPropertyValueEditor(path, onelinetext, true, locallyEditable, width, height, depth);
-      path[l] = 0;
     }
     else{
       multiln=true;
       char multilinetext[512]; int n=0; int m=0;
-      uint8_t sz = object_property_size(user, path);
-      int j; for(j=1; j<=sz; j++){
-        char* val=object_property_value(user, path, j);
+      uint16_t ln = object_property_length(user, path);
+      int j; for(j=1; j<=ln; j++){
+        char* val=object_property_get_n(user, path, j);
         if(is_uid(val)){ multiln=false; break; }
         int l=snprintf(multilinetext+n, 512-n, "%s ", val);
         n+=l; m+=l;
         if(m>width/30){ n+=snprintf(multilinetext+n, 512-n, "\n"); m=0; }
       }
       if(multiln){
-        size_t l=strlen(path);
-        snprintf(path+l, 128-l, ":");
         drawNewPropertyValueEditor(path, multilinetext, true, locallyEditable, width, height, depth);
         drawPadding(path, width-rhsPadding, paddingHeight, depth);
-        path[l] = 0;
       }
       else{
-        uint8_t sz = object_property_size(user, path);
+        uint16_t ln = object_property_length(user, path);
         size_t l=strlen(path);
-        int j; for(j=1; j<=sz; j++){
-          char* val=object_property_value(user, path, j);
+        int j; for(j=1; j<=ln; j++){
+          char* val=object_property_get_n(user, path, j);
           snprintf(path+l, 128-l, ":%d", j);
           if(!is_uid(val)){
             drawNewPropertyValueEditor(path, val, false, locallyEditable, width-rhsPadding, buttonHeight, depth);
