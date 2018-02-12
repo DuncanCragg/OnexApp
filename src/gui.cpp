@@ -247,8 +247,8 @@ void GUI::drawView()
     ImVec2 startpos(startingpoint.x, startingpoint.y - yOffset);
     ImGui::SetCursorScreenPos(startpos);
 #endif
-    int8_t s=strlen("viewing-l:")+1;
-    char path[s]; memcpy(path, "viewing-l:", s);
+    int8_t s=strlen("viewing-l")+1;
+    char path[s]; memcpy(path, "viewing-l", s);
     char* uid=object_property(user, (char*)"viewing-l");
     bool locallyEditable = object_is_local(uid);
     if(user) drawObjectProperties(path, locallyEditable, workspace1Width-rhsPadding, workspace1Height, 1);
@@ -272,8 +272,8 @@ void GUI::drawView()
       ImGui::Button(" +link", ImVec2(workspace2Width-rhsPadding, buttonHeight));
       ImGui::PopStyleColor(4);
       ImGui::Separator();
-      int8_t s=strlen("viewing-r:")+1;
-      char path[s]; memcpy(path, "viewing-r:", s);
+      int8_t s=strlen("viewing-r")+1;
+      char path[s]; memcpy(path, "viewing-r", s);
       path[s-2]=0;
       if(object_property_is_value(user, path)){
         path[s-2]=':';
@@ -334,8 +334,8 @@ static void track_drag(char* pathId)
 static void set_drag_scroll(char* path)
 {
   if(!dragPathId) return;
-  char* dragPathPath=strstr(dragPathId, "viewing-l:");
-  if(!dragPathPath) dragPathPath=strstr(dragPathId, "viewing-r:");
+  char* dragPathPath=strstr(dragPathId, "viewing-l");
+  if(!dragPathPath) dragPathPath=strstr(dragPathId, "viewing-r");
   if(!dragPathPath) return;
   if(!strncmp(dragPathPath, path, strlen(path)) && strcmp(dragPathPath, path) && !drag_handled && MOVING_DELTA(delta_x,delta_y)){
     ImGui::SetScrollX(ImGui::GetScrollX() - delta_x);
@@ -390,7 +390,7 @@ char* GUI::getLastLink()
 {
   uint16_t viewrlen=object_property_size(user, (char*)"viewing-r");
   char* lastlink = object_property_value(user, (char*)"viewing-r", viewrlen);
-  char popPath[64]; snprintf(popPath, 64, "viewing-r:%d:", viewrlen);
+  char popPath[64]; snprintf(popPath, 64, "viewing-r:%d", viewrlen);
   object_property_set(user, (char*)popPath, 0);
   return lastlink;
 }
@@ -562,7 +562,7 @@ void GUI::drawPadding(char* path, int16_t width, int16_t height, int8_t depth)
 void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t depth)
 {
   bool nodarken=depth<3;
-  char pathj[256]; snprintf(pathj, 256, "%s:%d:", path, j);
+  char pathj[256]; snprintf(pathj, 256, "%s:%d", path, j);
   bool showValueAdder=false;
   if(showValueAdder){
     ImGui::PushStyleColor(ImGuiCol_Button, nodarken? valueBackground: valueBackgroundActive);
@@ -678,7 +678,7 @@ object* GUI::createNewObjectLikeOthers(char* path)
     else{
       char* val=object_property_value(user, path, i);
       size_t l=strlen(path);
-      snprintf(path+l, 128-l, ":%d:", i);
+      snprintf(path+l, 128-l, ":%d", i);
       size_t size=object_property_size(user, path);
       if(is_uid(val) && size){
         for(int j=1; j<=size; j++){
@@ -732,7 +732,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
     if(ImGui::Button(linkId, ImVec2(smallButtonWidth, buttonHeight))){
       uint16_t histlen=object_property_size(user, (char*)"history");
       char* viewing = object_property_value(user, (char*)"history", histlen);
-      char popPath[64]; snprintf(popPath, 64, "history:%d:", histlen);
+      char popPath[64]; snprintf(popPath, 64, "history:%d", histlen);
       object_property_set(user, (char*)popPath, 0);
       object_property_set(user, (char*)"viewing-l", viewing);
     }
@@ -742,7 +742,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
   if(depth!=1 && depth<3){
     char dropId[256]; snprintf(dropId, 256, " X## %s", path);
     if(ImGui::Button(dropId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
-      if(!strncmp(path, "viewing-l:", strlen("viewing-l:"))){
+      if(!strncmp(path, "viewing-l", strlen("viewing-l"))){
         char* lastcolon=strrchr(path,':'); *lastcolon=0;
         char* secondlastcolon=strrchr(path, ':'); *secondlastcolon=0;
         char* thirdlastcolon=strrchr(path, ':');
@@ -870,7 +870,7 @@ int16_t GUI::calculateScrollerHeight(char* path, int16_t height)
   uint8_t size = object_property_size(user, path);
   for(int i=1; i<=size; i++){
     char* key=object_property_key(user, path, i);
-    char pathkey[128]; size_t l = snprintf(pathkey, 128, "%s%s:", path, key);
+    char pathkey[128]; size_t l = snprintf(pathkey, 128, "%s:%s", path, key);
     pathkey[l-1] = 0;
     if(object_property_is_value(user, pathkey)){
       pathkey[l-1] = ':';
@@ -902,13 +902,13 @@ int16_t GUI::calculateScrollerHeight(char* path, int16_t height)
 void GUI::drawObjectProperties(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth)
 {
   drawObjectHeader(path, locallyEditable, width, depth);
-  if(/*strcmp(path, "viewing-l:") && */!isOpen(path)) return;
+  if(/*strcmp(path, "viewing-l") && */!isOpen(path)) return;
   int16_t scrollerheight=calculateScrollerHeight(path, height);
   int16_t keyWidth=calculateKeyWidth(path);
   uint8_t size = object_property_size(user, path);
   for(int i=1; i<=size; i++){
     char* key=object_property_key(user, path, i);
-    char pathkey[128]; size_t l = snprintf(pathkey, 128, "%s%s:", path, key);
+    char pathkey[128]; size_t l = snprintf(pathkey, 128, "%s:%s", path, key);
     pathkey[l-1] = 0;
     if(!key) log_write("key=null: path=%s pathkey=%s i=%d size=%d is_value: %d value: %s\n", path, pathkey, i, size, object_property_is_value(user, pathkey), object_property_value(user, path, i));
     if(object_property_is_value(user, pathkey)){
@@ -1043,7 +1043,7 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16
         size_t l=strlen(path);
         int j; for(j=1; j<=sz; j++){
           char* val=object_property_value(user, path, j);
-          snprintf(path+l, 128-l, ":%d:", j);
+          snprintf(path+l, 128-l, ":%d", j);
           if(!is_uid(val)){
             drawNewPropertyValueEditor(path, val, false, locallyEditable, width-rhsPadding, buttonHeight, depth);
           }else{
