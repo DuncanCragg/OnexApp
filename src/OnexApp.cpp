@@ -81,6 +81,12 @@ void serial_send(char* b)
 }
 #endif
 
+#if defined(__ANDROID__)
+#define FILE_PATH "data/data/network.object.onexapp/files/"
+#else
+#define FILE_PATH "./"
+#endif
+
 class OnexApp : public VulkanBase
 {
   GUI* gui;
@@ -108,7 +114,7 @@ public:
     camera.setRotation(glm::vec3(5.0f, 90.0f, 0.0f));
     camera.setPerspective(60.0f, (float)width / (float)height, 0.1f, 256.0f);
 
-    onex_init();
+    onex_init((char*)(FILE_PATH "onex.db"));
 
     onex_set_default_evaluator(evaluate_list);
 
