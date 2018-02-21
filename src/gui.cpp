@@ -274,9 +274,7 @@ void GUI::drawView()
       ImGui::Separator();
       int8_t s=strlen("viewing-r")+1;
       char path[s]; memcpy(path, "viewing-r", s);
-      if(object_property(user, path)){
-        drawNestedObjectPropertiesList(path, false, workspace2Width-rhsPadding, workspace2Height-100, 1);
-      }
+      drawNestedObjectPropertiesList(path, false, workspace2Width-rhsPadding, workspace2Height-100, 1);
     }
   }
   ImGui::EndChild();
@@ -740,11 +738,10 @@ void GUI::getSummary(char* path, char* summary)
 bool GUI::getSummaryFrom(char* path, char* summary, const char* key)
 {
   char pathkey[128]; size_t l = snprintf(pathkey, 128, "%s:%s", path, key);
-  if(object_property(user, pathkey)){
-    snprintf(summary, 128, "%s ", object_property_values(user, pathkey));
-    return true;
-  }
-  return false;
+  char* vals=object_property_values(user, pathkey);
+  if(!vals) return false;
+  snprintf(summary, 128, "%s ", vals);
+  return true;
 }
 
 int16_t GUI::calculateKeyWidth(char* path)
@@ -769,19 +766,17 @@ int16_t GUI::calculateScrollerHeight(char* path, int16_t height)
   if(sz>0) for(int i=1; i<=sz; i++){
     char* key=object_property_key(user, path, i);
     char pathkey[128]; size_t l = snprintf(pathkey, 128, "%s:%s", path, key);
-    if(object_property(user, pathkey)){
-      uint16_t ln = object_property_length(user, pathkey);
-      uint32_t wid=0;
-      for(int j=1; j<=ln; j++){
-        char* val=object_property_get_n(user, pathkey, j);
-        if(is_uid(val)){ wid=0; break; }
-        wid += strlen(val)+1;
-      }
-      bool oneline=(wid >0 && wid < 30);
-      int16_t h = oneline? buttonHeight: listHeight;
-      heightforscrollers-=oneline? buttonHeight: 0;
-      numberofscrollers+=oneline? 0: 1;
+    uint16_t ln = object_property_length(user, pathkey);
+    uint32_t wid=0;
+    for(int j=1; j<=ln; j++){
+      char* val=object_property_get_n(user, pathkey, j);
+      if(is_uid(val)){ wid=0; break; }
+      wid += strlen(val)+1;
     }
+    bool oneline=(wid >0 && wid < 30);
+    int16_t h = oneline? buttonHeight: listHeight;
+    heightforscrollers-=oneline? buttonHeight: 0;
+    numberofscrollers+=oneline? 0: 1;
   }
   return numberofscrollers? heightforscrollers/numberofscrollers: 0;
 }
@@ -799,21 +794,19 @@ void GUI::drawObjectProperties(char* path, bool locallyEditable, int16_t width, 
     char* key=object_property_key(user, path, i);
     char pathkey[128]; size_t l = snprintf(pathkey, 128, "%s:%s", path, key);
     if(!key) log_write("key=null: path=%s pathkey=%s i=%d sz=%d values: %s value: %s\n", path, pathkey, i, sz, object_property(user, pathkey), object_property_val(user, path, i));
-    if(object_property(user, pathkey)){
-      uint16_t ln = object_property_length(user, pathkey);
-      uint32_t wid=0;
-      for(int j=1; j<=ln; j++){
-        char* val=object_property_get_n(user, pathkey, j);
-        if(is_uid(val)){ wid=0; break; }
-        wid += strlen(val)+1;
-      }
-      int16_t height = (wid >0 && wid < 30)? buttonHeight: scrollerheight;
-      if(height>=buttonHeight) drawPropertyList(pathkey, key, locallyEditable, width, height, keyWidth, depth);
-      else{
-        char blnId[256]; snprintf(blnId, 256, "##filler %d %d %s", width, height, pathkey);
-        ImGui::Button(blnId, ImVec2(width, paddingHeight));
-        track_drag(blnId);
-      }
+    uint16_t ln = object_property_length(user, pathkey);
+    uint32_t wid=0;
+    for(int j=1; j<=ln; j++){
+      char* val=object_property_get_n(user, pathkey, j);
+      if(is_uid(val)){ wid=0; break; }
+      wid += strlen(val)+1;
+    }
+    int16_t height = (wid >0 && wid < 30)? buttonHeight: scrollerheight;
+    if(height>=buttonHeight) drawPropertyList(pathkey, key, locallyEditable, width, height, keyWidth, depth);
+    else{
+      char blnId[256]; snprintf(blnId, 256, "##filler %d %d %s", width, height, pathkey);
+      ImGui::Button(blnId, ImVec2(width, paddingHeight));
+      track_drag(blnId);
     }
   }
   drawObjectFooter(path, locallyEditable, width, keyWidth, depth);
