@@ -302,9 +302,9 @@ static void track_drag(char* pathId)
   }
   else
   if(ImGui::IsItemActive() && ImGui::IsMouseDragging()){
-    if(!dragPathId || strcmp(dragPathId, pathId)) dragPathId=strdup(pathId);
     ImVec2 mouse_delta = ImGui::GetIO().MouseDelta;
     if(MOVING_DELTA(mouse_delta.x, mouse_delta.y)){
+      if(!dragPathId || strcmp(dragPathId, pathId)) dragPathId=strdup(pathId);
       delta_x=mouse_delta.x;
       delta_y=mouse_delta.y;
       drag_handled=false;
