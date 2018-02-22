@@ -857,7 +857,7 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16
     }
     else{
       multiln=true;
-      char multilinetext[512]; int n=0; int m=0;
+      char multilinetext[512]=""; int n=0; int m=0;
       uint16_t ln = object_property_length(user, path);
       int j; for(j=1; j<=ln; j++){
         char* val=object_property_get_n(user, path, j);
