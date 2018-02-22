@@ -890,13 +890,13 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16
   }
   ImGui::EndChild();
   ImGui::PopStyleColor();
-  if(!oneline && !multiln){
+  if(oneline || multiln){
+    ImGui::PopStyleVar(1);
+  }
+  else{
     ImGui::BeginChild(childName);
     set_drag_scroll(path);
     ImGui::End();
-  }
-  if(oneline || multiln){
-    ImGui::PopStyleVar(1);
   }
 }
 
