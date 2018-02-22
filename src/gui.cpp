@@ -409,7 +409,7 @@ void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool lo
     ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, valueBackground);
     float multy=ImGui::GetCursorScreenPos().y-buttonHeight;
     if(height==buttonHeight){ ImGui::InputText(valId, valBuf, 256, flags); multy=0; }
-    else                      ImGui::InputTextMultiline(valId, valBuf, 256, ImVec2(-1.0f, height-40), flags);
+    else                      ImGui::InputTextMultiline(valId, valBuf, 256, ImVec2(-1.0f, height), flags);
     if(ImGui::IsItemActive() && ImGui::IsMouseReleased(0) && !dragPathId){
       if(locallyEditable){
         propNameEditing = strdup(path);
@@ -422,7 +422,7 @@ void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool lo
   else{
     bool done=false;
     if(height==buttonHeight) done=ImGui::InputText(valId, valBuf, 256, flags);
-    else                     done=ImGui::InputTextMultiline(valId, valBuf, 256, ImVec2(-1.0f, height-40), flags);
+    else                     done=ImGui::InputTextMultiline(valId, valBuf, 256, ImVec2(-1.0f, height), flags);
     if(done){
       setNewValue(path, valBuf, single);
       hideKeyboard();
@@ -774,10 +774,10 @@ int16_t GUI::calculateScrollerHeight(char* path, int16_t height)
       wid += strlen(val)+1;
     }
     int hgt;
-    if(wid >0){ hgt=(wid/40+1)*buttonHeight; if(hgt>buttonHeight) hgt+=buttonHeight; heightforscrollers-=hgt; }
+    if(wid >0){ hgt=(wid/40+1)*buttonHeight; heightforscrollers-=hgt; }
     else        numberofscrollers++;
   }
-  return numberofscrollers? heightforscrollers/numberofscrollers: 0;
+  return (heightforscrollers >=0 && numberofscrollers) ? heightforscrollers/numberofscrollers: 0;
 }
 
 // ---------------
@@ -801,8 +801,8 @@ void GUI::drawObjectProperties(char* path, bool locallyEditable, int16_t width, 
       wid += strlen(val)+1;
     }
     int hgt;
-    if(wid >0){ hgt=(wid/40+1)*buttonHeight; if(hgt>buttonHeight) hgt+=buttonHeight; }
-    else        hgt=scrollerheight;
+    if(wid >0) hgt=(wid/40+1)*buttonHeight;
+    else       hgt=scrollerheight;
     if(hgt>=buttonHeight) drawPropertyList(pathkey, key, locallyEditable, width, hgt, keyWidth, depth);
     else{
       char blnId[256]; snprintf(blnId, 256, "##filler %d %d %s", width, hgt, pathkey);
@@ -838,56 +838,54 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16
 {
   bool oneline=(height==buttonHeight);
   bool multiln=false;
-  char childName[128]; memcpy(childName, path, strlen(path)+1);
+  char textlines[512]=""; int n=0;
   if(oneline){
+    uint16_t ln = object_property_length(user, path);
+    for(int j=1; j<=ln; j++){
+      char* val=object_property_get_n(user, path, j);
+      n+=snprintf(textlines+n, 512-n, "%s ", val);
+    }
+  }
+  else{
+    multiln=true;
+    uint16_t ln = object_property_length(user, path);
+    int m=0;
+    int j; for(j=1; j<=ln; j++){
+      char* val=object_property_get_n(user, path, j);
+      if(is_uid(val)){ multiln=false; break; }
+      int l=snprintf(textlines+n, 512-n, "%s ", val);
+      n+=l; m+=l;
+      if(m*30>width){ n+=snprintf(textlines+n, 512-n, "\n"); m=0; }
+    }
+  }
+  if(oneline || multiln){
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));
   }
   bool nodarken=depth<3;
   ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, nodarken? listBackground: listBackgroundDark);
   ImGui::SameLine();
+  char childName[128]; memcpy(childName, path, strlen(path)+1);
   ImGui::BeginChild(childName, ImVec2(width,height), true);
   {
-    if(oneline){
-      char onelinetext[512]; int n=0;
-      uint16_t ln = object_property_length(user, path);
-      for(int j=1; j<=ln; j++){
-        char* val=object_property_get_n(user, path, j);
-        n+=snprintf(onelinetext+n, 512-n, "%s ", val);
-      }
-      drawNewPropertyValueEditor(path, onelinetext, true, locallyEditable, width, height, depth);
+    if(oneline || multiln){
+      drawNewPropertyValueEditor(path, textlines, true, locallyEditable, width, height, depth);
     }
     else{
-      multiln=true;
-      char multilinetext[512]=""; int n=0; int m=0;
       uint16_t ln = object_property_length(user, path);
+      size_t l=strlen(path);
       int j; for(j=1; j<=ln; j++){
         char* val=object_property_get_n(user, path, j);
-        if(is_uid(val)){ multiln=false; break; }
-        int l=snprintf(multilinetext+n, 512-n, "%s ", val);
-        n+=l; m+=l;
-        if(m>width/30){ n+=snprintf(multilinetext+n, 512-n, "\n"); m=0; }
-      }
-      if(multiln){
-        drawNewPropertyValueEditor(path, multilinetext, true, locallyEditable, width, height, depth);
-        drawPadding(path, width-rhsPadding, paddingHeight, depth);
-      }
-      else{
-        uint16_t ln = object_property_length(user, path);
-        size_t l=strlen(path);
-        int j; for(j=1; j<=ln; j++){
-          char* val=object_property_get_n(user, path, j);
-          snprintf(path+l, 128-l, ":%d", j);
-          if(!is_uid(val)){
-            drawNewPropertyValueEditor(path, val, false, locallyEditable, width-rhsPadding, buttonHeight, depth);
-          }else{
-            bool locallyEditable = object_is_local(val);
-            drawObjectProperties(path, locallyEditable, width-rhsPadding, height, depth+1);
-          }
-          drawPadding(path, width-rhsPadding, paddingHeight, depth);
-          path[l] = 0;
+        snprintf(path+l, 128-l, ":%d", j);
+        if(!is_uid(val)){
+          drawNewPropertyValueEditor(path, val, false, locallyEditable, width-rhsPadding, buttonHeight, depth);
+        }else{
+          bool locallyEditable = object_is_local(val);
+          drawObjectProperties(path, locallyEditable, width-rhsPadding, height, depth+1);
         }
-        if(locallyEditable) drawNewValueOrObjectButton(path, width-rhsPadding, j, depth);
+        drawPadding(path, width-rhsPadding, paddingHeight, depth);
+        path[l] = 0;
       }
+      if(locallyEditable) drawNewValueOrObjectButton(path, width-rhsPadding, j, depth);
     }
   }
   ImGui::EndChild();
@@ -897,7 +895,7 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16
     set_drag_scroll(path);
     ImGui::End();
   }
-  if(oneline){
+  if(oneline || multiln){
     ImGui::PopStyleVar(1);
   }
 }
