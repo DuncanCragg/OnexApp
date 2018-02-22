@@ -773,10 +773,9 @@ int16_t GUI::calculateScrollerHeight(char* path, int16_t height)
       if(is_uid(val)){ wid=0; break; }
       wid += strlen(val)+1;
     }
-    bool oneline=(wid >0 && wid < 30);
-    int16_t h = oneline? buttonHeight: listHeight;
-    heightforscrollers-=oneline? buttonHeight: 0;
-    numberofscrollers+=oneline? 0: 1;
+    int hgt;
+    if(wid >0){ hgt=(wid/40+1)*buttonHeight; if(hgt>buttonHeight) hgt+=buttonHeight; heightforscrollers-=hgt; }
+    else        numberofscrollers++;
   }
   return numberofscrollers? heightforscrollers/numberofscrollers: 0;
 }
@@ -801,10 +800,12 @@ void GUI::drawObjectProperties(char* path, bool locallyEditable, int16_t width, 
       if(is_uid(val)){ wid=0; break; }
       wid += strlen(val)+1;
     }
-    int16_t height = (wid >0 && wid < 30)? buttonHeight: scrollerheight;
-    if(height>=buttonHeight) drawPropertyList(pathkey, key, locallyEditable, width, height, keyWidth, depth);
+    int hgt;
+    if(wid >0){ hgt=(wid/40+1)*buttonHeight; if(hgt>buttonHeight) hgt+=buttonHeight; }
+    else        hgt=scrollerheight;
+    if(hgt>=buttonHeight) drawPropertyList(pathkey, key, locallyEditable, width, hgt, keyWidth, depth);
     else{
-      char blnId[256]; snprintf(blnId, 256, "##filler %d %d %s", width, height, pathkey);
+      char blnId[256]; snprintf(blnId, 256, "##filler %d %d %s", width, hgt, pathkey);
       ImGui::Button(blnId, ImVec2(width, paddingHeight));
       track_drag(blnId);
     }
