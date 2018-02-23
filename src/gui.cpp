@@ -8,6 +8,7 @@
 * This code is licensed under the MIT license (MIT) (http://opensource.org/licenses/MIT)
 */
 
+#include <time.h>
 #include "gui.h"
 
 GUI::GUI(VulkanBase* a, object* u)
@@ -74,9 +75,9 @@ static uint16_t workspace2Height;
 void GUI::initImGUI(float width, float height)
 {
   workspace1Width=((int)width)/2-10;
-  workspace1Height=(int)height-10;
+  workspace1Height=(int)height-70;
   workspace2Width=((int)width)/2-10;
-  workspace2Height=(int)height-10;
+  workspace2Height=(int)height-70;
   ImGuiStyle& style = ImGui::GetStyle();
   style.Colors[ImGuiCol_Header] = ImVec4(0.8f, 0.7f, 0.9f, 1.0f);
   style.Colors[ImGuiCol_Text] = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
@@ -234,9 +235,11 @@ void GUI::hideKeyboard(){
 #endif
 }
 
+bool calendarView=false;
+
 void GUI::drawView()
 {
-  ImGui::BeginChild("Workspace1", ImVec2(workspace1Width,0), true);
+  ImGui::BeginChild("Workspace1", ImVec2(workspace1Width,workspace1Height), true);
   {
 #if defined(__ANDROID__)
     ImVec2 startingpoint = ImGui::GetCursorScreenPos();
@@ -257,7 +260,7 @@ void GUI::drawView()
   ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(-1,0));
   ImGui::SameLine();
   ImGui::PopStyleVar();
-  ImGui::BeginChild("Workspace2", ImVec2(workspace2Width,0), true);
+  ImGui::BeginChild("Workspace2", ImVec2(workspace2Width,workspace2Height), true);
   {
 #if defined(__ANDROID__)
     ImVec2 startingpoint = ImGui::GetCursorScreenPos();
@@ -269,12 +272,20 @@ void GUI::drawView()
       ImGui::PushStyleColor(ImGuiCol_Button, actionBackground);
       ImGui::PushStyleColor(ImGuiCol_ButtonHovered, actionBackground);
       ImGui::PushStyleColor(ImGuiCol_ButtonActive, actionBackground);
-      ImGui::Button(" +link", ImVec2(workspace2Width-rhsPadding, buttonHeight));
-      ImGui::PopStyleColor(4);
+      ImGui::Button(" +link", ImVec2(buttonWidth, buttonHeight));
+      ImGui::SameLine();
+      if(calendarView) ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
+      else             ImGui::PushStyleColor(ImGuiCol_Text, actionColour);
+      if(ImGui::Button(" calendar", ImVec2(workspace2Width-buttonWidth-rhsPadding, buttonHeight)))
+      {
+        calendarView=!calendarView;
+      }
+      ImGui::PopStyleColor(5);
       ImGui::Separator();
       int8_t s=strlen("viewing-r")+1;
       char path[s]; memcpy(path, "viewing-r", s);
-      drawNestedObjectPropertiesList(path, false, workspace2Width-rhsPadding, workspace2Height-100, 1);
+      if(!calendarView) drawNestedObjectPropertiesList(path, false, workspace2Width-rhsPadding, workspace2Height-100, 1);
+      else              drawCalendar(path, workspace2Width-rhsPadding, workspace2Height-100);
     }
   }
   ImGui::EndChild();
@@ -760,7 +771,7 @@ int16_t GUI::calculateKeyWidth(char* path)
 
 int16_t GUI::calculateScrollerHeight(char* path, int16_t height)
 {
-  int16_t heightforscrollers=height-3.5*buttonHeight;
+  int16_t heightforscrollers=height-2.5*buttonHeight;
   int8_t  numberofscrollers=0;
   int8_t sz = object_property_size(user, path);
   if(sz>0) for(int i=1; i<=sz; i++){
@@ -898,6 +909,80 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16
     set_drag_scroll(path);
     ImGui::End();
   }
+}
+
+static const char* daytable[] = {"Sun", "Mon", "Tues", "Wed", "Thu", "Fri", "Sat"};
+
+void GUI::drawCalendar(char* path, int16_t width, int16_t height)
+{
+  time_t today = time(0);
+  time_t t = today-15*(24*60*60);
+
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));
+  ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, listBackground);
+  ImGui::SameLine();
+  char childName[128]; memcpy(childName, path, strlen(path)+1);
+  ImGui::BeginChild(childName, ImVec2(width,height), true);
+  {
+    for(int day=0; day< 30; day++){
+      struct tm date = *localtime(&t);
+      if(t!=today){
+        if(date.tm_wday>0 && date.tm_wday<6){
+          ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
+          ImGui::PushStyleColor(ImGuiCol_Button, propertyBackground);
+          ImGui::PushStyleColor(ImGuiCol_ButtonHovered, propertyBackground);
+          ImGui::PushStyleColor(ImGuiCol_ButtonActive, propertyBackgroundActive);
+        }else{
+          ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
+          ImGui::PushStyleColor(ImGuiCol_Button, valueBackground);
+          ImGui::PushStyleColor(ImGuiCol_ButtonHovered, valueBackground);
+          ImGui::PushStyleColor(ImGuiCol_ButtonActive, valueBackgroundActive);
+        }
+      }else{
+        ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
+        ImGui::PushStyleColor(ImGuiCol_Button, propertyBackgroundActive);
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, propertyBackgroundActive);
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, propertyBackgroundActive);
+      }
+
+      char dayId[256]; snprintf(dayId, 256, "%s %d/%d/%d## %s %d", daytable[date.tm_wday], date.tm_mday, date.tm_mon+1, date.tm_year+1900, path, day);
+      ImGui::Button(dayId, ImVec2(width/3, buttonHeight));
+      track_drag(dayId);
+
+      ImGui::SameLine();
+
+      char evtId[256]; snprintf(evtId, 256, " -- ## %s-%d", path, day);
+      ImGui::Button(evtId, ImVec2(2*width/3, buttonHeight));
+      track_drag(evtId);
+
+      ImGui::PopStyleColor(4);
+      t+=(24*60*60);
+    }
+    uint16_t ln = object_property_length(user, path);
+    size_t l=strlen(path);
+    int j; for(j=1; j<=ln; j++){
+      char* val=object_property_get_n(user, path, j);
+      snprintf(path+l, 128-l, ":%d", j);
+      if(is_uid(val)){
+        bool locallyEditable = object_is_local(val);
+        drawEvent(path, locallyEditable, width-rhsPadding);
+      }
+      path[l] = 0;
+    }
+  }
+  ImGui::EndChild();
+  ImGui::PopStyleColor();
+  ImGui::PopStyleVar();
+  ImGui::BeginChild(childName);
+  set_drag_scroll(path);
+  ImGui::End();
+}
+
+void GUI::drawEvent(char* path, bool locallyEditable, int16_t width)
+{
+  char ispath[128]; size_t l = snprintf(ispath, 128, "%s:is", path);
+  if(!object_property_is(user, ispath, (char*)"event")) return;
+  drawObjectHeader(path, locallyEditable, width, 1);
 }
 
 // ---------------------------------------------------------------------------------------------
