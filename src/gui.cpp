@@ -956,14 +956,16 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
         if(r) break;
       }
       if(r){
-        time_t stt=mktime(&start_time);
-        char ts[32]; snprintf(ts, 32, "%ld", stt);
+        mktime(&start_time);
+        char ts[32]; strftime(ts, 32, "%F", &start_time);
         char eventpath[128]; snprintf(eventpath, 128, "%s:%d", path, j);
-        properties_set(calstamps, value_new(ts), value_new(strdup(eventpath)));
+        list* l=(list*)properties_get(calstamps, value_new(ts));
+        if(!l) l=list_new(32);
+        list_add(l, value_new(eventpath));
+        properties_set(calstamps, value_new(ts), l);
       }
     }
   }
-  properties_log(calstamps);
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));
   ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, listBackground);
   ImGui::SameLine();
@@ -1004,24 +1006,21 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
 
       if(thisdate.tm_mday==1) ImGui::PopStyleColor(4);
 
-      ImGui::SameLine();
+      char ts[32]; strftime(ts, 32, "%F", &thisdate);
+      list* l=(list*)properties_get(calstamps, value_new(ts));
 
-      char morId[256]; snprintf(morId, 256, " -- ## %s-%d", path, day);
-      ImGui::Button(morId, ImVec2(width/4, buttonHeight));
-      track_drag(morId);
-
-      ImGui::SameLine();
-
-      char aftId[256]; snprintf(aftId, 256, " -- ## %s-%d", path, day);
-      ImGui::Button(aftId, ImVec2(width/4, buttonHeight));
-      track_drag(aftId);
-
-      ImGui::SameLine();
-
-      char eveId[256]; snprintf(eveId, 256, " -- ## %s-%d", path, day);
-      ImGui::Button(eveId, ImVec2(width/4, buttonHeight));
-      track_drag(eveId);
-
+      for(int i=1; i<=3; i++){
+        char* title=(char*)"";
+        if(l && i<=list_size(l)){
+          char* eventpath=value_string((value*)list_get_n(l,i));
+          char titlepath[128]; snprintf(titlepath, 128, "%s:title", eventpath);
+          title=object_property_values(user, titlepath);
+        }
+        ImGui::SameLine();
+        char evtId[256]; snprintf(evtId, 256, "%s##%s %s %d %d", title, title, path, day, i);
+        ImGui::Button(evtId, ImVec2(width/4, buttonHeight));
+        track_drag(evtId);
+      }
       ImGui::PopStyleColor(4);
       thisseconds+=(24*60*60);
     }
