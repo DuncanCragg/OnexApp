@@ -10,6 +10,9 @@
 
 #include <time.h>
 #include "gui.h"
+extern "C" {
+#include <items.h>
+}
 
 GUI::GUI(VulkanBase* a, object* u)
 {
@@ -196,7 +199,7 @@ void GUI::drawGUI()
 
   ImGuiStyle& style = ImGui::GetStyle();
   style.ScrollbarSize = 0.0f;
-  style.TouchExtraPadding = ImVec2(10.0f,10.0f);
+//style.TouchExtraPadding = ImVec2(10.0f,10.0f);
 
   drawView();
 
@@ -911,23 +914,67 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16
   }
 }
 
+static const char* date_formats[] = { "%a %d %b %T", "%a %d %b %H:%M",  // Mon 23 Feb 19:00(:11)
+                                      "%a %b %d %T", "%a %b %d %H:%M",  // Mon Feb 23 19:00(:11)
+                                      "%a %d %b %Y", "%a %d %b",        // Mon 23 Feb (2019)
+                                      "%a %b %d %Y", "%a %b %d",        // Mon Feb 23 (2019)
+                                         "%d %b %T",    "%d %b %H:%M",  //     23 Feb 19:00(:11)
+                                         "%b %d %T",    "%b %d %H:%M",  //     Feb 23 19:00(:11)
+                                         "%d %b %Y",    "%d %b",        //     23 Feb (2019)
+                                         "%b %d %Y",    "%b %d",        //     Feb 23 (2019)
+                                      "%FT%T", "%F %T", "%F",           //  2019-2-23T19:00:11, 2019-02-23 19:00:11, 2019-02-23
+                                      "%T", "%H:%M"                     //         19:00:11 19:00
+};
+
 static const char* daytable[] = {"Sun", "Mon", "Tues", "Wed", "Thu", "Fri", "Sat"};
+static const char* monthtable[] = {"January","February","March","April","May","June","July","August","September","October","November","December"};
+
+static time_t lasttoday = 0;
+static time_t todayseconds = 0;
+static struct tm todaydate;
 
 void GUI::drawCalendar(char* path, int16_t width, int16_t height)
 {
-  time_t today = time(0);
-  time_t t = today-15*(24*60*60);
-
+  if(!(lasttoday++%1000)){
+    todayseconds=time(0);
+    todaydate = *localtime(&todayseconds);
+  }
+  properties* calstamps=properties_new(100);
+  uint16_t ln = object_property_length(user, path);
+  int j; for(j=1; j<=ln; j++){
+    char* val=object_property_get_n(user, path, j);
+    if(!is_uid(val)) continue;
+    char ispath[128]; snprintf(ispath, 128, "%s:%d:is", path, j);
+    if(object_property_is(user, ispath, (char*)"event")){
+      char stpath[128]; snprintf(stpath, 128, "%s:%d:start-date", path, j);
+      char* stvals=object_property_values(user, stpath);
+      struct tm start_time;
+      char* r=0;
+      for(int f=0; f<IM_ARRAYSIZE(date_formats); f++){
+        start_time = todaydate;
+        r=strptime(stvals, date_formats[f], &start_time);
+        if(r) break;
+      }
+      if(r){
+        time_t stt=mktime(&start_time);
+        char ts[32]; snprintf(ts, 32, "%ld", stt);
+        char eventpath[128]; snprintf(eventpath, 128, "%s:%d", path, j);
+        properties_set(calstamps, value_new(ts), value_new(strdup(eventpath)));
+      }
+    }
+  }
+  properties_log(calstamps);
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));
   ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, listBackground);
   ImGui::SameLine();
   char childName[128]; memcpy(childName, path, strlen(path)+1);
   ImGui::BeginChild(childName, ImVec2(width,height), true);
   {
+    time_t thisseconds = todayseconds-15*(24*60*60);
     for(int day=0; day< 30; day++){
-      struct tm date = *localtime(&t);
-      if(t!=today){
-        if(date.tm_wday>0 && date.tm_wday<6){
+      struct tm thisdate = *localtime(&thisseconds);
+      if(thisseconds!=todayseconds){
+        if(thisdate.tm_wday>0 && thisdate.tm_wday<6){
           ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
           ImGui::PushStyleColor(ImGuiCol_Button, propertyBackground);
           ImGui::PushStyleColor(ImGuiCol_ButtonHovered, propertyBackground);
@@ -944,30 +991,39 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, propertyBackgroundActive);
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, propertyBackgroundActive);
       }
+      if(thisdate.tm_mday==1){
+        ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
+        ImGui::PushStyleColor(ImGuiCol_Button, propertyBackgroundActive);
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, propertyBackgroundActive);
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, propertyBackgroundActive);
+      }
 
-      char dayId[256]; snprintf(dayId, 256, "%s %d/%d/%d## %s %d", daytable[date.tm_wday], date.tm_mday, date.tm_mon+1, date.tm_year+1900, path, day);
-      ImGui::Button(dayId, ImVec2(width/3, buttonHeight));
+      char dayId[256]; snprintf(dayId, 256, "%s %d %s## %s %d", daytable[thisdate.tm_wday], thisdate.tm_mday, thisdate.tm_mday==1? monthtable[thisdate.tm_mon]: "", path, day);
+      ImGui::Button(dayId, ImVec2(width/4, buttonHeight));
       track_drag(dayId);
+
+      if(thisdate.tm_mday==1) ImGui::PopStyleColor(4);
 
       ImGui::SameLine();
 
-      char evtId[256]; snprintf(evtId, 256, " -- ## %s-%d", path, day);
-      ImGui::Button(evtId, ImVec2(2*width/3, buttonHeight));
-      track_drag(evtId);
+      char morId[256]; snprintf(morId, 256, " -- ## %s-%d", path, day);
+      ImGui::Button(morId, ImVec2(width/4, buttonHeight));
+      track_drag(morId);
+
+      ImGui::SameLine();
+
+      char aftId[256]; snprintf(aftId, 256, " -- ## %s-%d", path, day);
+      ImGui::Button(aftId, ImVec2(width/4, buttonHeight));
+      track_drag(aftId);
+
+      ImGui::SameLine();
+
+      char eveId[256]; snprintf(eveId, 256, " -- ## %s-%d", path, day);
+      ImGui::Button(eveId, ImVec2(width/4, buttonHeight));
+      track_drag(eveId);
 
       ImGui::PopStyleColor(4);
-      t+=(24*60*60);
-    }
-    uint16_t ln = object_property_length(user, path);
-    size_t l=strlen(path);
-    int j; for(j=1; j<=ln; j++){
-      char* val=object_property_get_n(user, path, j);
-      snprintf(path+l, 128-l, ":%d", j);
-      if(is_uid(val)){
-        bool locallyEditable = object_is_local(val);
-        drawEvent(path, locallyEditable, width-rhsPadding);
-      }
-      path[l] = 0;
+      thisseconds+=(24*60*60);
     }
   }
   ImGui::EndChild();
@@ -976,13 +1032,6 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
   ImGui::BeginChild(childName);
   set_drag_scroll(path);
   ImGui::End();
-}
-
-void GUI::drawEvent(char* path, bool locallyEditable, int16_t width)
-{
-  char ispath[128]; size_t l = snprintf(ispath, 128, "%s:is", path);
-  if(!object_property_is(user, ispath, (char*)"event")) return;
-  drawObjectHeader(path, locallyEditable, width, 1);
 }
 
 // ---------------------------------------------------------------------------------------------
