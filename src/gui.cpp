@@ -10,9 +10,6 @@
 
 #include <time.h>
 #include "gui.h"
-extern "C" {
-#include <items.h>
-}
 
 GUI::GUI(VulkanBase* a, object* u)
 {
@@ -945,25 +942,20 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
     char* val=object_property_get_n(user, path, j);
     if(!is_uid(val)) continue;
     char ispath[128]; snprintf(ispath, 128, "%s:%d:is", path, j);
-    if(object_property_is(user, ispath, (char*)"event")){
-      char stpath[128]; snprintf(stpath, 128, "%s:%d:start-date", path, j);
-      char* stvals=object_property_values(user, stpath);
-      struct tm start_time;
-      char* r=0;
-      for(int f=0; f<IM_ARRAYSIZE(date_formats); f++){
-        start_time = todaydate;
-        r=strptime(stvals, date_formats[f], &start_time);
-        if(r) break;
+    if(!object_property_contains(user, ispath, (char*)"event")) continue;
+    if(object_property_contains(user, ispath, (char*)"list")){
+      char listpath[128]; snprintf(listpath, 128, "%s:%d:list", path, j);
+      uint16_t ln2 = object_property_length(user, listpath);
+      int k; for(k=1; k<=ln2; k++){
+        char* val=object_property_get_n(user, listpath, k);
+        if(!is_uid(val)) continue;
+        char ispath[128]; snprintf(ispath, 128, "%s:%d:is", listpath, k);
+        if(!object_property_contains(user, ispath, (char*)"event")) continue;
+        saveDay(listpath, k, calstamps);
       }
-      if(r){
-        mktime(&start_time);
-        char ts[32]; strftime(ts, 32, "%F", &start_time);
-        char eventpath[128]; snprintf(eventpath, 128, "%s:%d", path, j);
-        list* l=(list*)properties_get(calstamps, value_new(ts));
-        if(!l) l=list_new(32);
-        list_add(l, value_new(eventpath));
-        properties_set(calstamps, value_new(ts), l);
-      }
+    }
+    else{
+      saveDay(path, j, calstamps);
     }
   }
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));
@@ -1031,6 +1023,30 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
   ImGui::BeginChild(childName);
   set_drag_scroll(path);
   ImGui::End();
+}
+
+void GUI::saveDay(char* path, int j, properties* calstamps)
+{
+  char stpath[128]; snprintf(stpath, 128, "%s:%d:start-date", path, j);
+  char* stvals=object_property_values(user, stpath);
+  if(stvals){
+    struct tm start_time;
+    char* r=0;
+    for(int f=0; f<IM_ARRAYSIZE(date_formats); f++){
+      start_time = todaydate;
+      r=strptime(stvals, date_formats[f], &start_time);
+      if(r) break;
+    }
+    if(r){
+      mktime(&start_time);
+      char ts[32]; strftime(ts, 32, "%F", &start_time);
+      char eventpath[128]; snprintf(eventpath, 128, "%s:%d", path, j);
+      list* l=(list*)properties_get(calstamps, value_new(ts));
+      if(!l) l=list_new(32);
+      list_add(l, value_new(eventpath));
+      properties_set(calstamps, value_new(ts), l);
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------------------------
