@@ -46,6 +46,7 @@ public:
   void drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t depth);
   object* createNewObjectLikeOthers(char* path);
   object* createNewObjectForPropertyName(char* path, char* name);
+  object* createNewEvent(struct tm* thisdate);
   int16_t calculateScrollerHeight(char* path, int16_t height);
   void getSummary(char* path, char* summary);
   bool getSummaryFrom(char* path, char* summary, const char* key);

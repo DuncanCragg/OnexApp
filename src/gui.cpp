@@ -637,6 +637,16 @@ object* GUI::createNewObjectLikeOthers(char* path)
   return r;
 }
 
+object* GUI::createNewEvent(struct tm* thisdate)
+{
+  object* r=object_new(0, 0, evaluate_any_object, 4);
+  object_property_set(r, (char*)"is", (char*)"event");
+  char ts[32]; strftime(ts, 32, "%F", thisdate);
+  object_property_set(r, (char*)"start-date", ts);
+  object_property_set(r, (char*)"title", (char*)"<title>");
+  return r;
+}
+
 #define MAX_OPEN 64
 static char* open[MAX_OPEN];
 
@@ -1006,15 +1016,22 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
 
       for(int i=1; i<=3; i++){
         char* title=(char*)"";
+        char titlepath[128];
         if(l && i<=list_size(l)){
           char* eventpath=value_string((value*)list_get_n(l,i));
-          char titlepath[128]; snprintf(titlepath, 128, "%s:title", eventpath);
+          snprintf(titlepath, 128, "%s:title", eventpath);
           title=object_property_values(user, titlepath);
         }
         ImGui::SameLine();
-        char evtId[256]; snprintf(evtId, 256, "%s##%s %s %d %d", title, title, path, day, i);
-        ImGui::Button(evtId, ImVec2(width/4, buttonHeight));
-        track_drag(evtId);
+        if(!title || *title) drawNewPropertyValueEditor(titlepath, title? title: (char*)"---", true, true, width/4, buttonHeight, 1);
+        else{
+          char evtId[256]; snprintf(evtId, 256, "%s##%s %s %d %d", title, title, path, day, i);
+          if(ImGui::Button(evtId, ImVec2(width/4, buttonHeight)) && !dragPathId){
+            object* o=createNewEvent(&thisdate);
+            if(o) object_property_add(user, (char*)"viewing-r", object_property(o, (char*)"UID"));
+          }
+          track_drag(evtId);
+        }
       }
       ImGui::PopStyleColor(4);
       thisseconds+=(24*60*60);
