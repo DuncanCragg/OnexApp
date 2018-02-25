@@ -352,8 +352,10 @@ void GUI::setNewValue(char* path, char* valBuf, bool single)
   if(single){
     char* lastcolon=strrchr(path,':'); *lastcolon=0;
     object* objectEditing = onex_get_from_cache(object_property(user, path));
-    if(!*valBuf) object_property_set(objectEditing, lastcolon+1, (char*)"");
-    else object_property_set(objectEditing, lastcolon+1, strdup(valBuf));
+    if(objectEditing){
+      if(!*valBuf) object_property_set(objectEditing, lastcolon+1, (char*)"");
+      else object_property_set(objectEditing, lastcolon+1, valBuf);
+    }
     *lastcolon=':';
   }
   else{
@@ -362,8 +364,10 @@ void GUI::setNewValue(char* path, char* valBuf, bool single)
     object* objectEditing = onex_get_from_cache(object_property(user, path));
     *secondlastcolon=':';
     *lastcolon=':';
-    if(!*valBuf) object_property_set(objectEditing, secondlastcolon+1, (char*)"");
-    else object_property_set(objectEditing, secondlastcolon+1, strdup(valBuf));
+    if(objectEditing){
+      if(!*valBuf) object_property_set(objectEditing, secondlastcolon+1, (char*)"");
+      else object_property_set(objectEditing, secondlastcolon+1, valBuf);
+    }
   }
 }
 
@@ -518,12 +522,11 @@ void GUI::drawObjectFooter(char* path, bool locallyEditable, int16_t width, int1
       ImGui::PushStyleColor(ImGuiCol_PopupBg, propertyBackground);
       ImGui::PushStyleColor(ImGuiCol_FrameBg, propertyBackground);
       if(ImGui::InputText("## property name", valBuf, 256, flags, TextFilters::FilterImGuiLetters)){
-        char* pn=strdup(valBuf);
-        if(propNameChoice==1) setPropertyName(path, pn);
+        if(propNameChoice==1) setPropertyName(path, valBuf);
         else
-        if(propNameChoice==2) setPropertyNameAndObject(path, pn);
+        if(propNameChoice==2) setPropertyNameAndObject(path, valBuf);
         else
-        if(propNameChoice==3) setPropertyNameAndLink(path, pn);
+        if(propNameChoice==3) setPropertyNameAndLink(path, valBuf);
         hideKeyboard();
         free(propNameEditing); propNameEditing=0; propNameChoice = 0;
         *valBuf=0;
@@ -609,7 +612,7 @@ object* GUI::createNewObjectForPropertyName(char* path, char* name)
   char* is;
   if(!strcmp(name,"Rules")) is=(char*)"Rule";
   else is=name;
-  object_property_set(r, (char*)"is", strdup(is));
+  object_property_set(r, (char*)"is", is);
   return r;
 }
 
