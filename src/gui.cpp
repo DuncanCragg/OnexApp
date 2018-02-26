@@ -1013,8 +1013,7 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, renderBackgroundActive);
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, renderBackgroundActive);
       }
-
-      char dayId[256]; snprintf(dayId, 256, "%s %d %s## %s %d", daytable[thisdate.tm_wday], thisdate.tm_mday, thisdate.tm_mday==1? monthtable[thisdate.tm_mon]: "", path, day);
+      char dayId[256]; snprintf(dayId, 256, "%s %d\n%s## %s %d", daytable[thisdate.tm_wday], thisdate.tm_mday, thisdate.tm_mday==1? monthtable[thisdate.tm_mon]: "", path, day);
       ImGui::Button(dayId, ImVec2(width/5, buttonHeight*2));
       track_drag(dayId);
 
