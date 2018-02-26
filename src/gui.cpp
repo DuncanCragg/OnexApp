@@ -40,14 +40,18 @@ ImVec4 actionBackground        (0.96f, 0.96f, 0.87f, 1.0f);
 ImVec4 actionBackgroundActive  (0.92f, 0.92f, 0.83f, 1.0f);
 
 ImVec4 propertyColour          (0.20f, 0.50f, 0.30f, 1.0f);
-ImVec4 propertyBackground      (0.90f, 0.90f, 1.00f, 1.0f);
-ImVec4 propertyBackgroundActive(0.86f, 0.86f, 0.95f, 1.0f);
+ImVec4 propertyBackground      (0.95f, 1.00f, 0.98f, 1.0f);
+ImVec4 propertyBackgroundActive(0.90f, 0.95f, 0.93f, 1.0f);
 
 ImVec4 valueBackground         (0.96f, 0.87f, 1.00f, 1.0f);
 ImVec4 valueBackgroundActive   (0.92f, 0.82f, 0.96f, 1.0f);
 
 ImVec4 listBackground          (0.90f, 0.80f, 1.00f, 1.0f);
 ImVec4 listBackgroundDark      (0.86f, 0.76f, 0.96f, 1.0f);
+
+ImVec4 renderColour            (0.20f, 0.30f, 0.50f, 1.0f);
+ImVec4 renderBackground        (0.95f, 0.95f, 1.00f, 1.0f);
+ImVec4 renderBackgroundActive  (0.90f, 0.90f, 0.95f, 1.0f);
 
 ImVec4 schemeBrown(183.0f/255, 142.0f/255, 96.0f/255, 1.0f);
 ImVec4 schemeYellow(255.0f/255, 245.0f/255, 180.0f/255, 1.0f);
@@ -984,27 +988,27 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
       struct tm thisdate = *localtime(&thisseconds);
       if(thisseconds!=todayseconds){
         if(thisdate.tm_wday>0 && thisdate.tm_wday<6){
-          ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
-          ImGui::PushStyleColor(ImGuiCol_Button, propertyBackground);
-          ImGui::PushStyleColor(ImGuiCol_ButtonHovered, propertyBackground);
-          ImGui::PushStyleColor(ImGuiCol_ButtonActive, propertyBackgroundActive);
+          ImGui::PushStyleColor(ImGuiCol_Text, renderColour);
+          ImGui::PushStyleColor(ImGuiCol_Button, renderBackground);
+          ImGui::PushStyleColor(ImGuiCol_ButtonHovered, renderBackground);
+          ImGui::PushStyleColor(ImGuiCol_ButtonActive, renderBackgroundActive);
         }else{
-          ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
+          ImGui::PushStyleColor(ImGuiCol_Text, renderColour);
           ImGui::PushStyleColor(ImGuiCol_Button, valueBackground);
           ImGui::PushStyleColor(ImGuiCol_ButtonHovered, valueBackground);
           ImGui::PushStyleColor(ImGuiCol_ButtonActive, valueBackgroundActive);
         }
       }else{
-        ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
-        ImGui::PushStyleColor(ImGuiCol_Button, propertyBackgroundActive);
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, propertyBackgroundActive);
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, propertyBackgroundActive);
+        ImGui::PushStyleColor(ImGuiCol_Text, renderColour);
+        ImGui::PushStyleColor(ImGuiCol_Button, renderBackgroundActive);
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, renderBackgroundActive);
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, renderBackgroundActive);
       }
       if(thisdate.tm_mday==1){
-        ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
-        ImGui::PushStyleColor(ImGuiCol_Button, propertyBackgroundActive);
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, propertyBackgroundActive);
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, propertyBackgroundActive);
+        ImGui::PushStyleColor(ImGuiCol_Text, renderColour);
+        ImGui::PushStyleColor(ImGuiCol_Button, renderBackgroundActive);
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, renderBackgroundActive);
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, renderBackgroundActive);
       }
 
       char dayId[256]; snprintf(dayId, 256, "%s %d %s## %s %d", daytable[thisdate.tm_wday], thisdate.tm_mday, thisdate.tm_mday==1? monthtable[thisdate.tm_mon]: "", path, day);
