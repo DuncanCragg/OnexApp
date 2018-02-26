@@ -641,7 +641,7 @@ object* GUI::createNewEvent(struct tm* thisdate)
 {
   object* r=object_new(0, 0, evaluate_any_object, 4);
   object_property_set(r, (char*)"is", (char*)"event");
-  char ts[32]; strftime(ts, 32, "%F", thisdate);
+  char ts[32]; strftime(ts, 32, "%Y-%m-%d", thisdate);
   object_property_set(r, (char*)"start-date", ts);
   object_property_set(r, (char*)"title", (char*)"<title>");
   return r;
@@ -924,16 +924,16 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16
   }
 }
 
-static const char* date_formats[] = { "%a %d %b %T", "%a %d %b %H:%M",  // Mon 23 Feb 19:00(:11)
-                                      "%a %b %d %T", "%a %b %d %H:%M",  // Mon Feb 23 19:00(:11)
-                                      "%a %d %b %Y", "%a %d %b",        // Mon 23 Feb (2019)
-                                      "%a %b %d %Y", "%a %b %d",        // Mon Feb 23 (2019)
-                                         "%d %b %T",    "%d %b %H:%M",  //     23 Feb 19:00(:11)
-                                         "%b %d %T",    "%b %d %H:%M",  //     Feb 23 19:00(:11)
-                                         "%d %b %Y",    "%d %b",        //     23 Feb (2019)
-                                         "%b %d %Y",    "%b %d",        //     Feb 23 (2019)
-                                      "%FT%T", "%F %T", "%F",           //  2019-2-23T19:00:11, 2019-02-23 19:00:11, 2019-02-23
-                                      "%T", "%H:%M"                     //         19:00:11 19:00
+static const char* date_formats[] = { "%a %d %b %H:%M:%S", "%a %d %b %H:%M",                // Mon 23 Feb 19:00(:11)
+                                      "%a %b %d %H:%M:%S", "%a %b %d %H:%M",                // Mon Feb 23 19:00(:11)
+                                      "%a %d %b %Y", "%a %d %b",                            // Mon 23 Feb (2019)
+                                      "%a %b %d %Y", "%a %b %d",                            // Mon Feb 23 (2019)
+                                         "%d %b %H:%M:%S",    "%d %b %H:%M",                //     23 Feb 19:00(:11)
+                                         "%b %d %H:%M:%S",    "%b %d %H:%M",                //     Feb 23 19:00(:11)
+                                         "%d %b %Y",    "%d %b",                            //     23 Feb (2019)
+                                         "%b %d %Y",    "%b %d",                            //     Feb 23 (2019)
+                                      "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S", "%Y-%m-%d", //  2019-2-23T19:00:11, 2019-02-23 19:00:11, 2019-02-23
+                                      "%H:%M:%S", "%H:%M"                                   //            19:00:11 19:00
 };
 
 static const char* daytable[] = {"Sun", "Mon", "Tues", "Wed", "Thu", "Fri", "Sat"};
@@ -1013,7 +1013,7 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
 
       if(thisdate.tm_mday==1) ImGui::PopStyleColor(4);
 
-      char ts[32]; strftime(ts, 32, "%F", &thisdate);
+      char ts[32]; strftime(ts, 32, "%Y-%m-%d", &thisdate);
       list* l=(list*)properties_get(calstamps, value_new(ts));
 
       for(int i=1; i<=3; i++){
@@ -1061,7 +1061,7 @@ void GUI::saveDay(char* path, int j)
     }
     if(r){
       mktime(&start_time);
-      char ts[32]; strftime(ts, 32, "%F", &start_time);
+      char ts[32]; strftime(ts, 32, "%Y-%m-%d", &start_time);
       char eventpath[128]; snprintf(eventpath, 128, "%s:%d", path, j);
       list* l=(list*)properties_get(calstamps, value_new(ts));
       if(!l) l=list_new(32);
