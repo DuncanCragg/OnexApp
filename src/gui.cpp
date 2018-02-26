@@ -959,6 +959,7 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
   if(!calstamps) calstamps=properties_new(100);
   else           properties_clear(calstamps, true);
   uint16_t ln = object_property_length(user, path);
+  int col=1;
   int j; for(j=1; j<=ln; j++){
     char* val=object_property_get_n(user, path, j);
     if(!is_uid(val)) continue;
@@ -972,11 +973,12 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
         if(!is_uid(val)) continue;
         char ispath[128]; snprintf(ispath, 128, "%s:%d:is", listpath, k);
         if(!object_property_contains(user, ispath, (char*)"event")) continue;
-        saveDay(listpath, k);
+        saveDay(listpath, k, col);
       }
+      col++;
     }
     else{
-      saveDay(path, j);
+      saveDay(path, j, 1);
     }
   }
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));
@@ -1018,26 +1020,29 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
 
       if(thisseconds==todayseconds || thisdate.tm_mday==1) ImGui::PopStyleColor(4);
 
-      char ts[32]; strftime(ts, 32, "%Y-%m-%d", &thisdate);
-      list* l=(list*)properties_get(calstamps, value_new(ts));
-
-      for(int i=1; i<=4; i++){
-        char* title=(char*)"";
-        char titlepath[128];
-        if(l && i<=list_size(l)){
-          char* eventpath=value_string((value*)list_get_n(l,i));
-          snprintf(titlepath, 128, "%s:title", eventpath);
-          title=object_property_values(user, titlepath);
+      for(int col=1; col<=4; col++){
+        char ts[32]; int n=strftime(ts, 32, "%Y-%m-%d", &thisdate);
+        snprintf(ts+n, 32-n, "/%d", col);
+        list* l=(list*)properties_get(calstamps, value_new(ts));
+        char titles[512]=""; int at=0;
+        if(l){
+          for(int e=1; e<=list_size(l); e++){
+            char* eventpath=value_string((value*)list_get_n(l,e));
+            char titlepath[128];
+            snprintf(titlepath, 128, "%s:title", eventpath);
+            char* title=object_property_values(user, titlepath);
+            at+=snprintf(titles+at, 512-at, "%s\n", title? title: (char*)"---");
+          }
         }
         ImGui::SameLine();
-        if(!title || *title){
+        if(*titles){
           ImGui::PushStyleColor(ImGuiCol_FrameBg, renderBackground);
           ImGui::PushStyleColor(ImGuiCol_FrameBgActive, renderBackgroundActive);
-          drawNewPropertyValueEditor(titlepath, title? title: (char*)"---", true, true, 2*width/5, buttonHeight*2, 0);
+          drawNewPropertyValueEditor((char*)"", titles, true, true, 2*width/5, buttonHeight*2, 0);
           ImGui::PopStyleColor(2);
         }
         else{
-          char evtId[256]; snprintf(evtId, 256, "%s##%s %s %d %d", title, title, path, day, i);
+          char evtId[256]; snprintf(evtId, 256, "##%s %d %d", path, day, col);
           if(ImGui::Button(evtId, ImVec2(2*width/5, buttonHeight*2)) && !dragPathId){
             object* o=createNewEvent(&thisdate);
             if(o) object_property_add(user, (char*)"viewing-r", object_property(o, (char*)"UID"));
@@ -1057,7 +1062,7 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
   ImGui::End();
 }
 
-void GUI::saveDay(char* path, int j)
+void GUI::saveDay(char* path, int j, int col)
 {
   char stpath[128]; snprintf(stpath, 128, "%s:%d:start-date", path, j);
   char* stvals=object_property_values(user, stpath);
@@ -1071,7 +1076,8 @@ void GUI::saveDay(char* path, int j)
     }
     if(r){
       mktime(&start_time);
-      char ts[32]; strftime(ts, 32, "%Y-%m-%d", &start_time);
+      char ts[32]; int n=strftime(ts, 32, "%Y-%m-%d", &start_time);
+      snprintf(ts+n, 32-n, "/%d", col);
       char eventpath[128]; snprintf(eventpath, 128, "%s:%d", path, j);
       list* l=(list*)properties_get(calstamps, value_new(ts));
       if(!l) l=list_new(32);
