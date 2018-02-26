@@ -1036,16 +1036,24 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
         }
         ImGui::SameLine();
         if(*titles){
+          char evtId[256]; snprintf(evtId, 256, "%s##%s %d %d", titles, path, day, col);
+          if(ImGui::Button(evtId, ImVec2(2*width/5, buttonHeight*2)) && !dragPathId){
+          }
+          track_drag(evtId);
+/*
           ImGui::PushStyleColor(ImGuiCol_FrameBg, renderBackground);
           ImGui::PushStyleColor(ImGuiCol_FrameBgActive, renderBackgroundActive);
           drawNewPropertyValueEditor((char*)"", titles, true, true, 2*width/5, buttonHeight*2, 0);
           ImGui::PopStyleColor(2);
+*/
         }
         else{
           char evtId[256]; snprintf(evtId, 256, "##%s %d %d", path, day, col);
           if(ImGui::Button(evtId, ImVec2(2*width/5, buttonHeight*2)) && !dragPathId){
+/*
             object* o=createNewEvent(&thisdate);
             if(o) object_property_add(user, (char*)"viewing-r", object_property(o, (char*)"UID"));
+*/
           }
           track_drag(evtId);
         }
