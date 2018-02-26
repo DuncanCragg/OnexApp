@@ -57,7 +57,7 @@ public:
   void drawKey(char* path, char* key, int16_t width, int16_t height, int16_t keyWidth, int8_t depth);
   void drawPropertyList(char* pathkey, char* key, bool locallyEditable, int16_t width, int16_t height, int16_t keyWidth, int8_t depth);
   void drawCalendar(char* path, int16_t width, int16_t height);
-  void saveDay(char* path, int j, properties* calstamps);
+  void saveDay(char* path, int j);
   char* getLastLink();
   void setPropertyName(char* path , char* name);
   void setPropertyNameAndObject(char* path , char* name);

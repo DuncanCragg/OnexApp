@@ -942,6 +942,7 @@ static const char* monthtable[] = {"January","February","March","April","May","J
 static time_t lasttoday = 0;
 static time_t todayseconds = 0;
 static struct tm todaydate;
+static properties* calstamps=0;
 
 void GUI::drawCalendar(char* path, int16_t width, int16_t height)
 {
@@ -949,7 +950,8 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
     todayseconds=time(0);
     todaydate = *localtime(&todayseconds);
   }
-  properties* calstamps=properties_new(100);
+  if(!calstamps) calstamps=properties_new(100);
+  else           properties_clear(calstamps, true);
   uint16_t ln = object_property_length(user, path);
   int j; for(j=1; j<=ln; j++){
     char* val=object_property_get_n(user, path, j);
@@ -964,11 +966,11 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
         if(!is_uid(val)) continue;
         char ispath[128]; snprintf(ispath, 128, "%s:%d:is", listpath, k);
         if(!object_property_contains(user, ispath, (char*)"event")) continue;
-        saveDay(listpath, k, calstamps);
+        saveDay(listpath, k);
       }
     }
     else{
-      saveDay(path, j, calstamps);
+      saveDay(path, j);
     }
   }
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));
@@ -1045,7 +1047,7 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
   ImGui::End();
 }
 
-void GUI::saveDay(char* path, int j, properties* calstamps)
+void GUI::saveDay(char* path, int j)
 {
   char stpath[128]; snprintf(stpath, 128, "%s:%d:start-date", path, j);
   char* stvals=object_property_values(user, stpath);
