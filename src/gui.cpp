@@ -1012,7 +1012,7 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
       }
 
       char dayId[256]; snprintf(dayId, 256, "%s %d %s## %s %d", daytable[thisdate.tm_wday], thisdate.tm_mday, thisdate.tm_mday==1? monthtable[thisdate.tm_mon]: "", path, day);
-      ImGui::Button(dayId, ImVec2(width/4, buttonHeight));
+      ImGui::Button(dayId, ImVec2(width/5, buttonHeight));
       track_drag(dayId);
 
       if(thisdate.tm_mday==1) ImGui::PopStyleColor(4);
@@ -1020,7 +1020,7 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
       char ts[32]; strftime(ts, 32, "%Y-%m-%d", &thisdate);
       list* l=(list*)properties_get(calstamps, value_new(ts));
 
-      for(int i=1; i<=3; i++){
+      for(int i=1; i<=4; i++){
         char* title=(char*)"";
         char titlepath[128];
         if(l && i<=list_size(l)){
@@ -1029,10 +1029,10 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
           title=object_property_values(user, titlepath);
         }
         ImGui::SameLine();
-        if(!title || *title) drawNewPropertyValueEditor(titlepath, title? title: (char*)"---", true, true, width/4, buttonHeight, 1);
+        if(!title || *title) drawNewPropertyValueEditor(titlepath, title? title: (char*)"---", true, true, width/5, buttonHeight, 1);
         else{
           char evtId[256]; snprintf(evtId, 256, "%s##%s %s %d %d", title, title, path, day, i);
-          if(ImGui::Button(evtId, ImVec2(width/4, buttonHeight)) && !dragPathId){
+          if(ImGui::Button(evtId, ImVec2(width/5, buttonHeight)) && !dragPathId){
             object* o=createNewEvent(&thisdate);
             if(o) object_property_add(user, (char*)"viewing-r", object_property(o, (char*)"UID"));
           }
