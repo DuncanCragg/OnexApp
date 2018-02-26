@@ -420,9 +420,11 @@ void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool lo
     editing=false;
   }
   ImGui::PushItemWidth(width);
-  bool nodarken=depth<3;
-  ImGui::PushStyleColor(ImGuiCol_FrameBg, nodarken? valueBackground: valueBackgroundActive);
-  ImGui::PushStyleColor(ImGuiCol_FrameBgActive, valueBackgroundActive);
+  if(depth){
+    bool nodarken=depth<3;
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, nodarken? valueBackground: valueBackgroundActive);
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, valueBackgroundActive);
+  }
   int flags=ImGuiInputTextFlags_EnterReturnsTrue|ImGuiInputTextFlags_CtrlEnterForNewLine|ImGuiInputTextFlags_AutoSelectAll;
   if(!editing){
     ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, valueBackground);
@@ -449,7 +451,7 @@ void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool lo
       *valBuf=0;
     }
   }
-  ImGui::PopStyleColor(2);
+  if(depth) ImGui::PopStyleColor(2);
   ImGui::PopItemWidth();
 }
 
@@ -1030,7 +1032,12 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
           title=object_property_values(user, titlepath);
         }
         ImGui::SameLine();
-        if(!title || *title) drawNewPropertyValueEditor(titlepath, title? title: (char*)"---", true, true, 2*width/5, buttonHeight*2, 1);
+        if(!title || *title){
+          ImGui::PushStyleColor(ImGuiCol_FrameBg, renderBackground);
+          ImGui::PushStyleColor(ImGuiCol_FrameBgActive, renderBackgroundActive);
+          drawNewPropertyValueEditor(titlepath, title? title: (char*)"---", true, true, 2*width/5, buttonHeight*2, 0);
+          ImGui::PopStyleColor(2);
+        }
         else{
           char evtId[256]; snprintf(evtId, 256, "%s##%s %s %d %d", title, title, path, day, i);
           if(ImGui::Button(evtId, ImVec2(2*width/5, buttonHeight*2)) && !dragPathId){
