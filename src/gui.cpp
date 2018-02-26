@@ -989,27 +989,26 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
     time_t thisseconds = todayseconds-15*(24*60*60);
     for(int day=0; day< 30; day++){
       struct tm thisdate = *localtime(&thisseconds);
-      if(thisseconds!=todayseconds){
-        if(thisdate.tm_wday>0 && thisdate.tm_wday<6){
-          ImGui::PushStyleColor(ImGuiCol_Text, renderColour);
-          ImGui::PushStyleColor(ImGuiCol_Button, renderBackground);
-          ImGui::PushStyleColor(ImGuiCol_ButtonHovered, renderBackground);
-          ImGui::PushStyleColor(ImGuiCol_ButtonActive, renderBackgroundActive);
-        }else{
-          ImGui::PushStyleColor(ImGuiCol_Text, renderColour);
-          ImGui::PushStyleColor(ImGuiCol_Button, valueBackground);
-          ImGui::PushStyleColor(ImGuiCol_ButtonHovered, valueBackground);
-          ImGui::PushStyleColor(ImGuiCol_ButtonActive, valueBackgroundActive);
-        }
+      if(thisdate.tm_wday>0 && thisdate.tm_wday<6){
+        ImGui::PushStyleColor(ImGuiCol_Text, renderColour);
+        ImGui::PushStyleColor(ImGuiCol_Button, renderBackground);
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, renderBackground);
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, renderBackgroundActive);
       }else{
         ImGui::PushStyleColor(ImGuiCol_Text, renderColour);
-        ImGui::PushStyleColor(ImGuiCol_Button, renderBackgroundActive);
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, renderBackgroundActive);
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, renderBackgroundActive);
+        ImGui::PushStyleColor(ImGuiCol_Button, valueBackground);
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, valueBackground);
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, valueBackgroundActive);
+      }
+      if(thisseconds==todayseconds){
+        ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
+        ImGui::PushStyleColor(ImGuiCol_Button, propertyBackgroundActive);
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, propertyBackgroundActive);
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, propertyBackgroundActive);
       }
       if(thisdate.tm_mday==1){
-        ImGui::PushStyleColor(ImGuiCol_Text, renderColour);
-        ImGui::PushStyleColor(ImGuiCol_Button, renderBackgroundActive);
+        ImGui::PushStyleColor(ImGuiCol_Text, actionColour);
+        ImGui::PushStyleColor(ImGuiCol_Button, renderBackground);
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, renderBackgroundActive);
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, renderBackgroundActive);
       }
@@ -1017,7 +1016,7 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
       ImGui::Button(dayId, ImVec2(width/5, buttonHeight*2));
       track_drag(dayId);
 
-      if(thisdate.tm_mday==1) ImGui::PopStyleColor(4);
+      if(thisseconds==todayseconds || thisdate.tm_mday==1) ImGui::PopStyleColor(4);
 
       char ts[32]; strftime(ts, 32, "%Y-%m-%d", &thisdate);
       list* l=(list*)properties_get(calstamps, value_new(ts));
