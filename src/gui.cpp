@@ -428,7 +428,7 @@ void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool lo
     ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, valueBackground);
     float multy=ImGui::GetCursorScreenPos().y-buttonHeight;
     if(height==buttonHeight){ ImGui::InputText(valId, valBuf, 256, flags); multy=0; }
-    else                      ImGui::InputTextMultiline(valId, valBuf, 256, ImVec2(-1.0f, height), flags);
+    else                      ImGui::InputTextMultiline(valId, valBuf, 256, ImVec2(width, height), flags);
     if(ImGui::IsItemActive() && ImGui::IsMouseReleased(0) && !dragPathId){
       if(locallyEditable){
         propNameEditing = strdup(path);
@@ -441,7 +441,7 @@ void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool lo
   else{
     bool done=false;
     if(height==buttonHeight) done=ImGui::InputText(valId, valBuf, 256, flags);
-    else                     done=ImGui::InputTextMultiline(valId, valBuf, 256, ImVec2(-1.0f, height), flags);
+    else                     done=ImGui::InputTextMultiline(valId, valBuf, 256, ImVec2(width, height), flags);
     if(done){
       setNewValue(path, valBuf, single);
       hideKeyboard();
@@ -981,6 +981,7 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
   ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, listBackground);
   ImGui::SameLine();
   char childName[128]; memcpy(childName, path, strlen(path)+1);
+  ImGui::SetNextWindowContentSize(ImVec2(width*2.02f, 0.0f));
   ImGui::BeginChild(childName, ImVec2(width,height), true);
   {
     time_t thisseconds = todayseconds-15*(24*60*60);
@@ -1012,7 +1013,7 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
       }
 
       char dayId[256]; snprintf(dayId, 256, "%s %d %s## %s %d", daytable[thisdate.tm_wday], thisdate.tm_mday, thisdate.tm_mday==1? monthtable[thisdate.tm_mon]: "", path, day);
-      ImGui::Button(dayId, ImVec2(width/5, buttonHeight));
+      ImGui::Button(dayId, ImVec2(width/5, buttonHeight*2));
       track_drag(dayId);
 
       if(thisdate.tm_mday==1) ImGui::PopStyleColor(4);
@@ -1029,10 +1030,10 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
           title=object_property_values(user, titlepath);
         }
         ImGui::SameLine();
-        if(!title || *title) drawNewPropertyValueEditor(titlepath, title? title: (char*)"---", true, true, width/5, buttonHeight, 1);
+        if(!title || *title) drawNewPropertyValueEditor(titlepath, title? title: (char*)"---", true, true, 2*width/5, buttonHeight*2, 1);
         else{
           char evtId[256]; snprintf(evtId, 256, "%s##%s %s %d %d", title, title, path, day, i);
-          if(ImGui::Button(evtId, ImVec2(width/5, buttonHeight)) && !dragPathId){
+          if(ImGui::Button(evtId, ImVec2(2*width/5, buttonHeight*2)) && !dragPathId){
             object* o=createNewEvent(&thisdate);
             if(o) object_property_add(user, (char*)"viewing-r", object_property(o, (char*)"UID"));
           }
