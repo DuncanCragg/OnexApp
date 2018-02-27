@@ -1037,19 +1037,32 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
 
         ImGui::SameLine();
 
+        static bool grabbedFocus=false;
+        ImGuiIO& io = ImGui::GetIO();
         char addId[256]; snprintf(addId, 256, " +##%s %d %d", path, day, col);
+        static char valBuf[256] = "";
         static char editingPath[256]="";
         static char* editingCell=0;
         bool editing = editingCell && !strcmp(addId, editingCell);
+        if(editing && grabbedFocus && !io.WantTextInput){
+          hideKeyboard();
+          *editingPath=0; free(editingCell); editingCell=0;
+          *valBuf=0;
+          grabbedFocus=false;
+          editing=false;
+        }
         if(!editing){
           char evtId[256]; snprintf(evtId, 256, "%s##%s %d %d", titles, path, day, col);
           if(ImGui::Button(evtId, ImVec2(2*width/5-smallButtonWidth, buttonHeight*2)) && !dragPathId){
           }
           track_drag(evtId);
         }else{
+          if(!grabbedFocus){
+            ImGui::SetKeyboardFocusHere();
+            grabbedFocus = io.WantTextInput;
+          }
           ImGui::PushStyleColor(ImGuiCol_FrameBg, valueBackground);
           ImGui::PushStyleColor(ImGuiCol_FrameBgActive, valueBackgroundActive);
-          static char valBuf[256] = "";
           int flags=ImGuiInputTextFlags_EnterReturnsTrue|ImGuiInputTextFlags_CtrlEnterForNewLine|ImGuiInputTextFlags_AutoSelectAll;
           char valId[256]; snprintf(valId, 256, "## val %s", editingPath);
           if(ImGui::InputTextMultiline(valId, valBuf, 256, ImVec2(2*width/5-smallButtonWidth, buttonHeight*2), flags)){
@@ -1057,6 +1070,7 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
             hideKeyboard();
             *editingPath=0; free(editingCell); editingCell=0;
             *valBuf=0;
+            grabbedFocus=false;
           }
           ImGui::PopStyleColor(2);
         }
