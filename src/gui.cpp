@@ -304,7 +304,7 @@ static char* dragPathId=0;
 static float delta_x=0.0f;
 static float delta_y=0.0f;
 static bool drag_handled = true;
-#define MOVING_DELTA(x,y) (((x)*(x)+(y)*(y)) > 0.01f)
+#define MOVING_DELTA(x,y) (((x)*(x)+(y)*(y)) > 1.0f)
 
 static void track_drag(char* pathId)
 {
