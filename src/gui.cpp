@@ -1054,6 +1054,7 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
         if(!editing){
           char evtId[256]; snprintf(evtId, 256, "%s##%s %d %d", titles, path, day, col);
           if(ImGui::Button(evtId, ImVec2(2*width/5-smallButtonWidth, buttonHeight*2)) && !dragPathId){
+            calendarView=!calendarView;
           }
           track_drag(evtId);
         }else{
