@@ -1034,29 +1034,44 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
             at+=snprintf(titles+at, 512-at, "%s\n", title? title: (char*)"---");
           }
         }
+
         ImGui::SameLine();
-        if(*titles){
+
+        char addId[256]; snprintf(addId, 256, " +##%s %d %d", path, day, col);
+        static char editingPath[256]="";
+        static char* editingCell=0;
+        bool editing = editingCell && !strcmp(addId, editingCell);
+        if(!editing){
           char evtId[256]; snprintf(evtId, 256, "%s##%s %d %d", titles, path, day, col);
-          if(ImGui::Button(evtId, ImVec2(2*width/5, buttonHeight*2)) && !dragPathId){
+          if(ImGui::Button(evtId, ImVec2(2*width/5-smallButtonWidth, buttonHeight*2)) && !dragPathId){
           }
           track_drag(evtId);
-/*
-          ImGui::PushStyleColor(ImGuiCol_FrameBg, renderBackground);
-          ImGui::PushStyleColor(ImGuiCol_FrameBgActive, renderBackgroundActive);
-          drawNewPropertyValueEditor((char*)"", titles, true, true, 2*width/5, buttonHeight*2, 0);
+        }else{
+          ImGui::PushStyleColor(ImGuiCol_FrameBg, valueBackground);
+          ImGui::PushStyleColor(ImGuiCol_FrameBgActive, valueBackgroundActive);
+          static char valBuf[256] = "";
+          int flags=ImGuiInputTextFlags_EnterReturnsTrue|ImGuiInputTextFlags_CtrlEnterForNewLine|ImGuiInputTextFlags_AutoSelectAll;
+          char valId[256]; snprintf(valId, 256, "## val %s", editingPath);
+          if(ImGui::InputTextMultiline(valId, valBuf, 256, ImVec2(2*width/5-smallButtonWidth, buttonHeight*2), flags)){
+            setNewValue(editingPath, valBuf, true);
+            hideKeyboard();
+            *editingPath=0; free(editingCell); editingCell=0;
+            *valBuf=0;
+          }
           ImGui::PopStyleColor(2);
-*/
         }
-        else{
-          char evtId[256]; snprintf(evtId, 256, "##%s %d %d", path, day, col);
-          if(ImGui::Button(evtId, ImVec2(2*width/5, buttonHeight*2)) && !dragPathId){
-/*
-            object* o=createNewEvent(&thisdate);
-            if(o) object_property_add(user, (char*)"viewing-r", object_property(o, (char*)"UID"));
-*/
-          }
-          track_drag(evtId);
+
+        ImGui::SameLine();
+
+        if(ImGui::Button(addId, ImVec2(smallButtonWidth, buttonHeight*2)) && !editing && !dragPathId){
+          object* o=createNewEvent(&thisdate);
+          if(o) object_property_add(user, (char*)"viewing-r", object_property(o, (char*)"UID"));
+          int i=object_property_length(user, (char*)"viewing-r");
+          snprintf(editingPath, 256, "viewing-r:%d:title", i);
+          editingCell=strdup(addId);
+          showKeyboard(0);
         }
+        track_drag(addId);
       }
       ImGui::PopStyleColor(4);
       thisseconds+=(24*60*60);
