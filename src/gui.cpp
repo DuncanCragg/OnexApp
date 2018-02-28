@@ -300,11 +300,18 @@ static bool evaluate_any_object(object* user)
   return true;
 }
 
+#define DRAG_THRESHOLD         50.0f
+#define START_DRIFT_THRESHOLD  10.0f
+#define END_DRIFT_THRESHOLD     0.01f
+#define DRIFT_DAMPING           0.97f
+
 static char* dragPathId=0;
 static float delta_x=0.0f;
 static float delta_y=0.0f;
-static bool drag_handled = true;
-#define MOVING_DELTA(x,y,d) (((x)*(x)+(y)*(y)) > (d))
+static bool  drag_handled = true;
+static float drift_threshold = START_DRIFT_THRESHOLD;
+
+#define MOVING_DELTA(x,y,d) (((x)*(x)+(y)*(y)) >= (d))
 
 static void track_drag(char* pathId)
 {
@@ -314,11 +321,12 @@ static void track_drag(char* pathId)
     delta_x = 0.0f;
     delta_y = 0.0f;
     drag_handled=true;
+    drift_threshold = START_DRIFT_THRESHOLD;
   }
   else
   if(ImGui::IsItemActive() && ImGui::IsMouseDragging()){
     ImVec2 mouse_delta = ImGui::GetIO().MouseDelta;
-    if(dragPathId || MOVING_DELTA(mouse_delta.x, mouse_delta.y, 4.0f)){
+    if(MOVING_DELTA(mouse_delta.x, mouse_delta.y, !dragPathId? DRAG_THRESHOLD: 0.0f)){
       if(!dragPathId || strcmp(dragPathId, pathId)) dragPathId=strdup(pathId);
       delta_x=mouse_delta.x;
       delta_y=mouse_delta.y;
@@ -326,15 +334,17 @@ static void track_drag(char* pathId)
     }
   }
   else
-  if(!ImGui::IsMouseDown(0) && MOVING_DELTA(delta_x, delta_y, 0.1f) && dragPathId && !strcmp(pathId, dragPathId)){
-    delta_x *= 0.99f;
-    delta_y *= 0.99f;
+  if(!ImGui::IsMouseDown(0) && MOVING_DELTA(delta_x, delta_y, drift_threshold) && dragPathId && !strcmp(pathId, dragPathId)){
+    delta_x *= DRIFT_DAMPING;
+    delta_y *= DRIFT_DAMPING;
     drag_handled=false;
+    drift_threshold = END_DRIFT_THRESHOLD;
   }
   else
   if(!ImGui::IsMouseDragging() && dragPathId && !strcmp(pathId, dragPathId)){
     free(dragPathId);
     dragPathId=0;
+    drift_threshold = START_DRIFT_THRESHOLD;
   }
 }
 
