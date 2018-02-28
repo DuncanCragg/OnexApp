@@ -8191,6 +8191,40 @@
    fun:_ZL15CreateNewWindowPKc6ImVec2i
    fun:_ZN5ImGui5BeginEPKcPbi
    fun:_ZL12BeginChildExPKcjRK6ImVec2bi
+   fun:_ZN5ImGui10BeginChildEjRK6ImVec2bi
+   fun:_ZN5ImGui15BeginChildFrameEjRK6ImVec2i
+   fun:_ZN5ImGui11InputTextExEPKcPciRK6ImVec2iPFiP25ImGuiTextEditCallbackDataEPv
+   fun:_ZN5ImGui18InputTextMultilineEPKcPcmRK6ImVec2iPFiP25ImGuiTextEditCallbackDataEPv
+   fun:_ZN3GUI12drawCalendarEPcss
+   fun:_ZN3GUI8drawViewEv
+   fun:_ZN3GUI7drawGUIEv
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:_ZN5ImGui8MemAllocEm
+   fun:_ZL15CreateNewWindowPKc6ImVec2i
+   fun:_ZN5ImGui5BeginEPKcPbi
+   fun:_ZL12BeginChildExPKcjRK6ImVec2bi
+   fun:_ZN5ImGui10BeginChildEPKcRK6ImVec2bi
+   fun:_ZN3GUI30drawNestedObjectPropertiesListEPcbssa
+   fun:_ZN3GUI16drawPropertyListEPcS0_bsssa
+   fun:_ZN3GUI20drawObjectPropertiesEPcbssa
+   fun:_ZN3GUI30drawNestedObjectPropertiesListEPcbssa
+   fun:_ZN3GUI8drawViewEv
+   fun:_ZN3GUI7drawGUIEv
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:_ZN5ImGui8MemAllocEm
+   fun:_ZL15CreateNewWindowPKc6ImVec2i
+   fun:_ZN5ImGui5BeginEPKcPbi
+   fun:_ZL12BeginChildExPKcjRK6ImVec2bi
    fun:_ZN5ImGui10BeginChildEPKcRK6ImVec2bi
    fun:_ZN3GUI30drawNestedObjectPropertiesListEPcbssa
    fun:_ZN3GUI16drawPropertyListEPcS0_bsssa
