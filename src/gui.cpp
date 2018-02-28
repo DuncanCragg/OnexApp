@@ -304,7 +304,7 @@ static char* dragPathId=0;
 static float delta_x=0.0f;
 static float delta_y=0.0f;
 static bool drag_handled = true;
-#define MOVING_DELTA(x,y) (((x)*(x)+(y)*(y)) > 1.0f)
+#define MOVING_DELTA(x,y,d) (((x)*(x)+(y)*(y)) > (d))
 
 static void track_drag(char* pathId)
 {
@@ -318,7 +318,7 @@ static void track_drag(char* pathId)
   else
   if(ImGui::IsItemActive() && ImGui::IsMouseDragging()){
     ImVec2 mouse_delta = ImGui::GetIO().MouseDelta;
-    if(MOVING_DELTA(mouse_delta.x, mouse_delta.y)){
+    if(dragPathId || MOVING_DELTA(mouse_delta.x, mouse_delta.y, 4.0f)){
       if(!dragPathId || strcmp(dragPathId, pathId)) dragPathId=strdup(pathId);
       delta_x=mouse_delta.x;
       delta_y=mouse_delta.y;
@@ -326,7 +326,7 @@ static void track_drag(char* pathId)
     }
   }
   else
-  if(!ImGui::IsMouseDown(0) && MOVING_DELTA(delta_x, delta_y) && dragPathId && !strcmp(pathId, dragPathId)){
+  if(!ImGui::IsMouseDown(0) && MOVING_DELTA(delta_x, delta_y, 0.1f) && dragPathId && !strcmp(pathId, dragPathId)){
     delta_x *= 0.99f;
     delta_y *= 0.99f;
     drag_handled=false;
@@ -344,7 +344,7 @@ static void set_drag_scroll(char* path)
   char* dragPathPath=strstr(dragPathId, "viewing-l");
   if(!dragPathPath) dragPathPath=strstr(dragPathId, "viewing-r");
   if(!dragPathPath) return;
-  if(!strncmp(dragPathPath, path, strlen(path)) && strcmp(dragPathPath, path) && !drag_handled && MOVING_DELTA(delta_x,delta_y)){
+  if(!strncmp(dragPathPath, path, strlen(path)) && strcmp(dragPathPath, path) && !drag_handled && MOVING_DELTA(delta_x,delta_y,0.1f)){
     ImGui::SetScrollX(ImGui::GetScrollX() - delta_x);
     ImGui::SetScrollY(ImGui::GetScrollY() - delta_y);
     drag_handled=true;
