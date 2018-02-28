@@ -40,8 +40,8 @@ ImVec4 actionBackground        (0.96f, 0.96f, 0.87f, 1.0f);
 ImVec4 actionBackgroundActive  (0.92f, 0.92f, 0.83f, 1.0f);
 
 ImVec4 propertyColour          (0.20f, 0.50f, 0.30f, 1.0f);
-ImVec4 propertyBackground      (0.95f, 1.00f, 0.98f, 1.0f);
-ImVec4 propertyBackgroundActive(0.90f, 0.95f, 0.93f, 1.0f);
+ImVec4 propertyBackground      (0.97f, 1.00f, 0.98f, 1.0f);
+ImVec4 propertyBackgroundActive(0.92f, 0.95f, 0.93f, 1.0f);
 
 ImVec4 valueBackground         (0.96f, 0.87f, 1.00f, 1.0f);
 ImVec4 valueBackgroundActive   (0.92f, 0.82f, 0.96f, 1.0f);
