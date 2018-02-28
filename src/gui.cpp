@@ -959,33 +959,7 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
   }
   if(!calstamps) calstamps=properties_new(100);
   else           properties_clear(calstamps, true);
-  uint16_t ln = object_property_length(user, path);
-  int col=1;
-  for(int c=1; c<16; c++) calendars[c]=0;
-  int j; for(j=1; j<=ln; j++){
-    char* val=object_property_get_n(user, path, j);
-    if(!is_uid(val)) continue;
-    char calpath[128]; snprintf(calpath, 128, "%s:%d", path, j);
-    char ispath[128]; snprintf(ispath, 128, "%s:is", calpath);
-    if(!object_property_contains(user, ispath, (char*)"event")) continue;
-    if(object_property_contains(user, ispath, (char*)"list")){
-      char listpath[128]; snprintf(listpath, 128, "%s:list", calpath);
-      uint16_t ln2 = object_property_length(user, listpath);
-      int k; for(k=1; k<=ln2; k++){
-        char* val=object_property_get_n(user, listpath, k);
-        if(!is_uid(val)) continue;
-        char ispath[128]; snprintf(ispath, 128, "%s:%d:is", listpath, k);
-        if(!object_property_contains(user, ispath, (char*)"event")) continue;
-        saveDay(listpath, k, col);
-      }
-      char* caluid=object_property(user, calpath);
-      calendars[col]=caluid;
-      col++;
-    }
-    else{
-      saveDay(path, j, 1);
-    }
-  }
+  saveDays(path);
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));
   ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, listBackground);
   ImGui::SameLine();
@@ -1019,6 +993,7 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, renderBackgroundActive);
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, renderBackgroundActive);
       }
+
       char dayId[256]; snprintf(dayId, 256, "%s %d\n%s## %s %d", daytable[thisdate.tm_wday], thisdate.tm_mday, thisdate.tm_mday==1? monthtable[thisdate.tm_mon]: "", path, day);
       ImGui::Button(dayId, ImVec2(width/5, buttonHeight*2));
       track_drag(dayId);
@@ -1026,80 +1001,8 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
       if(thisseconds==todayseconds || thisdate.tm_mday==1) ImGui::PopStyleColor(4);
 
       for(int col=1; col<=4; col++){
-        char ts[32]; int n=strftime(ts, 32, "%Y-%m-%d", &thisdate);
-        snprintf(ts+n, 32-n, "/%d", col);
-        list* l=(list*)properties_get(calstamps, value_new(ts));
-        char titles[512]=""; int at=0;
-        if(l){
-          for(int e=1; e<=list_size(l); e++){
-            char* eventpath=value_string((value*)list_get_n(l,e));
-            char titlepath[128];
-            snprintf(titlepath, 128, "%s:title", eventpath);
-            char* title=object_property_values(user, titlepath);
-            at+=snprintf(titles+at, 512-at, "%s\n", title? title: (char*)"---");
-          }
-        }
-
         ImGui::SameLine();
-
-        static bool grabbedFocus=false;
-        ImGuiIO& io = ImGui::GetIO();
-        char addId[256]; snprintf(addId, 256, " +##%s %d %d", path, day, col);
-        static char valBuf[256] = "";
-        static char editingPath[256]="";
-        static char* editingCell=0;
-        bool editing = editingCell && !strcmp(addId, editingCell);
-        if(editing && grabbedFocus && !io.WantTextInput){
-          hideKeyboard();
-          *editingPath=0; free(editingCell); editingCell=0;
-          *valBuf=0;
-          grabbedFocus=false;
-          editing=false;
-        }
-        if(!editing){
-          char evtId[256]; snprintf(evtId, 256, "%s##%s %d %d", titles, path, day, col);
-          if(ImGui::Button(evtId, ImVec2(2*width/5-smallButtonWidth, buttonHeight*2)) && !dragPathId){
-            calendarView=!calendarView;
-          }
-          track_drag(evtId);
-        }else{
-          if(!grabbedFocus){
-            ImGui::SetKeyboardFocusHere();
-            grabbedFocus = io.WantTextInput;
-          }
-          ImGui::PushStyleColor(ImGuiCol_FrameBg, valueBackground);
-          ImGui::PushStyleColor(ImGuiCol_FrameBgActive, valueBackgroundActive);
-          int flags=ImGuiInputTextFlags_EnterReturnsTrue|ImGuiInputTextFlags_CtrlEnterForNewLine|ImGuiInputTextFlags_AutoSelectAll;
-          char valId[256]; snprintf(valId, 256, "## val %s", editingPath);
-          if(ImGui::InputTextMultiline(valId, valBuf, 256, ImVec2(2*width/5-smallButtonWidth, buttonHeight*2), flags)){
-            setNewValue(editingPath, valBuf, true);
-            hideKeyboard();
-            *editingPath=0; free(editingCell); editingCell=0;
-            *valBuf=0;
-            grabbedFocus=false;
-          }
-          ImGui::PopStyleColor(2);
-        }
-
-        ImGui::SameLine();
-
-        if(ImGui::Button(addId, ImVec2(smallButtonWidth, buttonHeight*2)) && !editing && !dragPathId){
-          object* o=createNewEvent(&thisdate);
-          if(o){
-            char* evtuid=object_property(o, (char*)"UID");
-            char* caluid=calendars[col];
-            if(caluid){
-              object* objectEditing = onex_get_from_cache(caluid);
-              object_property_add(objectEditing, (char*)"list", evtuid);
-            }
-            object_property_add(user, (char*)"viewing-r", evtuid);
-            int i=object_property_length(user, (char*)"viewing-r");
-            snprintf(editingPath, 256, "viewing-r:%d:title", i);
-            editingCell=strdup(addId);
-            showKeyboard(0);
-          }
-        }
-        track_drag(addId);
+        drawDayCell(path, &thisdate, day, col, width);
       }
       ImGui::PopStyleColor(4);
       thisseconds+=(24*60*60);
@@ -1111,6 +1014,37 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
   ImGui::BeginChild(childName);
   set_drag_scroll(path);
   ImGui::End();
+}
+
+void GUI::saveDays(char* path)
+{
+  uint16_t ln = object_property_length(user, path);
+  int col=1;
+  for(int c=1; c<16; c++) calendars[c]=0;
+  int j; for(j=1; j<=ln; j++){
+    char* val=object_property_get_n(user, path, j);
+    if(!is_uid(val)) continue;
+    char calpath[128]; snprintf(calpath, 128, "%s:%d", path, j);
+    char ispath[128]; snprintf(ispath, 128, "%s:is", calpath);
+    if(!object_property_contains(user, ispath, (char*)"event")) continue;
+    if(object_property_contains(user, ispath, (char*)"list")){
+      char listpath[128]; snprintf(listpath, 128, "%s:list", calpath);
+      uint16_t ln2 = object_property_length(user, listpath);
+      int k; for(k=1; k<=ln2; k++){
+        char* val=object_property_get_n(user, listpath, k);
+        if(!is_uid(val)) continue;
+        char ispath[128]; snprintf(ispath, 128, "%s:%d:is", listpath, k);
+        if(!object_property_contains(user, ispath, (char*)"event")) continue;
+        saveDay(listpath, k, col);
+      }
+      char* caluid=object_property(user, calpath);
+      calendars[col]=caluid;
+      col++;
+    }
+    else{
+      saveDay(path, j, 1);
+    }
+  }
 }
 
 void GUI::saveDay(char* path, int j, int col)
@@ -1136,6 +1070,83 @@ void GUI::saveDay(char* path, int j, int col)
       properties_set(calstamps, value_new(ts), l);
     }
   }
+}
+
+void GUI::drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t width)
+{
+  char ts[32]; int n=strftime(ts, 32, "%Y-%m-%d", thisdate);
+  snprintf(ts+n, 32-n, "/%d", col);
+  list* l=(list*)properties_get(calstamps, value_new(ts));
+  char titles[512]=""; int at=0;
+  if(l){
+    for(int e=1; e<=list_size(l); e++){
+      char* eventpath=value_string((value*)list_get_n(l,e));
+      char titlepath[128];
+      snprintf(titlepath, 128, "%s:title", eventpath);
+      char* title=object_property_values(user, titlepath);
+      at+=snprintf(titles+at, 512-at, "%s\n", title? title: (char*)"---");
+    }
+  }
+
+  static char valBuf[256] = "";
+  static char editingPath[256]="";
+  static char* editingCell=0;
+  static bool grabbedFocus=false;
+
+  char addId[256]; snprintf(addId, 256, " +##%s %d %d", path, day, col);
+  bool editing = editingCell && !strcmp(addId, editingCell);
+  ImGuiIO& io = ImGui::GetIO();
+  if(editing && grabbedFocus && !io.WantTextInput){
+    hideKeyboard();
+    *editingPath=0; free(editingCell); editingCell=0;
+    *valBuf=0;
+    grabbedFocus=false;
+    editing=false;
+  }
+  if(!editing){
+    char evtId[256]; snprintf(evtId, 256, "%s##%s %d %d", titles, path, day, col);
+    if(ImGui::Button(evtId, ImVec2(2*width/5-smallButtonWidth, buttonHeight*2)) && !dragPathId){
+      calendarView=!calendarView;
+    }
+    track_drag(evtId);
+  }else{
+    if(!grabbedFocus){
+      ImGui::SetKeyboardFocusHere();
+      grabbedFocus = io.WantTextInput;
+    }
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, valueBackground);
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, valueBackgroundActive);
+    int flags=ImGuiInputTextFlags_EnterReturnsTrue|ImGuiInputTextFlags_CtrlEnterForNewLine|ImGuiInputTextFlags_AutoSelectAll;
+    char valId[256]; snprintf(valId, 256, "## val %s", editingPath);
+    if(ImGui::InputTextMultiline(valId, valBuf, 256, ImVec2(2*width/5-smallButtonWidth, buttonHeight*2), flags)){
+      setNewValue(editingPath, valBuf, true);
+      hideKeyboard();
+      *editingPath=0; free(editingCell); editingCell=0;
+      *valBuf=0;
+      grabbedFocus=false;
+    }
+    ImGui::PopStyleColor(2);
+  }
+
+  ImGui::SameLine();
+
+  if(ImGui::Button(addId, ImVec2(smallButtonWidth, buttonHeight*2)) && !editing && !dragPathId){
+    object* o=createNewEvent(thisdate);
+    if(o){
+      char* evtuid=object_property(o, (char*)"UID");
+      char* caluid=calendars[col];
+      if(caluid){
+        object* objectEditing = onex_get_from_cache(caluid);
+        object_property_add(objectEditing, (char*)"list", evtuid);
+      }
+      object_property_add(user, (char*)"viewing-r", evtuid);
+      int i=object_property_length(user, (char*)"viewing-r");
+      snprintf(editingPath, 256, "viewing-r:%d:title", i);
+      editingCell=strdup(addId);
+      showKeyboard(0);
+    }
+  }
+  track_drag(addId);
 }
 
 // ---------------------------------------------------------------------------------------------
