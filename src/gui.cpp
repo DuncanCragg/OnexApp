@@ -571,9 +571,9 @@ void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t de
     char addValId[256]; snprintf(addValId, 256, "+value ## %s", pathj);
     if(ImGui::Button(addValId, ImVec2(width/2, buttonHeight)) && !dragPathId){
       char* lastcolon=strrchr(path,':'); *lastcolon=0;
-      object* v = onex_get_from_cache(object_property(user, path));
+      object* objectEditing = onex_get_from_cache(object_property(user, path));
       *lastcolon=':';
-      object_property_add(v, lastcolon+1, (char*)"--");
+      object_property_add(objectEditing, lastcolon+1, (char*)"--");
     }
     ImGui::PopStyleColor(2);
     track_drag(addValId);
@@ -591,9 +591,9 @@ void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t de
     char* lastlink=getLastLink();
     if(lastlink){
       char* lastcolon=strrchr(path,':'); *lastcolon=0;
-      object* v = onex_get_from_cache(object_property(user, path));
+      object* objectEditing = onex_get_from_cache(object_property(user, path));
       *lastcolon=':';
-      object_property_add(v, lastcolon+1, lastlink);
+      object_property_add(objectEditing, lastcolon+1, lastlink);
     }
   }
   track_drag(addLnkId);
@@ -603,10 +603,10 @@ void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t de
   char addObjId[256]; snprintf(addObjId, 256, "+object ## %s", pathj);
   if(ImGui::Button(addObjId, ImVec2(width/2, buttonHeight)) && !dragPathId){
     char* lastcolon=strrchr(path,':'); *lastcolon=0;
-    object* v = onex_get_from_cache(object_property(user, path));
+    object* objectEditing = onex_get_from_cache(object_property(user, path));
     *lastcolon=':';
     object* o = createNewObjectLikeOthers(path);
-    if(o) object_property_add(v, lastcolon+1, object_property(o, (char*)"UID"));
+    if(o) object_property_add(objectEditing, lastcolon+1, object_property(o, (char*)"UID"));
   }
   track_drag(addObjId);
   ImGui::PopStyleColor(4);
