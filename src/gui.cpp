@@ -957,9 +957,11 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
     todayseconds=time(0);
     todaydate = *localtime(&todayseconds);
   }
+
   if(!calstamps) calstamps=properties_new(100);
   else           properties_clear(calstamps, true);
   saveDays(path);
+
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));
   ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, listBackground);
   ImGui::SameLine();
@@ -1074,20 +1076,6 @@ void GUI::saveDay(char* path, int j, int col)
 
 void GUI::drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t width)
 {
-  char ts[32]; int n=strftime(ts, 32, "%Y-%m-%d", thisdate);
-  snprintf(ts+n, 32-n, "/%d", col);
-  list* l=(list*)properties_get(calstamps, value_new(ts));
-  char titles[512]=""; int at=0;
-  if(l){
-    for(int e=1; e<=list_size(l); e++){
-      char* eventpath=value_string((value*)list_get_n(l,e));
-      char titlepath[128];
-      snprintf(titlepath, 128, "%s:title", eventpath);
-      char* title=object_property_values(user, titlepath);
-      at+=snprintf(titles+at, 512-at, "%s\n", title? title: (char*)"---");
-    }
-  }
-
   static char valBuf[256] = "";
   static char editingPath[256]="";
   static char* editingCell=0;
@@ -1104,6 +1092,8 @@ void GUI::drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t
     editing=false;
   }
   if(!editing){
+    char titles[512]="";
+    getCellTitles(titles, thisdate, col);
     char evtId[256]; snprintf(evtId, 256, "%s##%s %d %d", titles, path, day, col);
     if(ImGui::Button(evtId, ImVec2(2*width/5-smallButtonWidth, buttonHeight*2)) && !dragPathId){
       calendarView=!calendarView;
@@ -1147,6 +1137,23 @@ void GUI::drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t
     }
   }
   track_drag(addId);
+}
+
+void GUI::getCellTitles(char* titles, struct tm* thisdate, int col)
+{
+  char ts[32]; int n=strftime(ts, 32, "%Y-%m-%d", thisdate);
+  snprintf(ts+n, 32-n, "/%d", col);
+  list* l=(list*)properties_get(calstamps, value_new(ts));
+  if(l){
+    int at=0;
+    for(int e=1; e<=list_size(l); e++){
+      char* eventpath=value_string((value*)list_get_n(l,e));
+      char titlepath[128];
+      snprintf(titlepath, 128, "%s:title", eventpath);
+      char* title=object_property_values(user, titlepath);
+      at+=snprintf(titles+at, 512-at, "%s\n", title? title: (char*)"---");
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------------------------
