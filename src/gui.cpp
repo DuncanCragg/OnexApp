@@ -961,6 +961,7 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
   else           properties_clear(calstamps, true);
   uint16_t ln = object_property_length(user, path);
   int col=1;
+  for(int c=1; c<16; c++) calendars[c]=0;
   int j; for(j=1; j<=ln; j++){
     char* val=object_property_get_n(user, path, j);
     if(!is_uid(val)) continue;
@@ -1085,10 +1086,12 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
         if(ImGui::Button(addId, ImVec2(smallButtonWidth, buttonHeight*2)) && !editing && !dragPathId){
           object* o=createNewEvent(&thisdate);
           if(o){
-            char* caluid=calendars[col];
-            object* objectEditing = onex_get_from_cache(caluid);
             char* evtuid=object_property(o, (char*)"UID");
-            object_property_add(objectEditing, (char*)"list", evtuid);
+            char* caluid=calendars[col];
+            if(caluid){
+              object* objectEditing = onex_get_from_cache(caluid);
+              object_property_add(objectEditing, (char*)"list", evtuid);
+            }
             object_property_add(user, (char*)"viewing-r", evtuid);
             int i=object_property_length(user, (char*)"viewing-r");
             snprintf(editingPath, 256, "viewing-r:%d:title", i);
