@@ -348,7 +348,7 @@ static void track_drag(char* pathId)
   }
 }
 
-static void set_drag_scroll(char* path)
+static void set_drag_scroll(char* path, bool setdraghandled)
 {
   if(!dragPathId) return;
   char* dragPathPath=strstr(dragPathId, "viewing-l");
@@ -357,7 +357,7 @@ static void set_drag_scroll(char* path)
   if(!strncmp(dragPathPath, path, strlen(path)) && strcmp(dragPathPath, path) && !drag_handled && MOVING_DELTA(delta_x,delta_y,0.1f)){
     ImGui::SetScrollX(ImGui::GetScrollX() - delta_x);
     ImGui::SetScrollY(ImGui::GetScrollY() - delta_y);
-    drag_handled=true;
+    if(setdraghandled) drag_handled=true;
   }
 }
 
@@ -935,7 +935,7 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16
   }
   else{
     ImGui::BeginChild(childName);
-    set_drag_scroll(path);
+    set_drag_scroll(path, true);
     ImGui::End();
   }
 }
@@ -974,10 +974,9 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
 
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));
   ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, listBackground);
-  ImGui::SameLine();
-  char childName[128]; memcpy(childName, path, strlen(path)+1);
-  ImGui::SetNextWindowContentSize(ImVec2(width*2.02f, 0.0f));
-  ImGui::BeginChild(childName, ImVec2(width,height), true);
+
+  char datecol[32]; snprintf(datecol, 32, "datecol");
+  ImGui::BeginChild(datecol, ImVec2(width/5,height), true);
   {
     time_t thisseconds = todayseconds-15*(24*60*60);
     for(int day=0; day< 30; day++){
@@ -1012,8 +1011,39 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
 
       if(thisseconds==todayseconds || thisdate.tm_mday==1) ImGui::PopStyleColor(4);
 
+      ImGui::PopStyleColor(4);
+      thisseconds+=(24*60*60);
+    }
+  }
+  ImGui::EndChild();
+
+  ImGui::BeginChild(datecol);
+  set_drag_scroll(path, false);
+  ImGui::End();
+
+  ImGui::SameLine();
+
+  char childName[128]; memcpy(childName, path, strlen(path)+1);
+  ImGui::SetNextWindowContentSize(ImVec2(width*2.02f, 0.0f));
+  ImGui::BeginChild(childName, ImVec2(width,height), true);
+  {
+    time_t thisseconds = todayseconds-15*(24*60*60);
+    for(int day=0; day< 30; day++){
+      struct tm thisdate = *localtime(&thisseconds);
+      if(thisdate.tm_wday>0 && thisdate.tm_wday<6){
+        ImGui::PushStyleColor(ImGuiCol_Text, renderColour);
+        ImGui::PushStyleColor(ImGuiCol_Button, renderBackground);
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, renderBackground);
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, renderBackgroundActive);
+      }else{
+        ImGui::PushStyleColor(ImGuiCol_Text, renderColour);
+        ImGui::PushStyleColor(ImGuiCol_Button, valueBackground);
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, valueBackground);
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, valueBackgroundActive);
+      }
+
       for(int col=1; col<=4; col++){
-        ImGui::SameLine();
+        if(col>1) ImGui::SameLine();
         drawDayCell(path, &thisdate, day, col, width);
       }
       ImGui::PopStyleColor(4);
@@ -1021,11 +1051,13 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
     }
   }
   ImGui::EndChild();
+
+  ImGui::BeginChild(childName);
+  set_drag_scroll(path, false);
+  ImGui::End();
+
   ImGui::PopStyleColor();
   ImGui::PopStyleVar();
-  ImGui::BeginChild(childName);
-  set_drag_scroll(path);
-  ImGui::End();
 }
 
 void GUI::saveDays(char* path)
