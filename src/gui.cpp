@@ -949,6 +949,7 @@ static time_t lasttoday = 0;
 static time_t todayseconds = 0;
 static struct tm todaydate;
 static properties* calstamps=0;
+static char* calendars[16];
 
 void GUI::drawCalendar(char* path, int16_t width, int16_t height)
 {
@@ -963,10 +964,11 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
   int j; for(j=1; j<=ln; j++){
     char* val=object_property_get_n(user, path, j);
     if(!is_uid(val)) continue;
-    char ispath[128]; snprintf(ispath, 128, "%s:%d:is", path, j);
+    char calpath[128]; snprintf(calpath, 128, "%s:%d", path, j);
+    char ispath[128]; snprintf(ispath, 128, "%s:is", calpath);
     if(!object_property_contains(user, ispath, (char*)"event")) continue;
     if(object_property_contains(user, ispath, (char*)"list")){
-      char listpath[128]; snprintf(listpath, 128, "%s:%d:list", path, j);
+      char listpath[128]; snprintf(listpath, 128, "%s:list", calpath);
       uint16_t ln2 = object_property_length(user, listpath);
       int k; for(k=1; k<=ln2; k++){
         char* val=object_property_get_n(user, listpath, k);
@@ -975,6 +977,8 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
         if(!object_property_contains(user, ispath, (char*)"event")) continue;
         saveDay(listpath, k, col);
       }
+      char* caluid=object_property(user, calpath);
+      calendars[col]=caluid;
       col++;
     }
     else{
@@ -1080,11 +1084,17 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
 
         if(ImGui::Button(addId, ImVec2(smallButtonWidth, buttonHeight*2)) && !editing && !dragPathId){
           object* o=createNewEvent(&thisdate);
-          if(o) object_property_add(user, (char*)"viewing-r", object_property(o, (char*)"UID"));
-          int i=object_property_length(user, (char*)"viewing-r");
-          snprintf(editingPath, 256, "viewing-r:%d:title", i);
-          editingCell=strdup(addId);
-          showKeyboard(0);
+          if(o){
+            char* caluid=calendars[col];
+            object* objectEditing = onex_get_from_cache(caluid);
+            char* evtuid=object_property(o, (char*)"UID");
+            object_property_add(objectEditing, (char*)"list", evtuid);
+            object_property_add(user, (char*)"viewing-r", evtuid);
+            int i=object_property_length(user, (char*)"viewing-r");
+            snprintf(editingPath, 256, "viewing-r:%d:title", i);
+            editingCell=strdup(addId);
+            showKeyboard(0);
+          }
         }
         track_drag(addId);
       }
