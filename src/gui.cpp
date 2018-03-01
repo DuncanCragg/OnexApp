@@ -711,6 +711,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
         char* viewing = object_property(user, popPath);
         object_property_set(user, (char*)popPath, 0);
         object_property_set(user, (char*)"viewing-l", viewing);
+        closeAllStarting((char*)"viewing-l");
       }
     }
     track_drag(linkId);
@@ -765,6 +766,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
     char* viewing=object_property(user, path);
     object_property_add(user, (char*)"history", object_property(user, (char*)"viewing-l"));
     object_property_set(user, (char*)"viewing-l", viewing);
+    closeAllStarting((char*)"viewing-l");
   }
   track_drag(maxId);
 
