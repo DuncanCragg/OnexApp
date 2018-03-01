@@ -974,6 +974,16 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
 
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));
   ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, listBackground);
+  ImGui::PushStyleColor(ImGuiCol_Text, renderColour);
+  ImGui::PushStyleColor(ImGuiCol_Button, renderBackground);
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, renderBackground);
+  ImGui::PushStyleColor(ImGuiCol_ButtonActive, renderBackgroundActive);
+
+  ImGui::BeginGroup();
+
+  char tplId[256]; snprintf(tplId, 256, "##topleft cell");
+  ImGui::Button(tplId, ImVec2(width/5, buttonHeight*2));
+  track_drag(tplId);
 
   char datecol[32]; snprintf(datecol, 32, "datecol");
   ImGui::BeginChild(datecol, ImVec2(width/5,height), true);
@@ -981,23 +991,26 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
     time_t thisseconds = todayseconds-15*(24*60*60);
     for(int day=0; day< 30; day++){
       struct tm thisdate = *localtime(&thisseconds);
-      if(thisdate.tm_wday>0 && thisdate.tm_wday<6){
-        ImGui::PushStyleColor(ImGuiCol_Text, renderColour);
-        ImGui::PushStyleColor(ImGuiCol_Button, renderBackground);
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, renderBackground);
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, renderBackgroundActive);
-      }else{
+      if(thisdate.tm_wday==0 || thisdate.tm_wday==6){
         ImGui::PushStyleColor(ImGuiCol_Text, renderColour);
         ImGui::PushStyleColor(ImGuiCol_Button, valueBackground);
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, valueBackground);
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, valueBackgroundActive);
       }
+      if(thisseconds==todayseconds && thisdate.tm_mday==1){
+        ImGui::PushStyleColor(ImGuiCol_Text, actionColour);
+        ImGui::PushStyleColor(ImGuiCol_Button, propertyBackgroundActive);
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, propertyBackgroundActive);
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, propertyBackgroundActive);
+      }
+      else
       if(thisseconds==todayseconds){
         ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
         ImGui::PushStyleColor(ImGuiCol_Button, propertyBackgroundActive);
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, propertyBackgroundActive);
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, propertyBackgroundActive);
       }
+      else
       if(thisdate.tm_mday==1){
         ImGui::PushStyleColor(ImGuiCol_Text, actionColour);
         ImGui::PushStyleColor(ImGuiCol_Button, renderBackground);
@@ -1010,8 +1023,8 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
       track_drag(dayId);
 
       if(thisseconds==todayseconds || thisdate.tm_mday==1) ImGui::PopStyleColor(4);
+      if(thisdate.tm_wday==0 || thisdate.tm_wday==6)       ImGui::PopStyleColor(4);
 
-      ImGui::PopStyleColor(4);
       thisseconds+=(24*60*60);
     }
   }
@@ -1021,43 +1034,59 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
   set_drag_scroll(path, false);
   ImGui::EndChild();
 
+  ImGui::EndGroup();
 
   ImGui::SameLine();
 
-  char childName[128]; memcpy(childName, path, strlen(path)+1);
+  ImGui::BeginGroup();
+
+  char calrow[32]; snprintf(calrow, 32, "calrow");
   ImGui::SetNextWindowContentSize(ImVec2(width*2.02f, 0.0f));
-  ImGui::BeginChild(childName, ImVec2(width,height), true);
+  ImGui::BeginChild(calrow, ImVec2(width,2*buttonHeight), true);
+  {
+    for(int col=1; col<=4; col++){
+      if(col>1) ImGui::SameLine();
+      char colId[256]; snprintf(colId, 256, "My cal");
+      ImGui::Button(colId, ImVec2(2*width/5, buttonHeight*2));
+      track_drag(colId);
+    }
+  }
+  ImGui::EndChild();
+
+  ImGui::BeginChild(calrow);
+  set_drag_scroll(path, false);
+  ImGui::EndChild();
+
+  char calbody[32]; snprintf(calbody, 32, "calbody");
+  ImGui::SetNextWindowContentSize(ImVec2(width*2.02f, 0.0f));
+  ImGui::BeginChild(calbody, ImVec2(width,height), true);
   {
     time_t thisseconds = todayseconds-15*(24*60*60);
     for(int day=0; day< 30; day++){
       struct tm thisdate = *localtime(&thisseconds);
-      if(thisdate.tm_wday>0 && thisdate.tm_wday<6){
-        ImGui::PushStyleColor(ImGuiCol_Text, renderColour);
-        ImGui::PushStyleColor(ImGuiCol_Button, renderBackground);
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, renderBackground);
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, renderBackgroundActive);
-      }else{
+      if(thisdate.tm_wday==0 || thisdate.tm_wday==6){
         ImGui::PushStyleColor(ImGuiCol_Text, renderColour);
         ImGui::PushStyleColor(ImGuiCol_Button, valueBackground);
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, valueBackground);
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, valueBackgroundActive);
       }
-
       for(int col=1; col<=4; col++){
         if(col>1) ImGui::SameLine();
         drawDayCell(path, &thisdate, day, col, width);
       }
-      ImGui::PopStyleColor(4);
+      if(thisdate.tm_wday==0 || thisdate.tm_wday==6) ImGui::PopStyleColor(4);
       thisseconds+=(24*60*60);
     }
   }
   ImGui::EndChild();
 
-  ImGui::BeginChild(childName);
+  ImGui::BeginChild(calbody);
   set_drag_scroll(path, false);
   ImGui::EndChild();
 
-  ImGui::PopStyleColor();
+  ImGui::EndGroup();
+
+  ImGui::PopStyleColor(5);
   ImGui::PopStyleVar();
 }
 
