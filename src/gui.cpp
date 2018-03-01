@@ -936,7 +936,7 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16
   else{
     ImGui::BeginChild(childName);
     set_drag_scroll(path, true);
-    ImGui::End();
+    ImGui::EndChild();
   }
 }
 
@@ -1019,7 +1019,8 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
 
   ImGui::BeginChild(datecol);
   set_drag_scroll(path, false);
-  ImGui::End();
+  ImGui::EndChild();
+
 
   ImGui::SameLine();
 
@@ -1054,7 +1055,7 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
 
   ImGui::BeginChild(childName);
   set_drag_scroll(path, false);
-  ImGui::End();
+  ImGui::EndChild();
 
   ImGui::PopStyleColor();
   ImGui::PopStyleVar();
