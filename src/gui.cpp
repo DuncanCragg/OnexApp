@@ -1247,12 +1247,18 @@ void GUI::getCellTitles(char* titles, struct tm* thisdate, int col)
   list* l=(list*)properties_get(calstamps, value_new(ts));
   if(l){
     int at=0;
+    static properties* uidseen=properties_new(100);
+    properties_clear(uidseen, false);
     for(int e=1; e<=list_size(l); e++){
       char* eventpath=value_string((value*)list_get_n(l,e));
-      char titlepath[128];
-      snprintf(titlepath, 128, "%s:title", eventpath);
-      char* title=object_property_values(user, titlepath);
-      at+=snprintf(titles+at, 512-at, "%s\n", title? title: (char*)"---");
+      char* eventuid=object_property(user, eventpath);
+      if(!properties_get(uidseen, value_new(eventuid))){
+        properties_set(uidseen, value_new(eventuid), value_new(eventuid));
+        char titlepath[128];
+        snprintf(titlepath, 128, "%s:title", eventpath);
+        char* title=object_property_values(user, titlepath);
+        at+=snprintf(titles+at, 512-at, "%s\n", title? title: (char*)"---");
+      }
     }
   }
 }
