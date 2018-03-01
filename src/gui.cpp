@@ -1128,8 +1128,15 @@ void GUI::saveDays(char* path)
       calendarUIDs[col]=caluid;
       col++;
     }
-    else{
-      saveDay(path, j, 1);
+  }
+  if(col==1) for(j=1; j<=ln; j++){
+    char* val=object_property_get_n(user, path, j);
+    if(!is_uid(val)) continue;
+    char calpath[128]; snprintf(calpath, 128, "%s:%d", path, j);
+    char ispath[128]; snprintf(ispath, 128, "%s:is", calpath);
+    if(!object_property_contains(user, ispath, (char*)"event")) continue;
+    if(!object_property_contains(user, ispath, (char*)"list")){
+      saveDay(path, j, col);
     }
   }
 }
