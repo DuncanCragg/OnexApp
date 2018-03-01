@@ -1175,6 +1175,7 @@ void GUI::drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t
     if(*titles){
       char evtId[256]; snprintf(evtId, 256, "%s##%s %d %d", titles, path, day, col);
       if(ImGui::Button(evtId, ImVec2(2*width/5-smallButtonWidth, buttonHeight*2)) && !dragPathId){
+        getCellEventsAndShowOpen(thisdate, col);
         calendarView=!calendarView;
       }
       track_drag(evtId);
@@ -1237,6 +1238,27 @@ void GUI::getCellTitles(char* titles, struct tm* thisdate, int col)
       snprintf(titlepath, 128, "%s:title", eventpath);
       char* title=object_property_values(user, titlepath);
       at+=snprintf(titles+at, 512-at, "%s\n", title? title: (char*)"---");
+    }
+  }
+}
+
+void GUI::getCellEventsAndShowOpen(struct tm* thisdate, int col)
+{
+  char ts[32]; int n=strftime(ts, 32, "%Y-%m-%d", thisdate);
+  snprintf(ts+n, 32-n, "/%d", col);
+  list* l=(list*)properties_get(calstamps, value_new(ts));
+  if(l){
+    for(int e=1; e<=list_size(l); e++){
+      char* eventpath=value_string((value*)list_get_n(l,e));
+      char* openuid=object_property(user, eventpath);
+      uint16_t ln = object_property_length(user, (char*)"viewing-r");
+      int i; for(i=1; i<=ln; i++){
+        char* uid=object_property_get_n(user, (char*)"viewing-r", i);
+        if(!strcmp(uid, openuid)) break;
+      }
+      if(i==ln+1) object_property_add(user, (char*)"viewing-r", openuid);
+      char openPath[256]; snprintf(openPath, 256, "viewing-r:%d", i);
+      if(!isOpen(openPath)) toggleOpen(openPath);
     }
   }
 }
