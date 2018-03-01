@@ -959,7 +959,8 @@ static time_t lasttoday = 0;
 static time_t todayseconds = 0;
 static struct tm todaydate;
 static properties* calstamps=0;
-static char* calendars[16];
+static char* calendarTitles[16];
+static char* calendarUIDs[16];
 
 void GUI::drawCalendar(char* path, int16_t width, int16_t height)
 {
@@ -1046,7 +1047,7 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
   {
     for(int col=1; col<=4; col++){
       if(col>1) ImGui::SameLine();
-      char colId[256]; snprintf(colId, 256, "My cal");
+      char colId[256]; snprintf(colId, 256, "%s##calendarTitles[%d]", calendarTitles[col]? calendarTitles[col]: (char*)"", col);
       ImGui::Button(colId, ImVec2(2*width/5, buttonHeight*2));
       track_drag(colId);
     }
@@ -1094,7 +1095,7 @@ void GUI::saveDays(char* path)
 {
   uint16_t ln = object_property_length(user, path);
   int col=1;
-  for(int c=1; c<16; c++) calendars[c]=0;
+  for(int c=1; c<16; c++){ calendarTitles[c]=0; calendarUIDs[c]=0; }
   int j; for(j=1; j<=ln; j++){
     char* val=object_property_get_n(user, path, j);
     if(!is_uid(val)) continue;
@@ -1111,8 +1112,11 @@ void GUI::saveDays(char* path)
         if(!object_property_contains(user, ispath, (char*)"event")) continue;
         saveDay(listpath, k, col);
       }
+      char titlepath[128]; snprintf(titlepath, 128, "%s:title", calpath);
+      char* caltitle=object_property_values(user, titlepath);
+      calendarTitles[col]=caltitle;
       char* caluid=object_property(user, calpath);
-      calendars[col]=caluid;
+      calendarUIDs[col]=caluid;
       col++;
     }
     else{
@@ -1153,7 +1157,8 @@ void GUI::drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t
   static char* editingCell=0;
   static bool grabbedFocus=false;
 
-  char addId[256]; snprintf(addId, 256, " +##%s %d %d", path, day, col);
+  bool canAdd=(col==1 || calendarTitles[col]);
+  char addId[256]; snprintf(addId, 256, canAdd? " +##%s %d %d": "##%s %d %d", path, day, col);
   bool editing = editingCell && !strcmp(addId, editingCell);
   ImGuiIO& io = ImGui::GetIO();
   if(editing && grabbedFocus && !io.WantTextInput){
@@ -1163,14 +1168,16 @@ void GUI::drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t
     grabbedFocus=false;
     editing=false;
   }
+  char titles[512]="";
   if(!editing){
-    char titles[512]="";
     getCellTitles(titles, thisdate, col);
-    char evtId[256]; snprintf(evtId, 256, "%s##%s %d %d", titles, path, day, col);
-    if(ImGui::Button(evtId, ImVec2(2*width/5-smallButtonWidth, buttonHeight*2)) && !dragPathId){
-      calendarView=!calendarView;
+    if(*titles){
+      char evtId[256]; snprintf(evtId, 256, "%s##%s %d %d", titles, path, day, col);
+      if(ImGui::Button(evtId, ImVec2(2*width/5-smallButtonWidth, buttonHeight*2)) && !dragPathId){
+        calendarView=!calendarView;
+      }
+      track_drag(evtId);
     }
-    track_drag(evtId);
   }else{
     if(!grabbedFocus){
       ImGui::SetKeyboardFocusHere();
@@ -1180,7 +1187,7 @@ void GUI::drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t
     ImGui::PushStyleColor(ImGuiCol_FrameBgActive, valueBackgroundActive);
     int flags=ImGuiInputTextFlags_EnterReturnsTrue|ImGuiInputTextFlags_CtrlEnterForNewLine|ImGuiInputTextFlags_AutoSelectAll;
     char valId[256]; snprintf(valId, 256, "## val %s", editingPath);
-    if(ImGui::InputTextMultiline(valId, valBuf, 256, ImVec2(2*width/5-smallButtonWidth, buttonHeight*2), flags)){
+    if(ImGui::InputTextMultiline(valId, valBuf, 256, ImVec2(2*width/5, buttonHeight*2), flags)){
       setNewValue(editingPath, valBuf, true);
       hideKeyboard();
       *editingPath=0; free(editingCell); editingCell=0;
@@ -1190,25 +1197,26 @@ void GUI::drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t
     ImGui::PopStyleColor(2);
   }
 
-  ImGui::SameLine();
-
-  if(ImGui::Button(addId, ImVec2(smallButtonWidth, buttonHeight*2)) && !editing && !dragPathId){
-    object* o=createNewEvent(thisdate);
-    if(o){
-      char* evtuid=object_property(o, (char*)"UID");
-      char* caluid=calendars[col];
-      if(caluid){
-        object* objectEditing = onex_get_from_cache(caluid);
-        object_property_add(objectEditing, (char*)"list", evtuid);
+  if(!editing){
+    if(*titles) ImGui::SameLine();
+    if(ImGui::Button(addId, ImVec2(*titles? smallButtonWidth: 2*width/5, buttonHeight*2)) && canAdd && !editing && !dragPathId){
+      object* o=createNewEvent(thisdate);
+      if(o){
+        char* evtuid=object_property(o, (char*)"UID");
+        char* caluid=calendarUIDs[col];
+        if(caluid){
+          object* objectEditing = onex_get_from_cache(caluid);
+          object_property_add(objectEditing, (char*)"list", evtuid);
+        }
+        object_property_add(user, (char*)"viewing-r", evtuid);
+        int i=object_property_length(user, (char*)"viewing-r");
+        snprintf(editingPath, 256, "viewing-r:%d:title", i);
+        editingCell=strdup(addId);
+        showKeyboard(0);
       }
-      object_property_add(user, (char*)"viewing-r", evtuid);
-      int i=object_property_length(user, (char*)"viewing-r");
-      snprintf(editingPath, 256, "viewing-r:%d:title", i);
-      editingCell=strdup(addId);
-      showKeyboard(0);
     }
+    track_drag(addId);
   }
-  track_drag(addId);
 }
 
 void GUI::getCellTitles(char* titles, struct tm* thisdate, int col)
