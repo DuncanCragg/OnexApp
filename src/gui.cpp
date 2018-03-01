@@ -261,6 +261,13 @@ static void toggleOpen(char* path)
   }
 }
 
+static void closeAllStarting(char* prefix)
+{
+  for(int i=0; i<MAX_OPEN; i++){
+    if(open[i] && !strncmp(open[i], prefix, strlen(prefix))){ free(open[i]); open[i]=0; }
+  }
+}
+
 bool calendarView=false;
 
 void GUI::drawView()
