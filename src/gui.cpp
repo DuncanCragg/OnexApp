@@ -50,6 +50,7 @@ ImVec4 listBackground          (0.90f, 0.80f, 1.00f, 1.0f);
 ImVec4 listBackgroundDark      (0.86f, 0.76f, 0.96f, 1.0f);
 
 ImVec4 renderColour            (0.20f, 0.30f, 0.50f, 1.0f);
+ImVec4 renderColourSoft        (0.65f, 0.70f, 0.80f, 1.0f);
 ImVec4 renderBackground        (0.95f, 0.95f, 1.00f, 1.0f);
 ImVec4 renderBackgroundActive  (0.90f, 0.90f, 0.95f, 1.0f);
 
@@ -1199,6 +1200,8 @@ void GUI::drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t
 
   if(!editing){
     if(*titles) ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_Text, renderColourSoft);
+    ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0.5f,0.5f));
     if(ImGui::Button(addId, ImVec2(*titles? smallButtonWidth: 2*width/5, buttonHeight*2)) && canAdd && !editing && !dragPathId){
       object* o=createNewEvent(thisdate);
       if(o){
@@ -1216,6 +1219,8 @@ void GUI::drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t
       }
     }
     track_drag(addId);
+    ImGui::PopStyleVar();
+    ImGui::PopStyleColor();
   }
 }
 
