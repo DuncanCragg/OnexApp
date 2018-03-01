@@ -312,6 +312,7 @@ void GUI::drawView()
       if(ImGui::Button(" calendar", ImVec2(workspace2Width-buttonWidth-rhsPadding, buttonHeight)))
       {
         calendarView=!calendarView;
+        if(calendarView) closeAllStarting((char*)"viewing-r");
       }
       ImGui::PopStyleColor(5);
       ImGui::Separator();
