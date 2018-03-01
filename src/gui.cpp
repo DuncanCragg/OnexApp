@@ -240,6 +240,27 @@ void GUI::hideKeyboard(){
 #endif
 }
 
+#define MAX_OPEN 64
+static char* open[MAX_OPEN];
+
+static bool isOpen(char* path)
+{
+  for(int i=0; i<MAX_OPEN; i++){
+    if(open[i] && !strcmp(open[i], path)) return true;
+  }
+  return false;
+}
+
+static void toggleOpen(char* path)
+{
+  for(int i=0; i<MAX_OPEN; i++){
+    if(open[i] && !strcmp(open[i], path)){ free(open[i]); open[i]=0; return; }
+  }
+  for(int i=0; i<MAX_OPEN; i++){
+    if(!open[i]){ open[i]=strdup(path); return; }
+  }
+}
+
 bool calendarView=false;
 
 void GUI::drawView()
@@ -662,27 +683,6 @@ object* GUI::createNewEvent(struct tm* thisdate)
   object_property_set(r, (char*)"start-date", ts);
   object_property_set(r, (char*)"title", (char*)"<title>");
   return r;
-}
-
-#define MAX_OPEN 64
-static char* open[MAX_OPEN];
-
-static bool isOpen(char* path)
-{
-  for(int i=0; i<MAX_OPEN; i++){
-    if(open[i] && !strcmp(open[i], path)) return true;
-  }
-  return false;
-}
-
-static void toggleOpen(char* path)
-{
-  for(int i=0; i<MAX_OPEN; i++){
-    if(open[i] && !strcmp(open[i], path)){ free(open[i]); open[i]=0; return; }
-  }
-  for(int i=0; i<MAX_OPEN; i++){
-    if(!open[i]){ open[i]=strdup(path); return; }
-  }
 }
 
 void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8_t depth)
