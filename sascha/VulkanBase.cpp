@@ -1344,6 +1344,9 @@ int32_t VulkanBase::handleAppInput(struct android_app* app, AInputEvent* event)
 
     switch (keyCode)
     {
+    case AKEYCODE_BACK:
+      vulkanApp->keyPressed(BACK_BUTTON, 0);
+      break;
     case AKEYCODE_BUTTON_A:
       vulkanApp->keyPressed(GAMEPAD_BUTTON_A, 0);
       break;

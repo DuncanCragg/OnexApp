@@ -183,11 +183,13 @@
 #endif
 
 // todo: Android gamepad keycodes outside of define for now
-#define GAMEPAD_BUTTON_A    0x1000
-#define GAMEPAD_BUTTON_B    0x1001
-#define GAMEPAD_BUTTON_X    0x1002
-#define GAMEPAD_BUTTON_Y    0x1003
+#define GAMEPAD_BUTTON_A     0x1000
+#define GAMEPAD_BUTTON_B     0x1001
+#define GAMEPAD_BUTTON_X     0x1002
+#define GAMEPAD_BUTTON_Y     0x1003
 #define GAMEPAD_BUTTON_L1    0x1004
 #define GAMEPAD_BUTTON_R1    0x1005
-#define GAMEPAD_BUTTON_START  0x1006
-#define TOUCH_DOUBLE_TAP    0x1100
+#define GAMEPAD_BUTTON_START 0x1006
+#define TOUCH_DOUBLE_TAP     0x1100
+#define BACK_BUTTON          0x100A
+

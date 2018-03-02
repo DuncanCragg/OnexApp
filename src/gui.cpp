@@ -1355,6 +1355,7 @@ void GUI::addAnyKeySym()
 
 void GUI::keyPressed(uint32_t keyCode, char32_t u32key)
 {
+  if(keyCode==BACK_BUTTON){ log_write("BACK\n"); return; }
   ImGuiIO& io = ImGui::GetIO();
   if(keyCode) io.KeysDown[keyCode] = true;
   io.KeyCtrl = io.KeysDown[KEY_CTRL_LEFT] || io.KeysDown[KEY_CTRL_RIGHT];
