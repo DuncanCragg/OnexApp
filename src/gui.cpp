@@ -987,9 +987,10 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
   saveDays(path);
   if(!firstDate) firstDate=todayseconds;
   int lastday=9;
+  static int firstdaydelta=4;
   static float scrollx=0;
   static float scrolly=0;
-  lastday=9+(int)((scrolly+40.0f)/140.0f);
+  lastday=9+(int)((scrolly+40.0f)/(2*buttonHeight));
 
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));
   ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, listBackground);
@@ -1007,7 +1008,7 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
   char datecol[32]; snprintf(datecol, 32, "datecol");
   ImGui::BeginChild(datecol, ImVec2(width/5,height-2*buttonHeight), true);
   {
-    time_t thisseconds = firstDate-4*(24*60*60);
+    time_t thisseconds = firstDate-firstdaydelta*(24*60*60);
     for(int day=0; day< lastday; day++){
       struct tm thisdate = *localtime(&thisseconds);
       if(thisdate.tm_wday==0 || thisdate.tm_wday==6){
@@ -1080,7 +1081,7 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
   ImGui::SetNextWindowContentSize(ImVec2(width*2.02f, 0.0f));
   ImGui::BeginChild(calbody, ImVec2(width,height-2*buttonHeight), true);
   {
-    time_t thisseconds = firstDate-4*(24*60*60);
+    time_t thisseconds = firstDate-firstdaydelta*(24*60*60);
     for(int day=0; day< lastday; day++){
       struct tm thisdate = *localtime(&thisseconds);
       if(thisdate.tm_wday==0 || thisdate.tm_wday==6){
