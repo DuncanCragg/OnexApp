@@ -970,6 +970,8 @@ static time_t lasttoday = 0;
 static time_t todayseconds = 0;
 static struct tm todaydate;
 static properties* calstamps=0;
+static time_t firstDate=0;
+static time_t lastDate=0;
 static char* calendarTitles[16];
 static char* calendarUIDs[16];
 
@@ -983,6 +985,11 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
   if(!calstamps) calstamps=properties_new(100);
   else           properties_clear(calstamps, true);
   saveDays(path);
+  if(!firstDate) firstDate=todayseconds;
+  int lastday=9;
+  static float scrollx=0;
+  static float scrolly=0;
+  lastday=9+(int)((scrolly+40.0f)/140.0f);
 
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));
   ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, listBackground);
@@ -998,10 +1005,10 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
   track_drag(tplId);
 
   char datecol[32]; snprintf(datecol, 32, "datecol");
-  ImGui::BeginChild(datecol, ImVec2(width/5,height), true);
+  ImGui::BeginChild(datecol, ImVec2(width/5,height-2*buttonHeight), true);
   {
-    time_t thisseconds = todayseconds-15*(24*60*60);
-    for(int day=0; day< 30; day++){
+    time_t thisseconds = firstDate-4*(24*60*60);
+    for(int day=0; day< lastday; day++){
       struct tm thisdate = *localtime(&thisseconds);
       if(thisdate.tm_wday==0 || thisdate.tm_wday==6){
         ImGui::PushStyleColor(ImGuiCol_Text, renderColour);
@@ -1030,7 +1037,7 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, renderBackgroundActive);
       }
 
-      char dayId[256]; snprintf(dayId, 256, "%s %d\n%s## %s %d", daytable[thisdate.tm_wday], thisdate.tm_mday, thisdate.tm_mday==1? monthtable[thisdate.tm_mon]: "", path, day);
+      char dayId[256]; snprintf(dayId, 256, "%s %d\n%s## %s %d", daytable[thisdate.tm_wday], thisdate.tm_mday, (thisdate.tm_mday==1 || day==0)? monthtable[thisdate.tm_mon]: "", path, day);
       ImGui::Button(dayId, ImVec2(width/5, buttonHeight*2));
       track_drag(dayId);
 
@@ -1071,10 +1078,10 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
 
   char calbody[32]; snprintf(calbody, 32, "calbody");
   ImGui::SetNextWindowContentSize(ImVec2(width*2.02f, 0.0f));
-  ImGui::BeginChild(calbody, ImVec2(width,height), true);
+  ImGui::BeginChild(calbody, ImVec2(width,height-2*buttonHeight), true);
   {
-    time_t thisseconds = todayseconds-15*(24*60*60);
-    for(int day=0; day< 30; day++){
+    time_t thisseconds = firstDate-4*(24*60*60);
+    for(int day=0; day< lastday; day++){
       struct tm thisdate = *localtime(&thisseconds);
       if(thisdate.tm_wday==0 || thisdate.tm_wday==6){
         ImGui::PushStyleColor(ImGuiCol_Text, renderColour);
@@ -1094,6 +1101,8 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
 
   ImGui::BeginChild(calbody);
   set_drag_scroll(path, false);
+  scrollx=ImGui::GetScrollX();
+  scrolly=ImGui::GetScrollY();
   ImGui::EndChild();
 
   ImGui::EndGroup();
@@ -1104,6 +1113,7 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
 
 void GUI::saveDays(char* path)
 {
+  firstDate=0; lastDate=0;
   uint16_t ln = object_property_length(user, path);
   int col=1;
   for(int c=1; c<16; c++){ calendarTitles[c]=0; calendarUIDs[c]=0; }
@@ -1156,7 +1166,9 @@ void GUI::saveDay(char* path, int j, int col)
       if(r) break;
     }
     if(r){
-      mktime(&start_time);
+      time_t t=mktime(&start_time);
+      if(firstDate==0 || t<firstDate) firstDate=t;
+      if(lastDate==0  || t>lastDate)  lastDate=t;
       char ts[32]; int n=strftime(ts, 32, "%Y-%m-%d", &start_time);
       snprintf(ts+n, 32-n, "/%d", col);
       char eventpath[128]; snprintf(eventpath, 128, "%s:%d", path, j);
