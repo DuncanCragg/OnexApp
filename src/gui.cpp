@@ -268,7 +268,7 @@ static void closeAllStarting(char* prefix)
   }
 }
 
-bool calendarView=false;
+static bool calendarView=false;
 
 void GUI::drawView()
 {
@@ -981,11 +981,9 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
     todayseconds=time(0);
     todaydate = *localtime(&todayseconds);
   }
-
   if(!calstamps) calstamps=properties_new(100);
   else           properties_clear(calstamps, true);
-  saveDays(path);
-  if(!firstDate) firstDate=todayseconds;
+  saveDays(path, todayseconds);
   int lastday=9;
   static int firstdaydelta=4;
   static float scrollx=0;
@@ -1112,9 +1110,10 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
   ImGui::PopStyleVar();
 }
 
-void GUI::saveDays(char* path)
+static bool firstDateSet=false;
+
+void GUI::saveDays(char* path, time_t todayseconds)
 {
-  firstDate=0; lastDate=0;
   uint16_t ln = object_property_length(user, path);
   int col=1;
   for(int c=1; c<16; c++){ calendarTitles[c]=0; calendarUIDs[c]=0; }
@@ -1152,6 +1151,8 @@ void GUI::saveDays(char* path)
       saveDay(path, j, col);
     }
   }
+  if(!firstDate) firstDate=todayseconds;
+  firstDateSet=true;
 }
 
 void GUI::saveDay(char* path, int j, int col)
@@ -1168,8 +1169,10 @@ void GUI::saveDay(char* path, int j, int col)
     }
     if(r){
       time_t t=mktime(&start_time);
-      if(firstDate==0 || t<firstDate) firstDate=t;
-      if(lastDate==0  || t>lastDate)  lastDate=t;
+      if(!firstDateSet){
+        if(firstDate==0 || t<firstDate) firstDate=t;
+        if(lastDate==0  || t>lastDate)  lastDate=t;
+      }
       char ts[32]; int n=strftime(ts, 32, "%Y-%m-%d", &start_time);
       snprintf(ts+n, 32-n, "/%d", col);
       char eventpath[128]; snprintf(eventpath, 128, "%s:%d", path, j);
