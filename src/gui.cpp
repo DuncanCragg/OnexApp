@@ -978,6 +978,8 @@ static time_t lastDate=0;
 static char* calendarTitles[16];
 static char* calendarUIDs[16];
 
+#define COLUMN_DIV 5
+
 void GUI::drawCalendar(char* path, int16_t width, int16_t height)
 {
   if(!(lasttoday++%1000)){
@@ -1003,11 +1005,11 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
   ImGui::BeginGroup();
 
   char tplId[256]; snprintf(tplId, 256, "##topleft cell %s:", path);
-  ImGui::Button(tplId, ImVec2(width/5, buttonHeight*2));
+  ImGui::Button(tplId, ImVec2(width/COLUMN_DIV, buttonHeight*2));
   track_drag(tplId);
 
   char datecol[32]; snprintf(datecol, 32, "datecol");
-  ImGui::BeginChild(datecol, ImVec2(width/5,height-2*buttonHeight), true);
+  ImGui::BeginChild(datecol, ImVec2(width/COLUMN_DIV,height-2*buttonHeight), true);
   {
     time_t thisseconds = firstDate-firstdaydelta*(24*60*60);
     for(int day=0; day< lastday; day++){
@@ -1040,7 +1042,7 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
       }
 
       char dayId[256]; snprintf(dayId, 256, "%s %d\n%s## %d %s:", daytable[thisdate.tm_wday], thisdate.tm_mday, (thisdate.tm_mday==1 || day==0)? monthtable[thisdate.tm_mon]: "", day, path);
-      ImGui::Button(dayId, ImVec2(width/5, buttonHeight*2));
+      ImGui::Button(dayId, ImVec2(width/COLUMN_DIV, buttonHeight*2));
       track_drag(dayId);
 
       if(thisseconds==todayseconds || thisdate.tm_mday==1) ImGui::PopStyleColor(4);
@@ -1068,7 +1070,7 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
     for(int col=1; col<=4; col++){
       if(col>1) ImGui::SameLine();
       char colId[256]; snprintf(colId, 256, "%s##calendarTitles[%d] %s:", calendarTitles[col]? calendarTitles[col]: (char*)"", col, path);
-      ImGui::Button(colId, ImVec2(2*width/5, buttonHeight*2));
+      ImGui::Button(colId, ImVec2(2*width/COLUMN_DIV, buttonHeight*2));
       track_drag(colId);
     }
   }
@@ -1210,7 +1212,7 @@ void GUI::drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t
     getCellTitles(titles, thisdate, col);
     if(*titles){
       char evtId[256]; snprintf(evtId, 256, "%s##%d %d %s:", titles, day, col, path);
-      if(ImGui::Button(evtId, ImVec2(2*width/5-smallButtonWidth, buttonHeight*2)) && !dragPathId){
+      if(ImGui::Button(evtId, ImVec2(2*width/COLUMN_DIV-smallButtonWidth, buttonHeight*2)) && !dragPathId){
         getCellEventsAndShowOpen(thisdate, col);
         calendarView=!calendarView;
       }
@@ -1225,7 +1227,7 @@ void GUI::drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t
     ImGui::PushStyleColor(ImGuiCol_FrameBgActive, valueBackgroundActive);
     int flags=ImGuiInputTextFlags_EnterReturnsTrue|ImGuiInputTextFlags_CtrlEnterForNewLine|ImGuiInputTextFlags_AutoSelectAll;
     char valId[256]; snprintf(valId, 256, "## editing %s:", path);
-    if(ImGui::InputTextMultiline(valId, valBuf, 256, ImVec2(2*width/5, buttonHeight*2), flags)){
+    if(ImGui::InputTextMultiline(valId, valBuf, 256, ImVec2(2*width/COLUMN_DIV, buttonHeight*2), flags)){
       setNewValue(editingPath, valBuf, true);
       hideKeyboard();
       *editingPath=0; free(editingCell); editingCell=0;
@@ -1239,7 +1241,7 @@ void GUI::drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t
     if(*titles) ImGui::SameLine();
     ImGui::PushStyleColor(ImGuiCol_Text, renderColourSoft);
     ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0.5f,0.5f));
-    if(ImGui::Button(addId, ImVec2(*titles? smallButtonWidth: 2*width/5, buttonHeight*2)) && canAdd && !editing && !dragPathId){
+    if(ImGui::Button(addId, ImVec2(*titles? smallButtonWidth: 2*width/COLUMN_DIV, buttonHeight*2)) && canAdd && !editing && !dragPathId){
       object* o=createNewEvent(thisdate);
       if(o){
         char* evtuid=object_property(o, (char*)"UID");
