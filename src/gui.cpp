@@ -268,32 +268,37 @@ static void closeAllStarting(char* prefix)
   }
 }
 
+static bool rhsFullScreen=false;
 static bool calendarView=false;
+static bool tableView=false;
 
 void GUI::drawView()
 {
-  ImGui::BeginChild("Workspace1", ImVec2(workspace1Width,workspace1Height), true);
-  {
+  if(!rhsFullScreen){
+    ImGui::BeginChild("Workspace1", ImVec2(workspace1Width,workspace1Height), true);
+    {
 #if defined(__ANDROID__)
-    ImVec2 startingpoint = ImGui::GetCursorScreenPos();
-    if(yOffsetCounter){
-      yOffset=yOffsetTarget*(100-yOffsetCounter)/100;
-      yOffsetCounter-=5;
-    }
-    ImVec2 startpos(startingpoint.x, startingpoint.y - yOffset);
-    ImGui::SetCursorScreenPos(startpos);
+      ImVec2 startingpoint = ImGui::GetCursorScreenPos();
+      if(yOffsetCounter){
+        yOffset=yOffsetTarget*(100-yOffsetCounter)/100;
+        yOffsetCounter-=5;
+      }
+      ImVec2 startpos(startingpoint.x, startingpoint.y - yOffset);
+      ImGui::SetCursorScreenPos(startpos);
 #endif
-    int8_t s=strlen("viewing-l")+1;
-    char path[s]; memcpy(path, "viewing-l", s);
-    char* uid=object_property(user, (char*)"viewing-l");
-    bool locallyEditable = object_is_local(uid);
-    if(user) drawObjectProperties(path, locallyEditable, workspace1Width-rhsPadding, workspace1Height, 1);
+      int8_t s=strlen("viewing-l")+1;
+      char path[s]; memcpy(path, "viewing-l", s);
+      char* uid=object_property(user, (char*)"viewing-l");
+      bool locallyEditable = object_is_local(uid);
+      if(user) drawObjectProperties(path, locallyEditable, workspace1Width-rhsPadding, workspace1Height, 1);
+    }
+    ImGui::EndChild();
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(-1,0));
+    ImGui::SameLine();
+    ImGui::PopStyleVar();
   }
-  ImGui::EndChild();
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(-1,0));
-  ImGui::SameLine();
-  ImGui::PopStyleVar();
-  ImGui::BeginChild("Workspace2", ImVec2(workspace2Width,workspace2Height), true);
+  uint16_t ws2width=rhsFullScreen? workspace1Width+workspace2Width: workspace2Width;
+  ImGui::BeginChild("Workspace2", ImVec2(ws2width,workspace2Height), true);
   {
 #if defined(__ANDROID__)
     ImVec2 startingpoint = ImGui::GetCursorScreenPos();
@@ -305,21 +310,57 @@ void GUI::drawView()
       ImGui::PushStyleColor(ImGuiCol_Button, actionBackground);
       ImGui::PushStyleColor(ImGuiCol_ButtonHovered, actionBackground);
       ImGui::PushStyleColor(ImGuiCol_ButtonActive, actionBackground);
+
       ImGui::Button(" +link", ImVec2(buttonWidth, buttonHeight));
+
       ImGui::SameLine();
+
       if(calendarView) ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
       else             ImGui::PushStyleColor(ImGuiCol_Text, actionColour);
-      if(ImGui::Button(" calendar", ImVec2(workspace2Width-buttonWidth-rhsPadding, buttonHeight)))
+      if(ImGui::Button(" calendar", ImVec2(buttonWidth+smallButtonWidth, buttonHeight)))
       {
         calendarView=!calendarView;
-        if(calendarView) closeAllStarting((char*)"viewing-r");
+        if(calendarView){
+          tableView=false;
+          closeAllStarting((char*)"viewing-r");
+        }
       }
-      ImGui::PopStyleColor(5);
+      ImGui::PopStyleColor();
+
+      ImGui::SameLine();
+
+      if(tableView) ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
+      else          ImGui::PushStyleColor(ImGuiCol_Text, actionColour);
+      if(ImGui::Button(" table", ImVec2(buttonWidth, buttonHeight)))
+      {
+        tableView=!tableView;
+        if(tableView){
+          calendarView=false;
+          closeAllStarting((char*)"viewing-r");
+        }
+      }
+      ImGui::PopStyleColor();
+
+      ImGui::SameLine();
+
+      ImGui::Button("##paddingbutton", ImVec2(ws2width-3*buttonWidth-2*smallButtonWidth-rhsPadding, buttonHeight));
+
+      ImGui::SameLine();
+
+      if(ImGui::Button(" +", ImVec2(smallButtonWidth, buttonHeight)))
+      {
+        rhsFullScreen=!rhsFullScreen;
+      }
+      ImGui::PopStyleColor(4);
+
       ImGui::Separator();
+
       int8_t s=strlen("viewing-r")+1;
       char path[s]; memcpy(path, "viewing-r", s);
-      if(!calendarView) drawNestedObjectPropertiesList(path, false, workspace2Width-rhsPadding, workspace2Height-100, 1);
-      else              drawCalendar(path, workspace2Width-rhsPadding, workspace2Height-100);
+      if(calendarView) drawCalendar(path, ws2width-rhsPadding, workspace2Height-100);
+      else
+      if(tableView);// drawTable(..);
+      else             drawNestedObjectPropertiesList(path, false, ws2width-rhsPadding, workspace2Height-100, 1);
     }
   }
   ImGui::EndChild();
@@ -979,7 +1020,7 @@ static char* calendarTitles[16];
 static char* calendarUIDs[16];
 
 #define UPPER_SCROLL_JUMP 20
-#define COLUMN_DIV 5
+#define COLUMN_WIDTH 250
 
 void GUI::drawCalendar(char* path, int16_t width, int16_t height)
 {
@@ -1005,11 +1046,11 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
   ImGui::BeginGroup();
 
   char tplId[256]; snprintf(tplId, 256, "##topleft cell %s:", path);
-  ImGui::Button(tplId, ImVec2(width/COLUMN_DIV, buttonHeight*2));
+  ImGui::Button(tplId, ImVec2(COLUMN_WIDTH, buttonHeight*2));
   track_drag(tplId);
 
   char datecol[32]; snprintf(datecol, 32, "datecol");
-  ImGui::BeginChild(datecol, ImVec2(width/COLUMN_DIV,height-2*buttonHeight), true);
+  ImGui::BeginChild(datecol, ImVec2(COLUMN_WIDTH,height-2*buttonHeight), true);
   {
     time_t thisseconds = firstDate-firstdaydelta*(24*60*60);
     for(int day=0; day< lastday; day++){
@@ -1042,7 +1083,7 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
       }
 
       char dayId[256]; snprintf(dayId, 256, "%s %d\n%s## %d %s:", daytable[thisdate.tm_wday], thisdate.tm_mday, (thisdate.tm_mday==1 || day==0)? monthtable[thisdate.tm_mon]: "", day, path);
-      ImGui::Button(dayId, ImVec2(width/COLUMN_DIV, buttonHeight*2));
+      ImGui::Button(dayId, ImVec2(COLUMN_WIDTH, buttonHeight*2));
       track_drag(dayId);
 
       if(thisseconds==todayseconds || thisdate.tm_mday==1) ImGui::PopStyleColor(4);
@@ -1066,7 +1107,7 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
     for(int col=1; col<=4; col++){
       if(col>1) ImGui::SameLine();
       char colId[256]; snprintf(colId, 256, "%s##calendarTitles[%d] %s:", calendarTitles[col]? calendarTitles[col]: (char*)"", col, path);
-      ImGui::Button(colId, ImVec2(2*width/COLUMN_DIV, buttonHeight*2));
+      ImGui::Button(colId, ImVec2(2*COLUMN_WIDTH, buttonHeight*2));
       track_drag(colId);
     }
   }
@@ -1218,7 +1259,7 @@ void GUI::drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t
     getCellTitles(titles, thisdate, col);
     if(*titles){
       char evtId[256]; snprintf(evtId, 256, "%s##%d %d %s:", titles, day, col, path);
-      if(ImGui::Button(evtId, ImVec2(2*width/COLUMN_DIV-smallButtonWidth, buttonHeight*2)) && !dragPathId){
+      if(ImGui::Button(evtId, ImVec2(2*COLUMN_WIDTH-smallButtonWidth, buttonHeight*2)) && !dragPathId){
         getCellEventsAndShowOpen(thisdate, col);
         calendarView=!calendarView;
       }
@@ -1233,7 +1274,7 @@ void GUI::drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t
     ImGui::PushStyleColor(ImGuiCol_FrameBgActive, valueBackgroundActive);
     int flags=ImGuiInputTextFlags_EnterReturnsTrue|ImGuiInputTextFlags_CtrlEnterForNewLine|ImGuiInputTextFlags_AutoSelectAll;
     char valId[256]; snprintf(valId, 256, "## editing %s:", path);
-    if(ImGui::InputTextMultiline(valId, valBuf, 256, ImVec2(2*width/COLUMN_DIV, buttonHeight*2), flags)){
+    if(ImGui::InputTextMultiline(valId, valBuf, 256, ImVec2(2*COLUMN_WIDTH, buttonHeight*2), flags)){
       setNewValue(editingPath, valBuf, true);
       hideKeyboard();
       *editingPath=0; free(editingCell); editingCell=0;
@@ -1247,7 +1288,7 @@ void GUI::drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t
     if(*titles) ImGui::SameLine();
     ImGui::PushStyleColor(ImGuiCol_Text, renderColourSoft);
     ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0.5f,0.5f));
-    if(ImGui::Button(addId, ImVec2(*titles? smallButtonWidth: 2*width/COLUMN_DIV, buttonHeight*2)) && canAdd && !editing && !dragPathId){
+    if(ImGui::Button(addId, ImVec2(*titles? smallButtonWidth: 2*COLUMN_WIDTH, buttonHeight*2)) && canAdd && !editing && !dragPathId){
       object* o=createNewEvent(thisdate);
       if(o){
         char* evtuid=object_property(o, (char*)"UID");
