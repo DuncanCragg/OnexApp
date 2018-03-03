@@ -381,7 +381,7 @@ static void track_drag(char* pathId)
   }
 }
 
-static void set_drag_scroll(char* path, bool setdraghandled)
+static void set_drag_scroll(char* path)
 {
   if(!dragPathId) return;
   char* dragPathPath=strstr(dragPathId, "viewing-l");
@@ -390,7 +390,7 @@ static void set_drag_scroll(char* path, bool setdraghandled)
   if(!strncmp(dragPathPath, path, strlen(path)) && strcmp(dragPathPath, path) && !drag_handled && MOVING_DELTA(delta_x,delta_y,0.1f)){
     ImGui::SetScrollX(ImGui::GetScrollX() - delta_x);
     ImGui::SetScrollY(ImGui::GetScrollY() - delta_y);
-    if(setdraghandled) drag_handled=true;
+    drag_handled=true;
   }
 }
 
@@ -949,7 +949,7 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16
   }
   else{
     ImGui::BeginChild(childName);
-    set_drag_scroll(path, true);
+    set_drag_scroll(path);
     ImGui::EndChild();
   }
 }
@@ -978,6 +978,7 @@ static time_t lastDate=0;
 static char* calendarTitles[16];
 static char* calendarUIDs[16];
 
+#define UPPER_SCROLL_JUMP 20
 #define COLUMN_DIV 5
 
 void GUI::drawCalendar(char* path, int16_t width, int16_t height)
@@ -989,11 +990,10 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
   if(!calstamps) calstamps=properties_new(100);
   else           properties_clear(calstamps, true);
   saveDays(path, todayseconds);
-  int lastday=9;
-  static int firstdaydelta=4;
+  static int firstdaydelta=0;
   static float scrollx=0;
   static float scrolly=0;
-  lastday=9+(int)((scrolly+40.0f)/(2*buttonHeight));
+  int lastday=UPPER_SCROLL_JUMP*2+(int)((scrolly+40.0f)/(2*buttonHeight));
 
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));
   ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, listBackground);
@@ -1054,7 +1054,7 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
   ImGui::EndChild();
 
   ImGui::BeginChild(datecol);
-  set_drag_scroll(path, false);
+  ImGui::SetScrollY(scrolly);
   ImGui::EndChild();
 
   ImGui::EndGroup();
@@ -1077,7 +1077,7 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
   ImGui::EndChild();
 
   ImGui::BeginChild(calrow);
-  set_drag_scroll(path, false);
+  ImGui::SetScrollX(scrollx);
   ImGui::EndChild();
 
   char calbody[32]; snprintf(calbody, 32, "calbody");
@@ -1104,9 +1104,15 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
   ImGui::EndChild();
 
   ImGui::BeginChild(calbody);
-  set_drag_scroll(path, false);
+  set_drag_scroll(path);
   scrollx=ImGui::GetScrollX();
   scrolly=ImGui::GetScrollY();
+  if(scrolly<UPPER_SCROLL_JUMP*buttonHeight*2 && !dragPathId){
+    scrolly+=UPPER_SCROLL_JUMP*buttonHeight*2;
+    ImGui::SetScrollY(scrolly);
+    firstdaydelta+=UPPER_SCROLL_JUMP;
+    killDrag();
+  }
   ImGui::EndChild();
 
   ImGui::EndGroup();
