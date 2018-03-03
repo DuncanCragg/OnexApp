@@ -343,15 +343,20 @@ static float drift_threshold = START_DRIFT_THRESHOLD;
 
 #define MOVING_DELTA(x,y,d) (((x)*(x)+(y)*(y)) >= (d))
 
+static void killDrag()
+{
+  free(dragPathId);
+  dragPathId=0;
+  delta_x = 0.0f;
+  delta_y = 0.0f;
+  drag_handled=true;
+  drift_threshold = START_DRIFT_THRESHOLD;
+}
+
 static void track_drag(char* pathId)
 {
   if(ImGui::IsItemActive() && !ImGui::IsMouseDragging() && dragPathId && strcmp(pathId, dragPathId)){
-    free(dragPathId);
-    dragPathId=0;
-    delta_x = 0.0f;
-    delta_y = 0.0f;
-    drag_handled=true;
-    drift_threshold = START_DRIFT_THRESHOLD;
+    killDrag();
   }
   else
   if(ImGui::IsItemActive() && ImGui::IsMouseDragging()){
@@ -372,9 +377,7 @@ static void track_drag(char* pathId)
   }
   else
   if(!ImGui::IsMouseDragging() && dragPathId && !strcmp(pathId, dragPathId)){
-    free(dragPathId);
-    dragPathId=0;
-    drift_threshold = START_DRIFT_THRESHOLD;
+    killDrag();
   }
 }
 
