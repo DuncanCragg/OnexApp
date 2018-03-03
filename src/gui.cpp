@@ -1203,7 +1203,7 @@ void GUI::drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t
   static bool grabbedFocus=false;
 
   bool canAdd=(col==1 || calendarTitles[col]);
-  char addId[256]; snprintf(addId, 256, canAdd? " +##%d %d %s:": "##%d %d %s", day, col, path);
+  char addId[256]; snprintf(addId, 256, canAdd? " +##%d %d %s:": "##%d %d %s:", day, col, path);
   bool editing = editingCell && !strcmp(addId, editingCell);
   ImGuiIO& io = ImGui::GetIO();
   if(editing && grabbedFocus && !io.WantTextInput){
