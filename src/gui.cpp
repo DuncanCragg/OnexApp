@@ -1053,10 +1053,6 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
   }
   ImGui::EndChild();
 
-  ImGui::BeginChild(datecol);
-  ImGui::SetScrollY(scrolly);
-  ImGui::EndChild();
-
   ImGui::EndGroup();
 
   ImGui::SameLine();
@@ -1074,10 +1070,6 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
       track_drag(colId);
     }
   }
-  ImGui::EndChild();
-
-  ImGui::BeginChild(calrow);
-  ImGui::SetScrollX(scrollx);
   ImGui::EndChild();
 
   char calbody[32]; snprintf(calbody, 32, "calbody");
@@ -1103,6 +1095,8 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
   }
   ImGui::EndChild();
 
+  ImGui::EndGroup();
+
   ImGui::BeginChild(calbody);
   set_drag_scroll(path);
   scrollx=ImGui::GetScrollX();
@@ -1115,7 +1109,13 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
   }
   ImGui::EndChild();
 
-  ImGui::EndGroup();
+  ImGui::BeginChild(datecol);
+  ImGui::SetScrollY(scrolly);
+  ImGui::EndChild();
+
+  ImGui::BeginChild(calrow);
+  ImGui::SetScrollX(scrollx);
+  ImGui::EndChild();
 
   ImGui::PopStyleColor(5);
   ImGui::PopStyleVar();
