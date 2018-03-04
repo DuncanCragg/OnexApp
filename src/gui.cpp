@@ -215,7 +215,7 @@ void GUI::drawGUI()
   ImGui::Render();
 }
 
-const char* propNameStrings[] = { "+", "+value(s)..", "+object(s)..", "+link", "title", "description", "text", "date", "start-date", "end-date", "list", "Rules", "Timer", "Notifying" };
+const char* propNameStrings[] = { "+", "+new prop", "title", "description", "text", "date", "start-date", "end-date", "list", "Rules", "Timer", "Notifying" };
 int         propNameChoice = 0;
 char*       propNameEditing=0;
 uint16_t    yOffsetTarget=0;
@@ -470,7 +470,7 @@ void GUI::setPropertyNameAndObject(char* path , char* name)
   object* objectEditing = onex_get_from_cache(object_property(user, path));
   object* o = createNewObjectForPropertyName(path, name);
   if(o) object_property_set(objectEditing, name, object_property(o, (char*)"UID"));
-  else object_property_set(objectEditing, name, (char*)"---");
+  else object_property_set(objectEditing, name, (char*)"--");
 }
 
 void GUI::setPropertyNameAndLink(char* path , char* name)
@@ -569,7 +569,7 @@ void GUI::drawObjectFooter(char* path, bool locallyEditable, int16_t width, int1
     ImGui::PopStyleColor(5);
     ImGui::PopStyleVar();
     track_drag(comId);
-    if(!propNameEditing && propNameChoice){ propNameEditing = strdup(path); if(propNameChoice==1 || propNameChoice==2 || propNameChoice==3) showKeyboard(0); }
+    if(!propNameEditing && propNameChoice){ propNameEditing = strdup(path); if(propNameChoice==1) showKeyboard(0); }
     ImGui::PopItemWidth();
     ImGui::SameLine();
     int blankwidth = width - keyWidth;
@@ -583,14 +583,14 @@ void GUI::drawObjectFooter(char* path, bool locallyEditable, int16_t width, int1
     }
   }else{
     int flags=ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue;
-    if(propNameChoice > 3){
+    if(propNameChoice > 1){
       char* propname=(char*)propNameStrings[propNameChoice];
       if(!strcmp(propname, "list") || !strcmp(propname, "Rules")) setPropertyNameAndObject(path, propname);
       else if(!strcmp(propname, "Notifying")) setPropertyNameAndLink(path, propname);
       else setPropertyName(path, propname);
       free(propNameEditing); propNameEditing=0; propNameChoice = 0;
     }
-    else if(propNameChoice==1 || propNameChoice==2 || propNameChoice==3){
+    else if(propNameChoice==1){
       struct TextFilters {
         static int FilterImGuiLetters(ImGuiTextEditCallbackData* data) {
           ImWchar ch = data->EventChar;
@@ -613,10 +613,6 @@ void GUI::drawObjectFooter(char* path, bool locallyEditable, int16_t width, int1
       ImGui::PushStyleColor(ImGuiCol_FrameBg, propertyBackground);
       if(ImGui::InputText("## property name", valBuf, 256, flags, TextFilters::FilterImGuiLetters)){
         if(propNameChoice==1) setPropertyName(path, valBuf);
-        else
-        if(propNameChoice==2) setPropertyNameAndObject(path, valBuf);
-        else
-        if(propNameChoice==3) setPropertyNameAndLink(path, valBuf);
         hideKeyboard();
         free(propNameEditing); propNameEditing=0; propNameChoice = 0;
         *valBuf=0;
@@ -626,7 +622,7 @@ void GUI::drawObjectFooter(char* path, bool locallyEditable, int16_t width, int1
       ImGui::PopItemWidth();
       ImGui::SameLine();
       int blankwidth = width - keyWidth;
-      if(blankwidth>10) ImGui::Button("--## blank", ImVec2(blankwidth, buttonHeight));
+      if(blankwidth>10) ImGui::Button("## blank", ImVec2(blankwidth, buttonHeight));
     }
   }
 }
@@ -644,24 +640,12 @@ void GUI::drawPadding(char* path, int16_t width, int16_t height, int8_t depth)
   ImGui::PopStyleColor(4);
 }
 
-void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t depth)
+void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t depth, bool valueToo)
 {
   bool nodarken=depth<3;
   char pathj[256]; snprintf(pathj, 256, "%s:%d", path, j);
-  bool showValueAdder=false;
-  if(showValueAdder){
-    ImGui::PushStyleColor(ImGuiCol_Button, nodarken? valueBackground: valueBackgroundActive);
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, nodarken? valueBackground: valueBackgroundActive);
-    char addValId[256]; snprintf(addValId, 256, "+value ## %s", pathj);
-    if(ImGui::Button(addValId, ImVec2(width/2, buttonHeight)) && !dragPathId){
-      char* lastcolon=strrchr(path,':'); *lastcolon=0;
-      object* objectEditing = onex_get_from_cache(object_property(user, path));
-      *lastcolon=':';
-      object_property_add(objectEditing, lastcolon+1, (char*)"--");
-    }
-    ImGui::PopStyleColor(2);
-    track_drag(addValId);
-
+  if(valueToo){
+    drawNewPropertyValueEditor(path, (char*)"", true, true, width/3, buttonHeight, depth);
     ImGui::SameLine();
   }
 
@@ -671,13 +655,16 @@ void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t de
   ImGui::PushStyleColor(ImGuiCol_ButtonActive, actionBackgroundActive);
 
   char addLnkId[256]; snprintf(addLnkId, 256, "+link ## %s", pathj);
-  if(ImGui::Button(addLnkId, ImVec2(width/2, buttonHeight)) && !dragPathId){
+  if(ImGui::Button(addLnkId, ImVec2(width/(valueToo? 3: 2), buttonHeight)) && !dragPathId){
     char* lastlink=getLastLink();
     if(lastlink){
       char* lastcolon=strrchr(path,':'); *lastcolon=0;
       object* objectEditing = onex_get_from_cache(object_property(user, path));
       *lastcolon=':';
-      object_property_add(objectEditing, lastcolon+1, lastlink);
+      if(object_property_is(objectEditing, lastcolon+1, (char*)"--")){
+        object_property_set(objectEditing, lastcolon+1, lastlink);
+      }
+      else object_property_add(objectEditing, lastcolon+1, lastlink);
     }
   }
   track_drag(addLnkId);
@@ -685,12 +672,17 @@ void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t de
   ImGui::SameLine();
 
   char addObjId[256]; snprintf(addObjId, 256, "+object ## %s", pathj);
-  if(ImGui::Button(addObjId, ImVec2(width/2, buttonHeight)) && !dragPathId){
+  if(ImGui::Button(addObjId, ImVec2(width/(valueToo? 3: 2), buttonHeight)) && !dragPathId){
     char* lastcolon=strrchr(path,':'); *lastcolon=0;
     object* objectEditing = onex_get_from_cache(object_property(user, path));
     *lastcolon=':';
     object* o = createNewObjectLikeOthers(path);
-    if(o) object_property_add(objectEditing, lastcolon+1, object_property(o, (char*)"UID"));
+    if(o){
+      if(object_property_is(objectEditing, lastcolon+1, (char*)"--")){
+        object_property_set(objectEditing, lastcolon+1, object_property(o, (char*)"UID"));
+      }
+      else object_property_add(objectEditing, lastcolon+1, object_property(o, (char*)"UID"));
+    }
   }
   track_drag(addObjId);
   ImGui::PopStyleColor(4);
@@ -753,7 +745,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
       if(histlen){
         char popPath[64]; snprintf(popPath, 64, "history:%d", histlen);
         char* viewing = object_property(user, popPath);
-        object_property_set(user, (char*)popPath, 0);
+        object_property_set(user, popPath, 0);
         object_property_set(user, (char*)"viewing-l", viewing);
         closeAllStarting((char*)"viewing-l");
       }
@@ -933,12 +925,18 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16
 {
   bool oneline=(height==buttonHeight);
   bool multiln=false;
+  bool newline=false;
   char textlines[512]=""; int n=0;
   if(oneline){
-    uint16_t ln = object_property_length(user, path);
-    for(int j=1; j<=ln; j++){
-      char* val=object_property_get_n(user, path, j);
-      n+=snprintf(textlines+n, 512-n, "%s ", val);
+    if(object_property_is(user, path, (char*)"--")){
+      oneline=false; newline=true;
+    }
+    else{
+      uint16_t ln = object_property_length(user, path);
+      for(int j=1; j<=ln; j++){
+        char* val=object_property_get_n(user, path, j);
+        n+=snprintf(textlines+n, 512-n, "%s ", val);
+      }
     }
   }
   else{
@@ -953,7 +951,7 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16
       if(m*30>width){ n+=snprintf(textlines+n, 512-n, "\n"); m=0; }
     }
   }
-  if(oneline || multiln){
+  if(oneline || multiln || newline){
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));
   }
   bool nodarken=depth<3;
@@ -964,6 +962,10 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16
   {
     if(oneline || multiln){
       drawNewPropertyValueEditor(path, textlines, true, locallyEditable, width, height, depth);
+    }
+    else
+    if(newline){
+      drawNewValueOrObjectButton(path, width, 1, depth, true);
     }
     else{
       uint16_t ln = object_property_length(user, path);
@@ -980,12 +982,12 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16
         drawPadding(path, width-rhsPadding, paddingHeight, depth);
         path[l] = 0;
       }
-      if(locallyEditable) drawNewValueOrObjectButton(path, width-rhsPadding, j, depth);
+      if(locallyEditable) drawNewValueOrObjectButton(path, width-rhsPadding, j, depth, false);
     }
   }
   ImGui::EndChild();
   ImGui::PopStyleColor();
-  if(oneline || multiln){
+  if(oneline || multiln || newline){
     ImGui::PopStyleVar(1);
   }
   else{
@@ -1327,7 +1329,7 @@ void GUI::getCellTitles(char* titles, struct tm* thisdate, int col)
         char titlepath[128];
         snprintf(titlepath, 128, "%s:title", eventpath);
         char* title=object_property_values(user, titlepath);
-        at+=snprintf(titles+at, 512-at, "%s\n", title? title: (char*)"---");
+        at+=snprintf(titles+at, 512-at, "%s\n", title? title: (char*)"--");
       }
     }
   }

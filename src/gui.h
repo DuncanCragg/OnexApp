@@ -43,7 +43,7 @@ public:
   void drawObjectProperties(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth);
   void drawNewPropertyValueEditor(char* path, char* val, bool single, bool locallyEditable, int16_t width, int16_t height, int8_t depth);
   void drawPadding(char* path, int16_t width, int16_t height, int8_t depth);
-  void drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t depth);
+  void drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t depth, bool valueToo);
   object* createNewObjectLikeOthers(char* path);
   object* createNewObjectForPropertyName(char* path, char* name);
   object* createNewEvent(struct tm* thisdate);
