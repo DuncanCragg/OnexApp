@@ -311,10 +311,6 @@ void GUI::drawView()
       ImGui::PushStyleColor(ImGuiCol_ButtonHovered, actionBackground);
       ImGui::PushStyleColor(ImGuiCol_ButtonActive, actionBackground);
 
-      ImGui::Button(" +link", ImVec2(buttonWidth, buttonHeight));
-
-      ImGui::SameLine();
-
       if(calendarView) ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
       else             ImGui::PushStyleColor(ImGuiCol_Text, actionColour);
       if(ImGui::Button(" calendar", ImVec2(buttonWidth+smallButtonWidth, buttonHeight)))
@@ -343,7 +339,7 @@ void GUI::drawView()
 
       ImGui::SameLine();
 
-      ImGui::Button("##paddingbutton", ImVec2(ws2width-3*buttonWidth-2*smallButtonWidth-rhsPadding, buttonHeight));
+      ImGui::Button("##paddingbutton", ImVec2(ws2width-2*buttonWidth-2*smallButtonWidth-rhsPadding, buttonHeight));
 
       ImGui::SameLine();
 
@@ -645,7 +641,7 @@ void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t de
   bool nodarken=depth<3;
   char pathj[256]; snprintf(pathj, 256, "%s:%d", path, j);
   if(valueToo){
-    drawNewPropertyValueEditor(path, (char*)"", true, true, (width-buttonWidth)/2, buttonHeight, depth);
+    drawNewPropertyValueEditor(path, (char*)"", true, true, (width-smallButtonWidth)/2, buttonHeight, depth);
     ImGui::SameLine();
   }
 
@@ -655,7 +651,7 @@ void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t de
   ImGui::PushStyleColor(ImGuiCol_ButtonActive, actionBackgroundActive);
 
   char addObjId[256]; snprintf(addObjId, 256, "+object ## %s", pathj);
-  if(ImGui::Button(addObjId, ImVec2((width-buttonWidth)/(valueToo? 2: 1), buttonHeight)) && !dragPathId){
+  if(ImGui::Button(addObjId, ImVec2((width-smallButtonWidth)/(valueToo? 2: 1), buttonHeight)) && !dragPathId){
     char* lastcolon=strrchr(path,':'); *lastcolon=0;
     object* objectEditing = onex_get_from_cache(object_property(user, path));
     *lastcolon=':';
@@ -671,8 +667,8 @@ void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t de
 
   ImGui::SameLine();
 
-  char addLnkId[256]; snprintf(addLnkId, 256, "+link ## %s", pathj);
-  if(ImGui::Button(addLnkId, ImVec2(buttonWidth, buttonHeight)) && !dragPathId){
+  char addLnkId[256]; snprintf(addLnkId, 256, " <## %s", pathj);
+  if(ImGui::Button(addLnkId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
     char* lastlink=getLastLink();
     if(lastlink){
       char* lastcolon=strrchr(path,':'); *lastcolon=0;
@@ -740,8 +736,8 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
   ImGui::PushStyleColor(ImGuiCol_ButtonActive, actionBackgroundActive);
 
   if(depth==1){
-    char linkId[256]; snprintf(linkId, 256, " <## %s", path);
-    if(ImGui::Button(linkId, ImVec2(smallButtonWidth, buttonHeight))){
+    char linkId[256]; snprintf(linkId, 256, " Back## %s", path);
+    if(ImGui::Button(linkId, ImVec2(buttonWidth, buttonHeight))){
       uint16_t histlen=object_property_length(user, (char*)"history");
       if(histlen){
         char popPath[64]; snprintf(popPath, 64, "history:%d", histlen);
@@ -754,7 +750,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
     track_drag(linkId);
     ImGui::SameLine();
   }
-  if(depth!=1 && depth<3){
+  else if(depth<3){
     char dropId[256]; snprintf(dropId, 256, " X## %s", path);
     if(ImGui::Button(dropId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
       if(!strncmp(path, "viewing-l", strlen("viewing-l"))){
@@ -772,31 +768,17 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
     ImGui::SameLine();
   }
 
-  int blankwidth = width-(depth<3? 4: 3)*smallButtonWidth;
+  int blankwidth = width-(depth==1? buttonWidth: (depth<3? smallButtonWidth: 0))-2*smallButtonWidth;
   if(blankwidth>10){
     char summary[128]="";
     getSummary(path, summary);
     char barId[256]; snprintf(barId, 256, "%s ## topbar %s", summary, path);
-    ImGui::Button(barId, ImVec2(blankwidth, buttonHeight));
+    if(ImGui::Button(barId, ImVec2(blankwidth, buttonHeight)) && !dragPathId){
+      toggleOpen(path);
+    }
     track_drag(barId);
     ImGui::SameLine();
   }
-
-  char pikId[256]; snprintf(pikId, 256, " >## %s", path);
-  if(ImGui::Button(pikId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
-    object_property_add(user, (char*)"viewing-r", object_property(user, path));
-  }
-  track_drag(pikId);
-
-  ImGui::SameLine();
-
-  char expId[256]; snprintf(expId, 256, isOpen(path)? " ^## %s": " v## %s", path);
-  if(ImGui::Button(expId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
-    toggleOpen(path);
-  }
-  track_drag(expId);
-
-  ImGui::SameLine();
 
   char maxId[256]; snprintf(maxId, 256, " +## %s", path);
   if(ImGui::Button(maxId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
@@ -806,6 +788,14 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
     closeAllStarting((char*)"viewing-l");
   }
   track_drag(maxId);
+
+  ImGui::SameLine();
+
+  char pikId[256]; snprintf(pikId, 256, " >## %s", path);
+  if(ImGui::Button(pikId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
+    object_property_add(user, (char*)"viewing-r", object_property(user, path));
+  }
+  track_drag(pikId);
 
   ImGui::PopStyleColor(4);
   ImGui::PopStyleVar(1);
