@@ -645,7 +645,7 @@ void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t de
   bool nodarken=depth<3;
   char pathj[256]; snprintf(pathj, 256, "%s:%d", path, j);
   if(valueToo){
-    drawNewPropertyValueEditor(path, (char*)"", true, true, width/3, buttonHeight, depth);
+    drawNewPropertyValueEditor(path, (char*)"", true, true, (width-buttonWidth)/2, buttonHeight, depth);
     ImGui::SameLine();
   }
 
@@ -655,7 +655,7 @@ void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t de
   ImGui::PushStyleColor(ImGuiCol_ButtonActive, actionBackgroundActive);
 
   char addObjId[256]; snprintf(addObjId, 256, "+object ## %s", pathj);
-  if(ImGui::Button(addObjId, ImVec2(width/(valueToo? 3: 2), buttonHeight)) && !dragPathId){
+  if(ImGui::Button(addObjId, ImVec2((width-buttonWidth)/(valueToo? 2: 1), buttonHeight)) && !dragPathId){
     char* lastcolon=strrchr(path,':'); *lastcolon=0;
     object* objectEditing = onex_get_from_cache(object_property(user, path));
     *lastcolon=':';
@@ -672,7 +672,7 @@ void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t de
   ImGui::SameLine();
 
   char addLnkId[256]; snprintf(addLnkId, 256, "+link ## %s", pathj);
-  if(ImGui::Button(addLnkId, ImVec2(width/(valueToo? 3: 2), buttonHeight)) && !dragPathId){
+  if(ImGui::Button(addLnkId, ImVec2(buttonWidth, buttonHeight)) && !dragPathId){
     char* lastlink=getLastLink();
     if(lastlink){
       char* lastcolon=strrchr(path,':'); *lastcolon=0;
