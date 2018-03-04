@@ -654,6 +654,23 @@ void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t de
   ImGui::PushStyleColor(ImGuiCol_ButtonHovered, nodarken? actionBackground: actionBackgroundActive);
   ImGui::PushStyleColor(ImGuiCol_ButtonActive, actionBackgroundActive);
 
+  char addObjId[256]; snprintf(addObjId, 256, "+object ## %s", pathj);
+  if(ImGui::Button(addObjId, ImVec2(width/(valueToo? 3: 2), buttonHeight)) && !dragPathId){
+    char* lastcolon=strrchr(path,':'); *lastcolon=0;
+    object* objectEditing = onex_get_from_cache(object_property(user, path));
+    *lastcolon=':';
+    object* o = createNewObjectLikeOthers(path);
+    if(o){
+      if(object_property_is(objectEditing, lastcolon+1, (char*)"--")){
+        object_property_set(objectEditing, lastcolon+1, object_property(o, (char*)"UID"));
+      }
+      else object_property_add(objectEditing, lastcolon+1, object_property(o, (char*)"UID"));
+    }
+  }
+  track_drag(addObjId);
+
+  ImGui::SameLine();
+
   char addLnkId[256]; snprintf(addLnkId, 256, "+link ## %s", pathj);
   if(ImGui::Button(addLnkId, ImVec2(width/(valueToo? 3: 2), buttonHeight)) && !dragPathId){
     char* lastlink=getLastLink();
@@ -669,22 +686,6 @@ void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t de
   }
   track_drag(addLnkId);
 
-  ImGui::SameLine();
-
-  char addObjId[256]; snprintf(addObjId, 256, "+object ## %s", pathj);
-  if(ImGui::Button(addObjId, ImVec2(width/(valueToo? 3: 2), buttonHeight)) && !dragPathId){
-    char* lastcolon=strrchr(path,':'); *lastcolon=0;
-    object* objectEditing = onex_get_from_cache(object_property(user, path));
-    *lastcolon=':';
-    object* o = createNewObjectLikeOthers(path);
-    if(o){
-      if(object_property_is(objectEditing, lastcolon+1, (char*)"--")){
-        object_property_set(objectEditing, lastcolon+1, object_property(o, (char*)"UID"));
-      }
-      else object_property_add(objectEditing, lastcolon+1, object_property(o, (char*)"UID"));
-    }
-  }
-  track_drag(addObjId);
   ImGui::PopStyleColor(4);
 }
 
