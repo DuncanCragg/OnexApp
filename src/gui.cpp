@@ -473,6 +473,14 @@ void GUI::setPropertyNameAndObject(char* path , char* name)
   else object_property_set(objectEditing, name, (char*)"---");
 }
 
+void GUI::setPropertyNameAndLink(char* path , char* name)
+{
+  char* lastlink=getLastLink();
+  if(!lastlink) return;
+  object* objectEditing = onex_get_from_cache(object_property(user, path));
+  object_property_set(objectEditing, name, lastlink);
+}
+
 char* GUI::getLastLink()
 {
   uint16_t viewrlen=object_property_length(user, (char*)"viewing-r");
@@ -480,14 +488,6 @@ char* GUI::getLastLink()
   char* lastlink = object_property(user, popPath);
   object_property_set(user, popPath, 0);
   return lastlink;
-}
-
-void GUI::setPropertyNameAndLink(char* path , char* name)
-{
-  char* lastlink=getLastLink();
-  if(!lastlink) return;
-  object* objectEditing = onex_get_from_cache(object_property(user, path));
-  object_property_set(objectEditing, name, lastlink);
 }
 
 void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool locallyEditable, int16_t width, int16_t height, int8_t depth)
