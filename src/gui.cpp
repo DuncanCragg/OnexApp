@@ -362,17 +362,11 @@ void GUI::drawView()
   }
   ImGui::EndChild();
   if(linkTo){
-    if(!rhsFullScreen){
-      ImGui::BeginChild("Workspace1", ImVec2(workspace1Width,workspace1Height), true);
-      {
-        ImDrawList* draw_list = ImGui::GetWindowDrawList();
-        draw_list->PushClipRectFullScreen();
-        draw_list->AddLine(linkToPos, ImGui::GetIO().MousePos, ImColor(actionColour), 4.0f);
-        draw_list->PopClipRect();
-      }
-      ImGui::EndChild();
-    }
-    ImGui::BeginChild("Workspace2", ImVec2(ws2width,workspace2Height), true);
+    ImVec2 startpos(0,0);
+    ImGui::SetCursorScreenPos(startpos);
+    ImVec4 transparent(0.00f, 0.00f, 0.00f, 0.0f);
+    ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, transparent);
+    ImGui::BeginChild("Overlay", ImVec2(workspace1Width+workspace2Width, workspace1Height+buttonHeight), true);
     {
       ImDrawList* draw_list = ImGui::GetWindowDrawList();
       draw_list->PushClipRectFullScreen();
@@ -380,6 +374,7 @@ void GUI::drawView()
       draw_list->PopClipRect();
     }
     ImGui::EndChild();
+    ImGui::PopStyleColor();
   }
 }
 
