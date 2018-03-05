@@ -274,15 +274,15 @@ static bool tableView=false;
 
 void GUI::drawView()
 {
+  if(yOffsetCounter){
+    yOffset=yOffsetTarget*(100-yOffsetCounter)/100;
+    yOffsetCounter-=5;
+  }
   if(!rhsFullScreen){
     ImGui::BeginChild("Workspace1", ImVec2(workspace1Width,workspace1Height), true);
     {
 #if defined(__ANDROID__)
       ImVec2 startingpoint = ImGui::GetCursorScreenPos();
-      if(yOffsetCounter){
-        yOffset=yOffsetTarget*(100-yOffsetCounter)/100;
-        yOffsetCounter-=5;
-      }
       ImVec2 startpos(startingpoint.x, startingpoint.y - yOffset);
       ImGui::SetCursorScreenPos(startpos);
 #endif
