@@ -290,9 +290,10 @@ void GUI::drawView()
       char path[s]; memcpy(path, "viewing-l", s);
       char* uid=object_property(user, (char*)"viewing-l");
       bool locallyEditable = object_is_local(uid);
-      if(user) drawObjectProperties(path, locallyEditable, workspace1Width-rhsPadding, workspace1Height, 1);
+      drawObjectProperties(path, locallyEditable, workspace1Width-rhsPadding, workspace1Height, 1);
     }
     ImGui::EndChild();
+
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(-1,0));
     ImGui::SameLine();
     ImGui::PopStyleVar();
@@ -305,59 +306,57 @@ void GUI::drawView()
     ImVec2 startpos(startingpoint.x, startingpoint.y - yOffset);
     ImGui::SetCursorScreenPos(startpos);
 #endif
-    if(user){
-      ImGui::PushStyleColor(ImGuiCol_Text, actionColour);
-      ImGui::PushStyleColor(ImGuiCol_Button, actionBackground);
-      ImGui::PushStyleColor(ImGuiCol_ButtonHovered, actionBackground);
-      ImGui::PushStyleColor(ImGuiCol_ButtonActive, actionBackground);
+    ImGui::PushStyleColor(ImGuiCol_Text, actionColour);
+    ImGui::PushStyleColor(ImGuiCol_Button, actionBackground);
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, actionBackground);
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, actionBackground);
 
-      if(calendarView) ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
-      else             ImGui::PushStyleColor(ImGuiCol_Text, actionColour);
-      if(ImGui::Button(" calendar", ImVec2(buttonWidth+smallButtonWidth, buttonHeight)))
-      {
-        calendarView=!calendarView;
-        if(calendarView){
-          tableView=false;
-          closeAllStarting((char*)"viewing-r");
-        }
+    if(calendarView) ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
+    else             ImGui::PushStyleColor(ImGuiCol_Text, actionColour);
+    if(ImGui::Button(" calendar", ImVec2(buttonWidth+smallButtonWidth, buttonHeight)))
+    {
+      calendarView=!calendarView;
+      if(calendarView){
+        tableView=false;
+        closeAllStarting((char*)"viewing-r");
       }
-      ImGui::PopStyleColor();
-
-      ImGui::SameLine();
-
-      if(tableView) ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
-      else          ImGui::PushStyleColor(ImGuiCol_Text, actionColour);
-      if(ImGui::Button(" table", ImVec2(buttonWidth, buttonHeight)))
-      {
-        tableView=!tableView;
-        if(tableView){
-          calendarView=false;
-          closeAllStarting((char*)"viewing-r");
-        }
-      }
-      ImGui::PopStyleColor();
-
-      ImGui::SameLine();
-
-      ImGui::Button("##paddingbutton", ImVec2(ws2width-2*buttonWidth-2*smallButtonWidth-rhsPadding, buttonHeight));
-
-      ImGui::SameLine();
-
-      if(ImGui::Button(" +", ImVec2(smallButtonWidth, buttonHeight)))
-      {
-        rhsFullScreen=!rhsFullScreen;
-      }
-      ImGui::PopStyleColor(4);
-
-      ImGui::Separator();
-
-      int8_t s=strlen("viewing-r")+1;
-      char path[s]; memcpy(path, "viewing-r", s);
-      if(calendarView) drawCalendar(path, ws2width-rhsPadding, workspace2Height-100);
-      else
-      if(tableView);// drawTable(..);
-      else             drawNestedObjectPropertiesList(path, false, ws2width-rhsPadding, workspace2Height-100, 1);
     }
+    ImGui::PopStyleColor();
+
+    ImGui::SameLine();
+
+    if(tableView) ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
+    else          ImGui::PushStyleColor(ImGuiCol_Text, actionColour);
+    if(ImGui::Button(" table", ImVec2(buttonWidth, buttonHeight)))
+    {
+      tableView=!tableView;
+      if(tableView){
+        calendarView=false;
+        closeAllStarting((char*)"viewing-r");
+      }
+    }
+    ImGui::PopStyleColor();
+
+    ImGui::SameLine();
+
+    ImGui::Button("##paddingbutton", ImVec2(ws2width-2*buttonWidth-2*smallButtonWidth-rhsPadding, buttonHeight));
+
+    ImGui::SameLine();
+
+    if(ImGui::Button(" +", ImVec2(smallButtonWidth, buttonHeight)))
+    {
+      rhsFullScreen=!rhsFullScreen;
+    }
+    ImGui::PopStyleColor(4);
+
+    ImGui::Separator();
+
+    int8_t s=strlen("viewing-r")+1;
+    char path[s]; memcpy(path, "viewing-r", s);
+    if(calendarView) drawCalendar(path, ws2width-rhsPadding, workspace2Height-100);
+    else
+    if(tableView);// drawTable(..);
+    else             drawNestedObjectPropertiesList(path, false, ws2width-rhsPadding, workspace2Height-100, 1);
   }
   ImGui::EndChild();
 }
