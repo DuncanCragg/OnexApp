@@ -271,6 +271,8 @@ static void closeAllStarting(char* prefix)
 static bool rhsFullScreen=false;
 static bool calendarView=false;
 static bool tableView=false;
+static char* linkTo=0;
+static ImVec2 linkToPos=ImVec2(0,0);
 
 void GUI::drawView()
 {
@@ -359,6 +361,26 @@ void GUI::drawView()
     else             drawNestedObjectPropertiesList(path, false, ws2width-rhsPadding, workspace2Height-100, 1);
   }
   ImGui::EndChild();
+  if(linkTo){
+    if(!rhsFullScreen){
+      ImGui::BeginChild("Workspace1", ImVec2(workspace1Width,workspace1Height), true);
+      {
+        ImDrawList* draw_list = ImGui::GetWindowDrawList();
+        draw_list->PushClipRectFullScreen();
+        draw_list->AddLine(linkToPos, ImGui::GetIO().MousePos, ImColor(actionColour), 4.0f);
+        draw_list->PopClipRect();
+      }
+      ImGui::EndChild();
+    }
+    ImGui::BeginChild("Workspace2", ImVec2(ws2width,workspace2Height), true);
+    {
+      ImDrawList* draw_list = ImGui::GetWindowDrawList();
+      draw_list->PushClipRectFullScreen();
+      draw_list->AddLine(linkToPos, ImGui::GetIO().MousePos, ImColor(actionColour), 4.0f);
+      draw_list->PopClipRect();
+    }
+    ImGui::EndChild();
+  }
 }
 
 static bool evaluate_any_object(object* user)
@@ -679,7 +701,34 @@ void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t de
       else object_property_add(objectEditing, lastcolon+1, lastlink);
     }
   }
-  track_drag(addLnkId);
+  ImGui::SameLine();
+  static char* linkFrom=0;
+  if(ImGui::IsMouseDragging()) {
+    ImVec2 cp=ImGui::GetCursorScreenPos();
+    ImVec2 mp=ImGui::GetIO().MousePos;
+    if(mp.x>cp.x-smallButtonWidth && mp.x<cp.x && mp.y>cp.y && mp.y<cp.y+buttonHeight){
+      if(linkFrom && strcmp(linkFrom, path)){ free(linkFrom); linkFrom=0; }
+      if(!linkFrom) linkFrom=strdup(path);
+    }
+    else{
+      if(linkFrom && !strcmp(linkFrom, path)){ free(linkFrom); linkFrom=0; }
+    }
+  }
+  else
+  if(!ImGui::IsMouseDown(0)){
+    if(linkTo && linkFrom){
+      char* lastcolon=strrchr(linkFrom,':'); *lastcolon=0;
+      object* objectEditing = onex_get_from_cache(object_property(user, linkFrom));
+      *lastcolon=':';
+      if(object_property_is(objectEditing, lastcolon+1, (char*)"--")){
+        object_property_set(objectEditing, lastcolon+1, object_property(user, linkTo));
+      }
+      else object_property_add(objectEditing, lastcolon+1, object_property(user, linkTo));
+    }
+    if(linkFrom) free(linkFrom); linkFrom=0;
+    if(linkTo) free(linkTo); linkTo=0;
+    linkToPos=ImVec2(0,0);
+  }
 
   ImGui::PopStyleColor(4);
 }
@@ -775,7 +824,10 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
     if(ImGui::Button(barId, ImVec2(blankwidth, buttonHeight)) && !dragPathId){
       toggleOpen(path);
     }
-    track_drag(barId);
+    if(ImGui::IsItemActive() && ImGui::IsMouseDragging()) {
+      if(!linkTo) linkTo=strdup(path);
+      if(!linkToPos.x && !linkToPos.y) linkToPos=ImGui::GetIO().MousePos;
+    }
     ImGui::SameLine();
   }
 
