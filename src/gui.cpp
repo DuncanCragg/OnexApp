@@ -370,7 +370,23 @@ void GUI::drawView()
     {
       ImDrawList* draw_list = ImGui::GetWindowDrawList();
       draw_list->PushClipRectFullScreen();
-      draw_list->AddLine(linkToPos, ImGui::GetIO().MousePos, ImColor(actionColour), 4.0f);
+      ImVec2 mp=ImGui::GetIO().MousePos;
+      float arrowAngle=0.38;
+      float arrowLength=25;
+      float dx=linkToPos.x-mp.x;
+      float dy=linkToPos.y-mp.y;
+      float dv=sqrtf(dx*dx+dy*dy);
+      dx=arrowLength*dx/dv; dy=arrowLength*dy/dv; dv=arrowLength;
+      float dv2=dv/cos(arrowAngle);
+      float a=acos(dy/dv);
+      float dx2=dv2*sin(a-arrowAngle);
+      float dy2=dv2*cos(a-arrowAngle);
+      float dx3=dv2*sin(a+arrowAngle);
+      float dy3=dv2*cos(a+arrowAngle);
+      ImVec2 t1(dx>0? linkToPos.x-dx3: linkToPos.x+dx3, linkToPos.y-dy3);
+      ImVec2 t2(dx>0? linkToPos.x-dx2: linkToPos.x+dx2, linkToPos.y-dy2);
+      draw_list->AddTriangle(linkToPos, t1, t2, ImColor(actionColour), 4.0f);
+      draw_list->AddLine(linkToPos, mp, ImColor(actionColour), 4.0f);
       draw_list->PopClipRect();
     }
     ImGui::EndChild();
