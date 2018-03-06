@@ -399,7 +399,7 @@ static bool evaluate_any_object(object* user)
   return true;
 }
 
-#define DRAG_THRESHOLD         50.0f
+#define DRAG_THRESHOLD         90.0f
 #define START_DRIFT_THRESHOLD  10.0f
 #define END_DRIFT_THRESHOLD     0.01f
 #define DRIFT_DAMPING           0.97f
@@ -1078,7 +1078,7 @@ static char* calendarTitles[16];
 static char* calendarUIDs[16];
 
 #define UPPER_SCROLL_JUMP 20
-#define COLUMN_WIDTH 250
+#define COLUMN_WIDTH 210
 
 void GUI::drawCalendar(char* path, int16_t width, int16_t height)
 {
