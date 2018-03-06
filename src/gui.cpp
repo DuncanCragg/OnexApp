@@ -696,6 +696,7 @@ void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t de
       else object_property_add(objectEditing, lastcolon+1, lastlink);
     }
   }
+  track_drag(addLnkId);
   ImGui::SameLine();
   static char* linkFrom=0;
   if(ImGui::IsMouseDragging()) {
@@ -819,9 +820,11 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
     if(ImGui::Button(barId, ImVec2(blankwidth, buttonHeight)) && !dragPathId){
       toggleOpen(path);
     }
-    if(ImGui::IsItemActive() && ImGui::IsMouseDragging()) {
-      if(!linkTo) linkTo=strdup(path);
+    if(!linkTo) track_drag(barId);
+    if(ImGui::IsItemActive() && ImGui::IsMouseDragging() && !dragPathId) {
       if(!linkToPos.x && !linkToPos.y) linkToPos=ImGui::GetIO().MousePos;
+      ImVec2 mp=ImGui::GetIO().MousePos;
+      if(!linkTo && MOVING_DELTA(linkToPos.x-mp.x, linkToPos.y-mp.y, 1000)) linkTo=strdup(path);
     }
     ImGui::SameLine();
   }
