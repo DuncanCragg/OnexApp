@@ -1110,7 +1110,10 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
 
   ImGui::BeginGroup();
 
-  char tplId[256]; snprintf(tplId, 256, "##topleft cell %s:", path);
+  int daysabove=(int)((scrolly+40.0f)/(2*buttonHeight));
+  time_t daystamp = firstDate-(firstdaydelta-daysabove)*(24*60*60);
+  struct tm thisdate = *localtime(&daystamp);
+  char tplId[256]; snprintf(tplId, 256, "%s\n%d##topleft cell %s:", monthtable[thisdate.tm_mon], thisdate.tm_year+1900, path);
   ImGui::Button(tplId, ImVec2(COLUMN_WIDTH, buttonHeight*2));
   track_drag(tplId);
 
