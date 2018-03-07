@@ -1078,7 +1078,7 @@ static char* calendarTitles[16];
 static char* calendarUIDs[16];
 
 #define UPPER_SCROLL_JUMP 20
-#define COLUMN_WIDTH 210
+#define COLUMN_WIDTH 225
 
 void GUI::drawCalendar(char* path, int16_t width, int16_t height)
 {
