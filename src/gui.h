@@ -60,7 +60,7 @@ public:
   void drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t width);
   void getCellTitles(char* titles, struct tm* thisdate, int col);
   void getCellEventsAndShowOpen(struct tm* thisdate, int col);
-  void saveDays(char* path, time_t todayseconds);
+  void saveDays(char* path);
   void saveDay(char* path, int j, int col);
   char* getLastLink();
   void setPropertyName(char* path , char* name);

@@ -1080,6 +1080,13 @@ static char* calendarUIDs[16];
 #define UPPER_SCROLL_JUMP 20
 #define COLUMN_WIDTH 225
 
+static bool sameDay(struct tm* d1, struct tm* d2)
+{
+  return (*d1).tm_mday==(*d2).tm_mday &&
+         (*d1).tm_mon ==(*d2).tm_mon &&
+         (*d1).tm_year==(*d2).tm_year;
+}
+
 void GUI::drawCalendar(char* path, int16_t width, int16_t height)
 {
   if(!(lasttoday++%1000)){
@@ -1088,7 +1095,7 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
   }
   if(!calstamps) calstamps=properties_new(100);
   else           properties_clear(calstamps, true);
-  saveDays(path, todayseconds);
+  saveDays(path);
   static int firstdaydelta=0;
   static float scrollx=0;
   static float scrolly=0;
@@ -1110,23 +1117,23 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
   char datecol[32]; snprintf(datecol, 32, "datecol");
   ImGui::BeginChild(datecol, ImVec2(COLUMN_WIDTH,height-2*buttonHeight), true);
   {
-    time_t thisseconds = firstDate-firstdaydelta*(24*60*60);
-    for(int day=0; day< lastday; day++){
-      struct tm thisdate = *localtime(&thisseconds);
+    time_t daystamp = firstDate-firstdaydelta*(24*60*60);
+    for(int day=0; day< lastday; day++, daystamp+=(24*60*60)){
+      struct tm thisdate = *localtime(&daystamp);
       if(thisdate.tm_wday==0 || thisdate.tm_wday==6){
         ImGui::PushStyleColor(ImGuiCol_Text, renderColour);
         ImGui::PushStyleColor(ImGuiCol_Button, valueBackground);
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, valueBackground);
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, valueBackgroundActive);
       }
-      if(thisseconds==todayseconds && thisdate.tm_mday==1){
+      if(sameDay(&thisdate, &todaydate) && thisdate.tm_mday==1){
         ImGui::PushStyleColor(ImGuiCol_Text, actionColour);
         ImGui::PushStyleColor(ImGuiCol_Button, propertyBackgroundActive);
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, propertyBackgroundActive);
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, propertyBackgroundActive);
       }
       else
-      if(thisseconds==todayseconds){
+      if(sameDay(&thisdate, &todaydate)){
         ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
         ImGui::PushStyleColor(ImGuiCol_Button, propertyBackgroundActive);
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, propertyBackgroundActive);
@@ -1144,10 +1151,8 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
       ImGui::Button(dayId, ImVec2(COLUMN_WIDTH, buttonHeight*2));
       track_drag(dayId);
 
-      if(thisseconds==todayseconds || thisdate.tm_mday==1) ImGui::PopStyleColor(4);
-      if(thisdate.tm_wday==0 || thisdate.tm_wday==6)       ImGui::PopStyleColor(4);
-
-      thisseconds+=(24*60*60);
+      if(sameDay(&thisdate, &todaydate) || thisdate.tm_mday==1) ImGui::PopStyleColor(4);
+      if(thisdate.tm_wday==0 || thisdate.tm_wday==6)            ImGui::PopStyleColor(4);
     }
   }
   ImGui::EndChild();
@@ -1175,9 +1180,9 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
   ImGui::SetNextWindowContentSize(ImVec2(width*2.02f, 0.0f));
   ImGui::BeginChild(calbody, ImVec2(width,height-2*buttonHeight), true);
   {
-    time_t thisseconds = firstDate-firstdaydelta*(24*60*60);
-    for(int day=0; day< lastday; day++){
-      struct tm thisdate = *localtime(&thisseconds);
+    time_t daystamp = firstDate-firstdaydelta*(24*60*60);
+    for(int day=0; day< lastday; day++, daystamp+=(24*60*60)){
+      struct tm thisdate = *localtime(&daystamp);
       if(thisdate.tm_wday==0 || thisdate.tm_wday==6){
         ImGui::PushStyleColor(ImGuiCol_Text, renderColour);
         ImGui::PushStyleColor(ImGuiCol_Button, valueBackground);
@@ -1189,7 +1194,6 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
         drawDayCell(path, &thisdate, day, col, width);
       }
       if(thisdate.tm_wday==0 || thisdate.tm_wday==6) ImGui::PopStyleColor(4);
-      thisseconds+=(24*60*60);
     }
   }
   ImGui::EndChild();
@@ -1222,7 +1226,7 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
 
 static bool firstDateSet=false;
 
-void GUI::saveDays(char* path, time_t todayseconds)
+void GUI::saveDays(char* path)
 {
   uint16_t ln = object_property_length(user, path);
   int col=1;
@@ -1269,29 +1273,31 @@ void GUI::saveDay(char* path, int j, int col)
 {
   char stpath[128]; snprintf(stpath, 128, "%s:%d:start-date", path, j);
   char* stvals=object_property_values(user, stpath);
-  if(stvals){
-    struct tm start_time;
-    char* r=0;
-    for(int f=0; f<IM_ARRAYSIZE(date_formats); f++){
-      start_time = todaydate;
-      r=strptime(stvals, date_formats[f], &start_time);
-      if(r) break;
-    }
-    if(r){
-      time_t t=mktime(&start_time);
-      if(!firstDateSet){
-        if(firstDate==0 || t<firstDate) firstDate=t;
-        if(lastDate==0  || t>lastDate)  lastDate=t;
-      }
-      char ts[32]; int n=strftime(ts, 32, "%Y-%m-%d", &start_time);
-      snprintf(ts+n, 32-n, "/%d", col);
-      char eventpath[128]; snprintf(eventpath, 128, "%s:%d", path, j);
-      list* l=(list*)properties_get(calstamps, value_new(ts));
-      if(!l) l=list_new(32);
-      list_add(l, value_new(eventpath));
-      properties_set(calstamps, value_new(ts), l);
-    }
+  if(!stvals) return;
+  struct tm start_time;
+  char* r=0;
+  for(int f=0; f<IM_ARRAYSIZE(date_formats); f++){
+    memset(&start_time, 0, sizeof(struct tm));
+    start_time.tm_mday=todaydate.tm_mday;
+    start_time.tm_mon =todaydate.tm_mon;
+    start_time.tm_year=todaydate.tm_year;
+    r=strptime(stvals, date_formats[f], &start_time);
+    if(r) break;
   }
+  if(!r) return;
+  time_t t=mktime(&start_time);
+  if(t== -1) return;
+  if(!firstDateSet){
+    if(firstDate==0 || t<firstDate) firstDate=t;
+    if(lastDate==0  || t>lastDate)  lastDate=t;
+  }
+  char ts[32]; int n=strftime(ts, 32, "%Y-%m-%d", &start_time);
+  snprintf(ts+n, 32-n, "/%d", col);
+  char eventpath[128]; snprintf(eventpath, 128, "%s:%d", path, j);
+  list* l=(list*)properties_get(calstamps, value_new(ts));
+  if(!l) l=list_new(32);
+  list_add(l, value_new(eventpath));
+  properties_set(calstamps, value_new(ts), l);
 }
 
 void GUI::drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t width)
