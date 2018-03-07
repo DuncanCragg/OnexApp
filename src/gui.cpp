@@ -1113,8 +1113,11 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
   int daysabove=(int)((scrolly+40.0f)/(2*buttonHeight));
   time_t daystamp = firstDate-(firstdaydelta-daysabove)*(24*60*60);
   struct tm thisdate = *localtime(&daystamp);
+  bool jumpToToday=false;
   char tplId[256]; snprintf(tplId, 256, "%s\n%d##topleft cell %s:", monthtable[thisdate.tm_mon], thisdate.tm_year+1900, path);
-  ImGui::Button(tplId, ImVec2(COLUMN_WIDTH, buttonHeight*2));
+  if(ImGui::Button(tplId, ImVec2(COLUMN_WIDTH, buttonHeight*2))){
+    jumpToToday=true;
+  }
   track_drag(tplId);
 
   char datecol[32]; snprintf(datecol, 32, "datecol");
@@ -1207,6 +1210,12 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
   set_drag_scroll(path);
   scrollx=ImGui::GetScrollX();
   scrolly=ImGui::GetScrollY();
+  if(jumpToToday){
+    scrolly=UPPER_SCROLL_JUMP*buttonHeight*2;
+    ImGui::SetScrollY(scrolly);
+    firstdaydelta=(firstDate-todayseconds)/(24*60*60)+UPPER_SCROLL_JUMP+2;
+  }
+  else
   if(scrolly<UPPER_SCROLL_JUMP*buttonHeight*2 && !dragPathId){
     scrolly+=UPPER_SCROLL_JUMP*buttonHeight*2;
     ImGui::SetScrollY(scrolly);
