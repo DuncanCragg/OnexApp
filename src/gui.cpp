@@ -428,11 +428,12 @@ static bool evaluate_any_object(object* user)
   return true;
 }
 
-#define DRAG_THRESHOLD         90.0f
+#define DRAG_THRESHOLD         30.0f
 #define START_DRIFT_THRESHOLD  10.0f
 #define END_DRIFT_THRESHOLD     0.01f
 #define DRIFT_DAMPING           0.5f
 
+static ImVec2 startpoint(0,0);
 static char* dragPathId=0;
 static float delta_x=0.0f;
 static float delta_y=0.0f;
@@ -449,6 +450,7 @@ static void killDrag()
   delta_y = 0.0f;
   drag_handled=true;
   drift_threshold = START_DRIFT_THRESHOLD;
+  startpoint=ImVec2(0,0);
 }
 
 static void track_drag(char* pathId)
@@ -458,9 +460,16 @@ static void track_drag(char* pathId)
   }
   else
   if(ImGui::IsItemActive() && ImGui::IsMouseDragging()){
-    ImVec2 mouse_delta = ImGui::GetIO().MouseDelta;
-    if(MOVING_DELTA(mouse_delta.x, mouse_delta.y, !dragPathId? DRAG_THRESHOLD: 0.0f)){
-      if(!dragPathId || strcmp(dragPathId, pathId)) dragPathId=strdup(pathId);
+    if(!dragPathId){
+      if(!startpoint.x && !startpoint.y) startpoint=ImGui::GetIO().MousePos;
+      ImVec2 mp=ImGui::GetIO().MousePos;
+      float dx=mp.x-startpoint.x;
+      float dy=mp.y-startpoint.y;
+      float distancemoved=sqrtf(dx*dx+dy*dy);
+      if(distancemoved > DRAG_THRESHOLD) dragPathId=strdup(pathId);
+    }
+    else{
+      ImVec2 mouse_delta = ImGui::GetIO().MouseDelta;
       delta_x=mouse_delta.x;
       delta_y=mouse_delta.y;
       drag_handled=false;
