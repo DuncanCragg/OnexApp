@@ -304,8 +304,8 @@ void GUI::drawLink()
     {
       ImVec2 mp=ImGui::GetIO().MousePos;
       ImVec2 to, from;
-      if(linkTo){   to=linkToPos; from=mp; }
-      if(linkFrom){ to=mp;        from=linkFromPos; }
+      if(linkToPos.x && linkToPos.y){     to=linkToPos; from=mp; }
+      if(linkFromPos.x && linkFromPos.y){ to=mp;        from=linkFromPos; }
       ImDrawList* draw_list = ImGui::GetWindowDrawList();
       draw_list->PushClipRectFullScreen();
       float arrowAngle=0.38;
@@ -742,13 +742,13 @@ void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t de
   }
   if(!linkFrom) track_drag(addLnkId);
   ImGui::SameLine();
-  if(ImGui::IsItemActive() && ImGui::IsMouseDragging() && !dragPathId) {
+  if(ImGui::IsItemActive() && ImGui::IsMouseDragging() && !dragPathId){
     ImVec2 mp=ImGui::GetIO().MousePos;
     if(!linkFromPos.x && !linkFromPos.y) linkFromPos=mp;
     if(!linkFrom && MOVING_DELTA(linkFromPos.x-mp.x, linkFromPos.y-mp.y, 1000)) linkFrom=strdup(path);
   }
   else
-  if(ImGui::IsMouseDragging()) {
+  if(ImGui::IsMouseDragging() && !dragPathId){
     ImVec2 cp=ImGui::GetCursorScreenPos();
     ImVec2 mp=ImGui::GetIO().MousePos;
     if(mp.x>cp.x-smallButtonWidth && mp.x<cp.x && mp.y>cp.y && mp.y<cp.y+buttonHeight){
@@ -760,7 +760,7 @@ void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t de
     }
   }
   else
-  if(!ImGui::IsMouseDown(0)){
+  if(!ImGui::IsMouseDown(0) && !dragPathId){
     makeLink();
   }
 
@@ -860,13 +860,13 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
     }
     if(!linkTo) track_drag(barId);
     ImGui::SameLine();
-    if(ImGui::IsItemActive() && ImGui::IsMouseDragging() && !dragPathId) {
+    if(ImGui::IsItemActive() && ImGui::IsMouseDragging() && !dragPathId){
       ImVec2 mp=ImGui::GetIO().MousePos;
       if(!linkToPos.x && !linkToPos.y) linkToPos=mp;
       if(!linkTo && MOVING_DELTA(linkToPos.x-mp.x, linkToPos.y-mp.y, 1000)) linkTo=strdup(path);
     }
     else
-    if(ImGui::IsMouseDragging()) {
+    if(ImGui::IsMouseDragging() && !dragPathId){
       ImVec2 cp=ImGui::GetCursorScreenPos();
       ImVec2 mp=ImGui::GetIO().MousePos;
       if(mp.x>cp.x-blankwidth && mp.x<cp.x && mp.y>cp.y && mp.y<cp.y+buttonHeight){
@@ -878,7 +878,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
       }
     }
     else
-    if(!ImGui::IsMouseDown(0)){
+    if(!ImGui::IsMouseDown(0) && !dragPathId){
       makeLink();
     }
   }
