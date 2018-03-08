@@ -62,8 +62,9 @@ public:
   void getCellEventsAndShowOpen(struct tm* thisdate, int col);
   void saveDays(char* path);
   void saveDay(char* path, int j, int col);
-  char* getLastLink();
   void makeLink();
+  void drawLink();
+  char* getLastLink();
   void setPropertyName(char* path , char* name);
   void setPropertyNameAndObject(char* path , char* name);
   void setPropertyNameAndLink(char* path , char* name);

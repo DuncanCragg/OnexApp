@@ -293,6 +293,45 @@ void GUI::makeLink()
   linkFromPos=ImVec2(0,0);
 }
 
+void GUI::drawLink()
+{
+  if(linkTo || linkFrom){
+    ImVec2 startpos(0,0);
+    ImGui::SetCursorScreenPos(startpos);
+    ImVec4 transparent(0.00f, 0.00f, 0.00f, 0.0f);
+    ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, transparent);
+    ImGui::BeginChild("Overlay", ImVec2(workspace1Width+workspace2Width, workspace1Height+buttonHeight), true);
+    {
+      ImVec2 mp=ImGui::GetIO().MousePos;
+      ImVec2 to, from;
+      if(linkTo){   to=linkToPos; from=mp; }
+      if(linkFrom){ to=mp;        from=linkFromPos; }
+      ImDrawList* draw_list = ImGui::GetWindowDrawList();
+      draw_list->PushClipRectFullScreen();
+      float arrowAngle=0.38;
+      float arrowLength=25;
+      float dx=to.x-from.x;
+      float dy=to.y-from.y;
+      float dv=sqrtf(dx*dx+dy*dy);
+      dx=arrowLength*dx/dv; dy=arrowLength*dy/dv; dv=arrowLength;
+      float dv2=dv/cos(arrowAngle);
+      float a=acos(dy/dv);
+      float dx2=dv2*sin(a-arrowAngle);
+      float dy2=dv2*cos(a-arrowAngle);
+      float dx3=dv2*sin(a+arrowAngle);
+      float dy3=dv2*cos(a+arrowAngle);
+      ImVec2 t1(dx>0? to.x-dx3: to.x+dx3, to.y-dy3);
+      ImVec2 t2(dx>0? to.x-dx2: to.x+dx2, to.y-dy2);
+      draw_list->AddCircleFilled(from, 10.0f, ImColor(actionColour));
+      draw_list->AddTriangleFilled(to, t1, t2, ImColor(actionColour));
+      draw_list->AddLine(to, from, ImColor(actionColour), 4.0f);
+      draw_list->PopClipRect();
+    }
+    ImGui::EndChild();
+    ImGui::PopStyleColor();
+  }
+}
+
 void GUI::drawView()
 {
   if(yOffsetCounter){
@@ -380,41 +419,7 @@ void GUI::drawView()
     else             drawNestedObjectPropertiesList(path, false, ws2width-rhsPadding, workspace2Height-100, 1);
   }
   ImGui::EndChild();
-  if(linkTo || linkFrom){
-    ImVec2 startpos(0,0);
-    ImGui::SetCursorScreenPos(startpos);
-    ImVec4 transparent(0.00f, 0.00f, 0.00f, 0.0f);
-    ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, transparent);
-    ImGui::BeginChild("Overlay", ImVec2(workspace1Width+workspace2Width, workspace1Height+buttonHeight), true);
-    {
-      ImVec2 mp=ImGui::GetIO().MousePos;
-      ImVec2 to, from;
-      if(linkTo){   to=linkToPos; from=mp; }
-      if(linkFrom){ to=mp;        from=linkFromPos; }
-      ImDrawList* draw_list = ImGui::GetWindowDrawList();
-      draw_list->PushClipRectFullScreen();
-      float arrowAngle=0.38;
-      float arrowLength=25;
-      float dx=to.x-from.x;
-      float dy=to.y-from.y;
-      float dv=sqrtf(dx*dx+dy*dy);
-      dx=arrowLength*dx/dv; dy=arrowLength*dy/dv; dv=arrowLength;
-      float dv2=dv/cos(arrowAngle);
-      float a=acos(dy/dv);
-      float dx2=dv2*sin(a-arrowAngle);
-      float dy2=dv2*cos(a-arrowAngle);
-      float dx3=dv2*sin(a+arrowAngle);
-      float dy3=dv2*cos(a+arrowAngle);
-      ImVec2 t1(dx>0? to.x-dx3: to.x+dx3, to.y-dy3);
-      ImVec2 t2(dx>0? to.x-dx2: to.x+dx2, to.y-dy2);
-      draw_list->AddCircleFilled(from, 10.0f, ImColor(actionColour));
-      draw_list->AddTriangleFilled(to, t1, t2, ImColor(actionColour));
-      draw_list->AddLine(to, from, ImColor(actionColour), 4.0f);
-      draw_list->PopClipRect();
-    }
-    ImGui::EndChild();
-    ImGui::PopStyleColor();
-  }
+  drawLink();
 }
 
 static bool evaluate_any_object(object* user)
