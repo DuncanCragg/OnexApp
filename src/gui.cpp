@@ -334,9 +334,10 @@ void GUI::drawLink()
 
 void GUI::drawView()
 {
-  if(yOffsetCounter){
+  if(yOffsetCounter > 0){
+    int msperframe = (int)(1000.0f/ImGui::GetIO().Framerate);
     yOffset=yOffsetTarget*(100-yOffsetCounter)/100;
-    yOffsetCounter-=5;
+    yOffsetCounter-=msperframe >10? 10 : 5;
   }
   if(!rhsFullScreen){
     ImGui::BeginChild("Workspace1", ImVec2(workspace1Width,workspace1Height), true);
