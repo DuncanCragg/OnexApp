@@ -400,11 +400,11 @@ void GUI::drawView()
 
     ImGui::SameLine();
 
-    ImGui::Button("##paddingbutton", ImVec2(ws2width-2*buttonWidth-2*smallButtonWidth-rhsPadding, buttonHeight));
+    ImGui::Button("##paddingbutton", ImVec2(ws2width-2*buttonWidth-2.5*smallButtonWidth-rhsPadding, buttonHeight));
 
     ImGui::SameLine();
 
-    if(ImGui::Button(" +", ImVec2(smallButtonWidth, buttonHeight)))
+    if(ImGui::Button(rhsFullScreen? " >>" : " <<", ImVec2(smallButtonWidth*1.5, buttonHeight)))
     {
       rhsFullScreen=!rhsFullScreen;
     }
@@ -884,7 +884,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
     }
   }
 
-  char maxId[256]; snprintf(maxId, 256, " +## %s", path);
+  char maxId[256]; snprintf(maxId, 256, " ^## %s", path);
   if(ImGui::Button(maxId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
     char* viewing=object_property(user, path);
     object_property_add(user, (char*)"history", object_property(user, (char*)"viewing-l"));
