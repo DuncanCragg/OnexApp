@@ -271,8 +271,27 @@ static void closeAllStarting(char* prefix)
 static bool rhsFullScreen=false;
 static bool calendarView=false;
 static bool tableView=false;
+static char* linkFrom=0;
 static char* linkTo=0;
 static ImVec2 linkToPos=ImVec2(0,0);
+static ImVec2 linkFromPos=ImVec2(0,0);
+
+void GUI::makeLink()
+{
+  if(linkTo && linkFrom){
+    char* lastcolon=strrchr(linkFrom,':'); *lastcolon=0;
+    object* objectEditing = onex_get_from_cache(object_property(user, linkFrom));
+    *lastcolon=':';
+    if(object_property_is(objectEditing, lastcolon+1, (char*)"--")){
+      object_property_set(objectEditing, lastcolon+1, object_property(user, linkTo));
+    }
+    else object_property_add(objectEditing, lastcolon+1, object_property(user, linkTo));
+  }
+  if(linkFrom) free(linkFrom); linkFrom=0;
+  if(linkTo) free(linkTo); linkTo=0;
+  linkToPos=ImVec2(0,0);
+  linkFromPos=ImVec2(0,0);
+}
 
 void GUI::drawView()
 {
@@ -361,20 +380,23 @@ void GUI::drawView()
     else             drawNestedObjectPropertiesList(path, false, ws2width-rhsPadding, workspace2Height-100, 1);
   }
   ImGui::EndChild();
-  if(linkTo){
+  if(linkTo || linkFrom){
     ImVec2 startpos(0,0);
     ImGui::SetCursorScreenPos(startpos);
     ImVec4 transparent(0.00f, 0.00f, 0.00f, 0.0f);
     ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, transparent);
     ImGui::BeginChild("Overlay", ImVec2(workspace1Width+workspace2Width, workspace1Height+buttonHeight), true);
     {
+      ImVec2 mp=ImGui::GetIO().MousePos;
+      ImVec2 to, from;
+      if(linkTo){   to=linkToPos; from=mp; }
+      if(linkFrom){ to=mp;        from=linkFromPos; }
       ImDrawList* draw_list = ImGui::GetWindowDrawList();
       draw_list->PushClipRectFullScreen();
-      ImVec2 mp=ImGui::GetIO().MousePos;
       float arrowAngle=0.38;
       float arrowLength=25;
-      float dx=linkToPos.x-mp.x;
-      float dy=linkToPos.y-mp.y;
+      float dx=to.x-from.x;
+      float dy=to.y-from.y;
       float dv=sqrtf(dx*dx+dy*dy);
       dx=arrowLength*dx/dv; dy=arrowLength*dy/dv; dv=arrowLength;
       float dv2=dv/cos(arrowAngle);
@@ -383,10 +405,11 @@ void GUI::drawView()
       float dy2=dv2*cos(a-arrowAngle);
       float dx3=dv2*sin(a+arrowAngle);
       float dy3=dv2*cos(a+arrowAngle);
-      ImVec2 t1(dx>0? linkToPos.x-dx3: linkToPos.x+dx3, linkToPos.y-dy3);
-      ImVec2 t2(dx>0? linkToPos.x-dx2: linkToPos.x+dx2, linkToPos.y-dy2);
-      draw_list->AddTriangle(linkToPos, t1, t2, ImColor(actionColour), 4.0f);
-      draw_list->AddLine(linkToPos, mp, ImColor(actionColour), 4.0f);
+      ImVec2 t1(dx>0? to.x-dx3: to.x+dx3, to.y-dy3);
+      ImVec2 t2(dx>0? to.x-dx2: to.x+dx2, to.y-dy2);
+      draw_list->AddCircleFilled(from, 10.0f, ImColor(actionColour));
+      draw_list->AddTriangleFilled(to, t1, t2, ImColor(actionColour));
+      draw_list->AddLine(to, from, ImColor(actionColour), 4.0f);
       draw_list->PopClipRect();
     }
     ImGui::EndChild();
@@ -712,9 +735,14 @@ void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t de
       else object_property_add(objectEditing, lastcolon+1, lastlink);
     }
   }
-  track_drag(addLnkId);
+  if(!linkFrom) track_drag(addLnkId);
   ImGui::SameLine();
-  static char* linkFrom=0;
+  if(ImGui::IsItemActive() && ImGui::IsMouseDragging() && !dragPathId) {
+    ImVec2 mp=ImGui::GetIO().MousePos;
+    if(!linkFromPos.x && !linkFromPos.y) linkFromPos=mp;
+    if(!linkFrom && MOVING_DELTA(linkFromPos.x-mp.x, linkFromPos.y-mp.y, 1000)) linkFrom=strdup(path);
+  }
+  else
   if(ImGui::IsMouseDragging()) {
     ImVec2 cp=ImGui::GetCursorScreenPos();
     ImVec2 mp=ImGui::GetIO().MousePos;
@@ -728,18 +756,7 @@ void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t de
   }
   else
   if(!ImGui::IsMouseDown(0)){
-    if(linkTo && linkFrom){
-      char* lastcolon=strrchr(linkFrom,':'); *lastcolon=0;
-      object* objectEditing = onex_get_from_cache(object_property(user, linkFrom));
-      *lastcolon=':';
-      if(object_property_is(objectEditing, lastcolon+1, (char*)"--")){
-        object_property_set(objectEditing, lastcolon+1, object_property(user, linkTo));
-      }
-      else object_property_add(objectEditing, lastcolon+1, object_property(user, linkTo));
-    }
-    if(linkFrom) free(linkFrom); linkFrom=0;
-    if(linkTo) free(linkTo); linkTo=0;
-    linkToPos=ImVec2(0,0);
+    makeLink();
   }
 
   ImGui::PopStyleColor(4);
@@ -837,12 +854,28 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
       toggleOpen(path);
     }
     if(!linkTo) track_drag(barId);
+    ImGui::SameLine();
     if(ImGui::IsItemActive() && ImGui::IsMouseDragging() && !dragPathId) {
-      if(!linkToPos.x && !linkToPos.y) linkToPos=ImGui::GetIO().MousePos;
       ImVec2 mp=ImGui::GetIO().MousePos;
+      if(!linkToPos.x && !linkToPos.y) linkToPos=mp;
       if(!linkTo && MOVING_DELTA(linkToPos.x-mp.x, linkToPos.y-mp.y, 1000)) linkTo=strdup(path);
     }
-    ImGui::SameLine();
+    else
+    if(ImGui::IsMouseDragging()) {
+      ImVec2 cp=ImGui::GetCursorScreenPos();
+      ImVec2 mp=ImGui::GetIO().MousePos;
+      if(mp.x>cp.x-blankwidth && mp.x<cp.x && mp.y>cp.y && mp.y<cp.y+buttonHeight){
+        if(linkTo && strcmp(linkTo, path)){ free(linkTo); linkTo=0; }
+        if(!linkTo) linkTo=strdup(path);
+      }
+      else{
+        if(linkTo && !strcmp(linkTo, path)){ free(linkTo); linkTo=0; }
+      }
+    }
+    else
+    if(!ImGui::IsMouseDown(0)){
+      makeLink();
+    }
   }
 
   char maxId[256]; snprintf(maxId, 256, " +## %s", path);

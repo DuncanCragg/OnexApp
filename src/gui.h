@@ -63,6 +63,7 @@ public:
   void saveDays(char* path);
   void saveDay(char* path, int j, int col);
   char* getLastLink();
+  void makeLink();
   void setPropertyName(char* path , char* name);
   void setPropertyNameAndObject(char* path , char* name);
   void setPropertyNameAndLink(char* path , char* name);
