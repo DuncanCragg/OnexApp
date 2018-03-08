@@ -431,7 +431,7 @@ static bool evaluate_any_object(object* user)
 #define DRAG_THRESHOLD         90.0f
 #define START_DRIFT_THRESHOLD  10.0f
 #define END_DRIFT_THRESHOLD     0.01f
-#define DRIFT_DAMPING           0.97f
+#define DRIFT_DAMPING           0.5f
 
 static char* dragPathId=0;
 static float delta_x=0.0f;
@@ -468,8 +468,9 @@ static void track_drag(char* pathId)
   }
   else
   if(!ImGui::IsMouseDown(0) && MOVING_DELTA(delta_x, delta_y, drift_threshold) && dragPathId && !strcmp(pathId, dragPathId)){
-    delta_x *= DRIFT_DAMPING;
-    delta_y *= DRIFT_DAMPING;
+    int msperframe = (int)(1000.0f/ImGui::GetIO().Framerate);
+    delta_x *= (1.0f-(DRIFT_DAMPING*msperframe)/100);
+    delta_y *= (1.0f-(DRIFT_DAMPING*msperframe)/100);
     drag_handled=false;
     drift_threshold = END_DRIFT_THRESHOLD;
   }
