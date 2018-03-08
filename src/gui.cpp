@@ -276,6 +276,8 @@ static char* linkTo=0;
 static ImVec2 linkToPos=ImVec2(0,0);
 static ImVec2 linkFromPos=ImVec2(0,0);
 
+#define LINK_THRESHOLD 20.0f
+
 void GUI::makeLink()
 {
   if(linkTo && linkFrom){
@@ -465,6 +467,7 @@ static void track_drag(char* pathId)
       ImVec2 mp=ImGui::GetIO().MousePos;
       float dx=mp.x-startpoint.x;
       float dy=mp.y-startpoint.y;
+      dx*=0.5;
       float distancemoved=sqrtf(dx*dx+dy*dy);
       if(distancemoved > DRAG_THRESHOLD) dragPathId=strdup(pathId);
     }
@@ -874,7 +877,13 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
     if(ImGui::IsItemActive() && ImGui::IsMouseDragging() && !dragPathId){
       ImVec2 mp=ImGui::GetIO().MousePos;
       if(!linkToPos.x && !linkToPos.y) linkToPos=mp;
-      if(!linkTo && MOVING_DELTA(linkToPos.x-mp.x, linkToPos.y-mp.y, 1000)) linkTo=strdup(path);
+      if(!linkTo){
+        float dx=linkToPos.x-mp.x;
+        float dy=linkToPos.y-mp.y;
+        dx=dx>=0? dx: -dx;
+        dy=dy>=0? dy: -dy;
+        if(dx>LINK_THRESHOLD && dy<LINK_THRESHOLD) linkTo=strdup(path);
+      }
     }
     else
     if(ImGui::IsMouseDragging() && !dragPathId){
