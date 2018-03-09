@@ -694,7 +694,7 @@ void GUI::drawObjectFooter(char* path, bool locallyEditable, int16_t width, int1
       track_drag(barId, true);
     }
   }else{
-    int flags=ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue;
+    int flags=ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue|ImGuiInputTextFlags_CallbackAlways;
     if(propNameChoice > 1){
       char* propname=(char*)propNameStrings[propNameChoice];
       if(!strcmp(propname, "list") || !strcmp(propname, "Rules")) setPropertyNameAndObject(path, propname);
@@ -705,14 +705,49 @@ void GUI::drawObjectFooter(char* path, bool locallyEditable, int16_t width, int1
     else if(propNameChoice==1){
       struct TextFilters {
         static int FilterImGuiLetters(ImGuiTextEditCallbackData* data) {
-          ImWchar ch = data->EventChar;
-          if(ch >=256) return 1;
-          if(!strlen(valBuf) && !isalpha(ch)) return 1;
-          if(ch == ' '){ data->EventChar = '-'; return 0; }
-          if(ch == '-'){ return 0; }
-          if(!isalnum(ch)) return 1;
-          data->EventChar = tolower(ch);
-          return 0;
+          static const char* wordsToComplete[] = { "is", "title", "description", "text", "list", "date", "time", "end-time", "end-date", "Rules", "Timer", "Notifying" };
+          static bool autocompletenext=false;
+          static int ss=0;
+          static int se=0;
+          if(data->EventFlag==ImGuiInputTextFlags_CallbackCharFilter){
+            autocompletenext=true;
+            ImWchar ch = data->EventChar;
+            if(ch >=256) return 1;
+            if(!strlen(valBuf) && !isalpha(ch)) return 1;
+            if(ch == ' '){ data->EventChar = '-'; return 0; }
+            if(ch == '-'){ return 0; }
+            if(!isalnum(ch)) return 1;
+            data->EventChar = tolower(ch);
+            return 0;
+          }
+          if(data->EventFlag==ImGuiInputTextFlags_CallbackAlways && autocompletenext){
+            autocompletenext=false;
+            int p=data->BufTextLen;
+            if(p){
+              int numwords=IM_ARRAYSIZE(wordsToComplete);
+              int i;
+              for(i=0; i<numwords; i++){
+                if(!strncasecmp(data->Buf, wordsToComplete[i], p)){
+                  data->DeleteChars(0, p);
+                  data->InsertChars(0, wordsToComplete[i]);
+                  ss=p;
+                  se=strlen(wordsToComplete[i]);
+                  data->BufDirty=true;
+                  break;
+                }
+              }
+              if(i==numwords){
+                ss=p;
+                se=p;
+              }
+            }
+          }
+          if(data->EventFlag==ImGuiInputTextFlags_CallbackAlways){
+            data->CursorPos=ss;
+            data->SelectionStart=ss;
+            data->SelectionEnd=se;
+            return 0;
+          }
         }
       };
       if(!grabbedFocus){
