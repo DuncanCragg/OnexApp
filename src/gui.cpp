@@ -449,17 +449,17 @@ static ImVec2 linkFromPos=ImVec2(0,0);
 
 #define LINK_THRESHOLD 20.0f
 
-void GUI::trackLinkFrom(char* path, int width)
+void GUI::trackLink(char*& linkEnd, ImVec2& linkEndPos, char* path, int width)
 {
   if(ImGui::IsItemActive() && ImGui::IsMouseDragging() && !dragPathId){
     ImVec2 mp=ImGui::GetIO().MousePos;
-    if(!linkFromPos.x && !linkFromPos.y) linkFromPos=mp;
-    if(!linkFrom){
-      float dx=linkFromPos.x-mp.x;
-      float dy=linkFromPos.y-mp.y;
+    if(!linkEndPos.x && !linkEndPos.y) linkEndPos=mp;
+    if(!linkEnd){
+      float dx=linkEndPos.x-mp.x;
+      float dy=linkEndPos.y-mp.y;
       dx=dx>=0? dx: -dx;
       dy=dy>=0? dy: -dy;
-      if(dx>LINK_THRESHOLD && dy<LINK_THRESHOLD) linkFrom=strdup(path);
+      if(dx>LINK_THRESHOLD && dy<LINK_THRESHOLD) linkEnd=strdup(path);
     }
   }
   else
@@ -467,42 +467,11 @@ void GUI::trackLinkFrom(char* path, int width)
     ImVec2 cp=ImGui::GetCursorScreenPos();
     ImVec2 mp=ImGui::GetIO().MousePos;
     if(mp.x>cp.x-width && mp.x<cp.x && mp.y>cp.y && mp.y<cp.y+buttonHeight){
-      if(linkFrom && strcmp(linkFrom, path)){ free(linkFrom); linkFrom=0; }
-      if(!linkFrom) linkFrom=strdup(path);
+      if(linkEnd && strcmp(linkEnd, path)){ free(linkEnd); linkEnd=0; }
+      if(!linkEnd) linkEnd=strdup(path);
     }
     else{
-    //  if(linkFrom && !strcmp(linkFrom, path)){ free(linkFrom); linkFrom=0; }
-    }
-  }
-  else
-  if(!ImGui::IsMouseDown(0) && !dragPathId){
-    makeLink();
-  }
-}
-
-void GUI::trackLinkTo(char* path, int width)
-{
-  if(ImGui::IsItemActive() && ImGui::IsMouseDragging() && !dragPathId){
-    ImVec2 mp=ImGui::GetIO().MousePos;
-    if(!linkToPos.x && !linkToPos.y) linkToPos=mp;
-    if(!linkTo){
-      float dx=linkToPos.x-mp.x;
-      float dy=linkToPos.y-mp.y;
-      dx=dx>=0? dx: -dx;
-      dy=dy>=0? dy: -dy;
-      if(dx>LINK_THRESHOLD && dy<LINK_THRESHOLD) linkTo=strdup(path);
-    }
-  }
-  else
-  if(ImGui::IsMouseDragging() && !dragPathId){
-    ImVec2 cp=ImGui::GetCursorScreenPos();
-    ImVec2 mp=ImGui::GetIO().MousePos;
-    if(mp.x>cp.x-width && mp.x<cp.x && mp.y>cp.y && mp.y<cp.y+buttonHeight){
-      if(linkTo && strcmp(linkTo, path)){ free(linkTo); linkTo=0; }
-      if(!linkTo) linkTo=strdup(path);
-    }
-    else{
-      //if(linkTo && !strcmp(linkTo, path)){ free(linkTo); linkTo=0; }
+    //  if(linkEnd && !strcmp(linkEnd, path)){ free(linkEnd); linkEnd=0; }
     }
   }
   else
@@ -802,7 +771,7 @@ void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t de
   }
   if(!linkFrom) track_drag(addObjId);
   ImGui::SameLine();
-  trackLinkFrom(path, w);
+  trackLink(linkFrom, linkFromPos, path, w);
 
   char addLnkId[256]; snprintf(addLnkId, 256, " <## %s", pathj);
   if(ImGui::Button(addLnkId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
@@ -819,7 +788,7 @@ void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t de
   }
   if(!linkFrom) track_drag(addLnkId);
   ImGui::SameLine();
-  trackLinkFrom(path, smallButtonWidth);
+  trackLink(linkFrom, linkFromPos, path, smallButtonWidth);
 
   ImGui::PopStyleColor(4);
 }
@@ -917,7 +886,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
     }
     if(!linkTo) track_drag(barId);
     ImGui::SameLine();
-    trackLinkTo(path, blankwidth);
+    trackLink(linkTo, linkToPos, path, blankwidth);
   }
 
   char maxId[256]; snprintf(maxId, 256, " ^## %s", path);
