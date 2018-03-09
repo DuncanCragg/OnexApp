@@ -215,8 +215,6 @@ void GUI::drawGUI()
   ImGui::Render();
 }
 
-const char* propNameStrings[] = { "+", "+new prop", "title", "description", "text", "date", "start-date", "end-date", "list", "Rules", "Timer", "Notifying" };
-int         propNameChoice = 0;
 char*       propNameEditing=0;
 uint16_t    yOffsetTarget=0;
 uint16_t    yOffset=0;
@@ -661,29 +659,26 @@ void GUI::drawObjectFooter(char* path, bool locallyEditable, int16_t width, int1
   bool editing = propNameEditing && !strcmp(path, propNameEditing);
   if(editing && grabbedFocus && !io.WantTextInput){
     hideKeyboard();
-    free(propNameEditing); propNameEditing=0; propNameChoice = 0;
+    free(propNameEditing); propNameEditing=0;
     *valBuf=0;
     grabbedFocus=false;
     editing=false;
   }
   if(!editing){
-    ImGui::PushItemWidth(keyWidth);
     int c=0;
-    char comId[256]; snprintf(comId, 256, "## combo %s", path);
+    char prpId[256]; snprintf(prpId, 256, " +## property %s", path);
     bool nodarken=depth<3;
-    ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, 50);
     ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
-    ImGui::PushStyleColor(ImGuiCol_PopupBg, nodarken? propertyBackground: propertyBackgroundActive);
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, nodarken? propertyBackground: propertyBackgroundActive);
     ImGui::PushStyleColor(ImGuiCol_Button, nodarken? propertyBackground: propertyBackgroundActive);
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, nodarken? propertyBackground: propertyBackgroundActive);
-    ImGui::Combo(comId, !propNameEditing? &propNameChoice: &c, propNameStrings, IM_ARRAYSIZE(propNameStrings));
-    ImGui::PopStyleColor(5);
-    ImGui::PopStyleVar();
-    track_drag(comId, true);
-    if(!propNameEditing && propNameChoice){ propNameEditing = strdup(path); if(propNameChoice==1) showKeyboard(0); }
-    ImGui::PopItemWidth();
+    if(ImGui::Button(prpId, ImVec2(keyWidth, buttonHeight))){
+      if(!propNameEditing){ propNameEditing = strdup(path); showKeyboard(0); }
+    }
+    ImGui::PopStyleColor(3);
+    track_drag(prpId, true);
+
     ImGui::SameLine();
+
     int blankwidth = width - keyWidth;
     if(blankwidth>10){
       char barId[256]; snprintf(barId, 256, "## comboblank %s", path);
@@ -695,82 +690,75 @@ void GUI::drawObjectFooter(char* path, bool locallyEditable, int16_t width, int1
     }
   }else{
     int flags=ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue|ImGuiInputTextFlags_CallbackAlways;
-    if(propNameChoice > 1){
-      char* propname=(char*)propNameStrings[propNameChoice];
-      if(!strcmp(propname, "list") || !strcmp(propname, "Rules")) setPropertyNameAndObject(path, propname);
-      else if(!strcmp(propname, "Notifying")) setPropertyNameAndLink(path, propname);
-      else setPropertyName(path, propname);
-      free(propNameEditing); propNameEditing=0; propNameChoice = 0;
-    }
-    else if(propNameChoice==1){
-      struct TextFilters {
-        static int FilterImGuiLetters(ImGuiTextEditCallbackData* data) {
-          static const char* wordsToComplete[] = { "is", "title", "description", "text", "list", "date", "time", "end-time", "end-date", "Rules", "Timer", "Notifying" };
-          static bool autocompletenext=false;
-          static int ss=0;
-          static int se=0;
-          if(data->EventFlag==ImGuiInputTextFlags_CallbackCharFilter){
-            autocompletenext=true;
-            ImWchar ch = data->EventChar;
-            if(ch >=256) return 1;
-            if(!strlen(valBuf) && !isalpha(ch)) return 1;
-            if(ch == ' '){ data->EventChar = '-'; return 0; }
-            if(ch == '-'){ return 0; }
-            if(!isalnum(ch)) return 1;
-            data->EventChar = tolower(ch);
-            return 0;
-          }
-          if(data->EventFlag==ImGuiInputTextFlags_CallbackAlways && autocompletenext){
-            autocompletenext=false;
-            int p=data->BufTextLen;
-            if(p){
-              int numwords=IM_ARRAYSIZE(wordsToComplete);
-              int i;
-              for(i=0; i<numwords; i++){
-                if(!strncasecmp(data->Buf, wordsToComplete[i], p)){
-                  data->DeleteChars(0, p);
-                  data->InsertChars(0, wordsToComplete[i]);
-                  ss=p;
-                  se=strlen(wordsToComplete[i]);
-                  data->BufDirty=true;
-                  break;
-                }
-              }
-              if(i==numwords){
+    struct TextFilters {
+      static int FilterImGuiLetters(ImGuiTextEditCallbackData* data) {
+        static const char* wordsToComplete[] = { "is", "title", "description", "text", "list", "date", "time", "end-time", "end-date", "Rules", "Timer", "Notifying" };
+        static bool autocompletenext=false;
+        static int ss=0;
+        static int se=0;
+        if(data->EventFlag==ImGuiInputTextFlags_CallbackCharFilter){
+          autocompletenext=true;
+          ImWchar ch = data->EventChar;
+          if(ch >=256) return 1;
+          if(!strlen(valBuf) && !isalpha(ch)) return 1;
+          if(ch == ' '){ data->EventChar = '-'; return 0; }
+          if(ch == '-'){ return 0; }
+          if(!isalnum(ch)) return 1;
+          data->EventChar = tolower(ch);
+          return 0;
+        }
+        if(data->EventFlag==ImGuiInputTextFlags_CallbackAlways && autocompletenext){
+          autocompletenext=false;
+          int p=data->BufTextLen;
+          if(p){
+            int numwords=IM_ARRAYSIZE(wordsToComplete);
+            int i;
+            for(i=0; i<numwords; i++){
+              if(!strncasecmp(data->Buf, wordsToComplete[i], p)){
+                data->DeleteChars(0, p);
+                data->InsertChars(0, wordsToComplete[i]);
                 ss=p;
-                se=p;
+                se=strlen(wordsToComplete[i]);
+                data->BufDirty=true;
+                break;
               }
             }
-          }
-          if(data->EventFlag==ImGuiInputTextFlags_CallbackAlways){
-            data->CursorPos=ss;
-            data->SelectionStart=ss;
-            data->SelectionEnd=se;
-            return 0;
+            if(i==numwords){
+              ss=p;
+              se=p;
+            }
           }
         }
-      };
-      if(!grabbedFocus){
-        ImGui::SetKeyboardFocusHere();
-        grabbedFocus = io.WantTextInput;
+        if(data->EventFlag==ImGuiInputTextFlags_CallbackAlways){
+          data->CursorPos=ss;
+          data->SelectionStart=ss;
+          data->SelectionEnd=se;
+          return 0;
+        }
       }
-      ImGui::PushItemWidth(keyWidth);
-      ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
-      ImGui::PushStyleColor(ImGuiCol_PopupBg, propertyBackground);
-      ImGui::PushStyleColor(ImGuiCol_FrameBg, propertyBackground);
-      if(ImGui::InputText("## property name", valBuf, 256, flags, TextFilters::FilterImGuiLetters)){
-        if(propNameChoice==1) setPropertyName(path, valBuf);
-        hideKeyboard();
-        free(propNameEditing); propNameEditing=0; propNameChoice = 0;
-        *valBuf=0;
-        grabbedFocus=false;
-      }
-      ImGui::PopStyleColor(3);
-      ImGui::PopItemWidth();
-      ImGui::SameLine();
-      int blankwidth = width - keyWidth;
-      if(blankwidth>10) ImGui::Button("## blank", ImVec2(blankwidth, buttonHeight));
+    };
+    if(!grabbedFocus){
+      ImGui::SetKeyboardFocusHere();
+      grabbedFocus = io.WantTextInput;
     }
+    ImGui::PushItemWidth(buttonWidth*2);
+    ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
+    ImGui::PushStyleColor(ImGuiCol_PopupBg, propertyBackground);
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, propertyBackground);
+    if(ImGui::InputText("## property name", valBuf, 256, flags, TextFilters::FilterImGuiLetters)){
+      if(!strcmp(valBuf, "list") || !strcmp(valBuf, "Rules")) setPropertyNameAndObject(path, valBuf);
+      else if(!strcmp(valBuf, "Notifying")) setPropertyNameAndLink(path, valBuf);
+      else setPropertyName(path, valBuf);
+      hideKeyboard();
+      free(propNameEditing); propNameEditing=0;
+      *valBuf=0;
+      grabbedFocus=false;
+    }
+    ImGui::PopStyleColor(3);
+    ImGui::PopItemWidth();
+    ImGui::SameLine();
+    int blankwidth = width - buttonWidth*2;
+    if(blankwidth>10) ImGui::Button("## blank", ImVec2(blankwidth, buttonHeight));
   }
 }
 
