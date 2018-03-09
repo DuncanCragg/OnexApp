@@ -781,7 +781,7 @@ void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t de
   }
   if(!linkFrom) track_drag(addObjId);
   ImGui::SameLine();
-  trackLink(true, path, w);
+  trackLink(true, path, 0);
 
   char addLnkId[256]; snprintf(addLnkId, 256, " <## %s", pathj);
   if(ImGui::Button(addLnkId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
@@ -798,7 +798,7 @@ void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t de
   }
   if(!linkFrom) track_drag(addLnkId);
   ImGui::SameLine();
-  trackLink(true, path, smallButtonWidth);
+  trackLink(true, path, w+smallButtonWidth);
 
   ImGui::PopStyleColor(4);
 }
