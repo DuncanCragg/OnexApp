@@ -649,6 +649,22 @@ void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool lo
   ImGui::PopItemWidth();
 }
 
+static const char* propertyNameChoices[] = {
+  "is",
+  "title",
+  "description",
+  "text",
+  "list",
+  "date",
+  "time",
+  "end-time",
+  "end-date",
+  "cost",
+  "Rules",
+  "Timer",
+  "Notifying"
+};
+
 void GUI::drawObjectFooter(char* path, bool locallyEditable, int16_t width, int16_t keyWidth, int8_t depth)
 {
   if(depth>=3) return;
@@ -692,7 +708,6 @@ void GUI::drawObjectFooter(char* path, bool locallyEditable, int16_t width, int1
     int flags=ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue|ImGuiInputTextFlags_CallbackAlways;
     struct TextFilters {
       static int FilterImGuiLetters(ImGuiTextEditCallbackData* data) {
-        static const char* wordsToComplete[] = { "is", "title", "description", "text", "list", "date", "time", "end-time", "end-date", "Rules", "Timer", "Notifying" };
         static bool autocompletenext=false;
         static int ss=0;
         static int se=0;
@@ -711,14 +726,14 @@ void GUI::drawObjectFooter(char* path, bool locallyEditable, int16_t width, int1
           autocompletenext=false;
           int p=data->BufTextLen;
           if(p){
-            int numwords=IM_ARRAYSIZE(wordsToComplete);
+            int numwords=IM_ARRAYSIZE(propertyNameChoices);
             int i;
             for(i=0; i<numwords; i++){
-              if(!strncasecmp(data->Buf, wordsToComplete[i], p)){
+              if(!strncasecmp(data->Buf, propertyNameChoices[i], p)){
                 data->DeleteChars(0, p);
-                data->InsertChars(0, wordsToComplete[i]);
+                data->InsertChars(0, propertyNameChoices[i]);
                 ss=p;
-                se=strlen(wordsToComplete[i]);
+                se=strlen(propertyNameChoices[i]);
                 data->BufDirty=true;
                 break;
               }
@@ -735,6 +750,7 @@ void GUI::drawObjectFooter(char* path, bool locallyEditable, int16_t width, int1
           data->SelectionEnd=se;
           return 0;
         }
+        return 0;
       }
     };
     if(!grabbedFocus){
@@ -757,7 +773,7 @@ void GUI::drawObjectFooter(char* path, bool locallyEditable, int16_t width, int1
     ImGui::PopStyleColor(3);
     ImGui::PopItemWidth();
     ImGui::SameLine();
-    int blankwidth = width - buttonWidth*2;
+    int blankwidth = width-buttonWidth*2;
     if(blankwidth>10) ImGui::Button("## blank", ImVec2(blankwidth, buttonHeight));
   }
 }
