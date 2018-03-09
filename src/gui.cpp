@@ -468,6 +468,7 @@ void GUI::trackLink(bool from, char* path, int width)
       if(dx>LINK_THRESHOLD && dy<LINK_THRESHOLD){
         linkEnd=strdup(path);
         linkDirection=from? LINK_FROM: LINK_TO;
+        killDrag();
       }
     }
   }
