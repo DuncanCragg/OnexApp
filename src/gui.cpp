@@ -393,7 +393,7 @@ static void killDrag()
   startpoint=ImVec2(0,0);
 }
 
-static void track_drag(char* pathId)
+static void track_drag(char* pathId, bool twodimensions)
 {
   if(ImGui::IsItemActive() && !ImGui::IsMouseDragging() && dragPathId && strcmp(pathId, dragPathId)){
     killDrag();
@@ -405,7 +405,7 @@ static void track_drag(char* pathId)
       ImVec2 mp=ImGui::GetIO().MousePos;
       float dx=mp.x-startpoint.x;
       float dy=mp.y-startpoint.y;
-      dx*=0.5;
+      if(!twodimensions){ dx=0; dy*=0.5; }
       float distancemoved=sqrtf(dx*dx+dy*dy);
       if(distancemoved > DRAG_THRESHOLD) dragPathId=strdup(pathId);
     }
@@ -443,15 +443,15 @@ static void set_drag_scroll(char* path)
   }
 }
 
+#define LINK_THRESHOLD 20.0f
 #define LINK_FROM 1
 #define LINK_TO   2
+
 static int   linkDirection=0;
 static char* linkFrom=0;
 static char* linkTo=0;
 static ImVec2 linkToPos=ImVec2(0,0);
 static ImVec2 linkFromPos=ImVec2(0,0);
-
-#define LINK_THRESHOLD 20.0f
 
 void GUI::trackLink(bool from, char* path, int width)
 {
@@ -632,7 +632,7 @@ void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool lo
         showKeyboard(multy);
       }
     }
-    track_drag(valId);
+    track_drag(valId, true);
     ImGui::PopStyleColor();
   }
   else{
@@ -679,7 +679,7 @@ void GUI::drawObjectFooter(char* path, bool locallyEditable, int16_t width, int1
     ImGui::Combo(comId, !propNameEditing? &propNameChoice: &c, propNameStrings, IM_ARRAYSIZE(propNameStrings));
     ImGui::PopStyleColor(5);
     ImGui::PopStyleVar();
-    track_drag(comId);
+    track_drag(comId, true);
     if(!propNameEditing && propNameChoice){ propNameEditing = strdup(path); if(propNameChoice==1) showKeyboard(0); }
     ImGui::PopItemWidth();
     ImGui::SameLine();
@@ -690,7 +690,7 @@ void GUI::drawObjectFooter(char* path, bool locallyEditable, int16_t width, int1
       ImGui::PushStyleColor(ImGuiCol_ButtonHovered, nodarken? valueBackground: valueBackgroundActive);
       ImGui::Button(barId, ImVec2(blankwidth, buttonHeight));
       ImGui::PopStyleColor(2);
-      track_drag(barId);
+      track_drag(barId, true);
     }
   }else{
     int flags=ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue;
@@ -747,7 +747,7 @@ void GUI::drawPadding(char* path, int16_t width, int16_t height, int8_t depth)
   ImGui::PushStyleColor(ImGuiCol_BorderShadow, nodarken? listBackground: listBackgroundDark);
   char blnId[256]; snprintf(blnId, 256, "##padding %d %d %s", width, height, path);
   ImGui::Button(blnId, ImVec2(width, height));
-  track_drag(blnId);
+  track_drag(blnId, true);
   ImGui::PopStyleColor(4);
 }
 
@@ -779,7 +779,7 @@ void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t de
       else object_property_add(objectEditing, lastcolon+1, object_property(o, (char*)"UID"));
     }
   }
-  if(!linkFrom) track_drag(addObjId);
+  if(!linkFrom) track_drag(addObjId, false);
   ImGui::SameLine();
   trackLink(true, path, 0);
 
@@ -796,7 +796,7 @@ void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t de
       else object_property_add(objectEditing, lastcolon+1, lastlink);
     }
   }
-  if(!linkFrom) track_drag(addLnkId);
+  if(!linkFrom) track_drag(addLnkId, false);
   ImGui::SameLine();
   trackLink(true, path, w+smallButtonWidth);
 
@@ -865,7 +865,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
         closeAllStarting((char*)"viewing-l");
       }
     }
-    track_drag(linkId);
+    track_drag(linkId, true);
     ImGui::SameLine();
   }
   else if(depth<3){
@@ -882,7 +882,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
         object_property_set(user, path, (char*)"");
       }
     }
-    track_drag(dropId);
+    track_drag(dropId, true);
     ImGui::SameLine();
   }
 
@@ -894,7 +894,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
     if(ImGui::Button(barId, ImVec2(blankwidth, buttonHeight)) && !dragPathId){
       toggleOpen(path);
     }
-    if(!linkTo) track_drag(barId);
+    if(!linkTo) track_drag(barId, false);
     ImGui::SameLine();
     trackLink(false, path, blankwidth);
   }
@@ -906,7 +906,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
     object_property_set(user, (char*)"viewing-l", viewing);
     closeAllStarting((char*)"viewing-l");
   }
-  track_drag(maxId);
+  track_drag(maxId, true);
 
   ImGui::SameLine();
 
@@ -914,7 +914,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
   if(ImGui::Button(pikId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
     object_property_add(user, (char*)"viewing-r", object_property(user, path));
   }
-  track_drag(pikId);
+  track_drag(pikId, true);
 
   ImGui::PopStyleColor(4);
   ImGui::PopStyleVar(1);
@@ -1004,7 +1004,7 @@ void GUI::drawObjectProperties(char* path, bool locallyEditable, int16_t width, 
     else{
       char blnId[256]; snprintf(blnId, 256, "##filler %d %d %s", width, hgt, pathkey);
       ImGui::Button(blnId, ImVec2(width, paddingHeight));
-      track_drag(blnId);
+      track_drag(blnId, true);
     }
   }
   drawObjectFooter(path, locallyEditable, width, keyWidth, depth);
@@ -1026,7 +1026,7 @@ void GUI::drawKey(char* path, char* key, int16_t width, int16_t height, int16_t 
   ImGui::PushStyleColor(ImGuiCol_ButtonActive, propertyBackgroundActive);
   char keyId[256]; snprintf(keyId, 256, "%s ## %s", key, path);
   ImGui::Button(keyId, ImVec2(keyWidth, height));
-  track_drag(keyId);
+  track_drag(keyId, true);
   ImGui::PopStyleColor(4);
   ImGui::SameLine();
 }
@@ -1172,7 +1172,7 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
   if(ImGui::Button(tplId, ImVec2(COLUMN_WIDTH, buttonHeight*2))){
     jumpToToday=true;
   }
-  track_drag(tplId);
+  track_drag(tplId, true);
 
   char datecol[32]; snprintf(datecol, 32, "datecol");
   ImGui::BeginChild(datecol, ImVec2(COLUMN_WIDTH,height-2*buttonHeight), true);
@@ -1209,7 +1209,7 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
 
       char dayId[256]; snprintf(dayId, 256, "%s %d\n%s## %d %s:", daytable[thisdate.tm_wday], thisdate.tm_mday, (thisdate.tm_mday==1 || day==0)? monthtable[thisdate.tm_mon]: "", day, path);
       ImGui::Button(dayId, ImVec2(COLUMN_WIDTH, buttonHeight*2));
-      track_drag(dayId);
+      track_drag(dayId, true);
 
       if(sameDay(&thisdate, &todaydate) || thisdate.tm_mday==1) ImGui::PopStyleColor(4);
       if(thisdate.tm_wday==0 || thisdate.tm_wday==6)            ImGui::PopStyleColor(4);
@@ -1231,7 +1231,7 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
       if(col>1) ImGui::SameLine();
       char colId[256]; snprintf(colId, 256, "%s##calendarTitles[%d] %s:", calendarTitles[col]? calendarTitles[col]: (char*)"", col, path);
       ImGui::Button(colId, ImVec2(2*COLUMN_WIDTH, buttonHeight*2));
-      track_drag(colId);
+      track_drag(colId, true);
     }
   }
   ImGui::EndChild();
@@ -1393,7 +1393,7 @@ void GUI::drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t
         getCellEventsAndShowOpen(thisdate, col);
         calendarView=!calendarView;
       }
-      track_drag(evtId);
+      track_drag(evtId, true);
     }
   }else{
     if(!grabbedFocus){
@@ -1434,7 +1434,7 @@ void GUI::drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t
         showKeyboard(0);
       }
     }
-    track_drag(addId);
+    track_drag(addId, true);
     ImGui::PopStyleVar();
     ImGui::PopStyleColor();
   }
