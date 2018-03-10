@@ -690,7 +690,7 @@ void GUI::drawObjectFooter(char* path, bool locallyEditable, int16_t width, int1
     ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
     ImGui::PushStyleColor(ImGuiCol_Button, nodarken? propertyBackground: propertyBackgroundActive);
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, nodarken? propertyBackground: propertyBackgroundActive);
-    if(ImGui::Button(prpId, ImVec2(keyWidth, buttonHeight))){
+    if(ImGui::Button(prpId, ImVec2(keyWidth, buttonHeight)) && !dragPathId){
       if(!propNameEditing){ propNameEditing = strdup(path); showKeyboard(0); }
     }
     ImGui::PopStyleColor(3);
@@ -897,8 +897,8 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
   ImGui::PushStyleColor(ImGuiCol_ButtonActive, actionBackgroundActive);
 
   if(depth==1){
-    char linkId[256]; snprintf(linkId, 256, " Back## %s", path);
-    if(ImGui::Button(linkId, ImVec2(buttonWidth, buttonHeight))){
+    char backId[256]; snprintf(backId, 256, " Back## %s", path);
+    if(ImGui::Button(backId, ImVec2(buttonWidth, buttonHeight))){
       uint16_t histlen=object_property_length(user, (char*)"history");
       if(histlen){
         char popPath[64]; snprintf(popPath, 64, "history:%d", histlen);
@@ -908,7 +908,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
         closeAllStarting((char*)"viewing-l");
       }
     }
-    track_drag(linkId, true);
+    track_drag(backId, true);
     ImGui::SameLine();
   }
   else if(depth<3){
@@ -1212,7 +1212,7 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
   struct tm thisdate = *localtime(&daystamp);
   bool jumpToToday=false;
   char tplId[256]; snprintf(tplId, 256, "%s\n%d##topleft cell %s:", monthtable[thisdate.tm_mon], thisdate.tm_year+1900, path);
-  if(ImGui::Button(tplId, ImVec2(COLUMN_WIDTH, buttonHeight*2))){
+  if(ImGui::Button(tplId, ImVec2(COLUMN_WIDTH, buttonHeight*2)) && !dragPathId){
     jumpToToday=true;
   }
   track_drag(tplId, true);
