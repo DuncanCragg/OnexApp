@@ -64,7 +64,7 @@ public:
   void saveDay(char* path, int j, int col);
   void makeLink();
   void drawLink();
-  void trackLink(bool from, char* path, int width);
+  void trackLink(bool from, char* path, int width, int height);
   char* getLastLink();
   void setPropertyName(char* path , char* name);
   void setPropertyNameAndObject(char* path , char* name);

@@ -451,7 +451,7 @@ static char* linkTo=0;
 static ImVec2 linkToPos=ImVec2(0,0);
 static ImVec2 linkFromPos=ImVec2(0,0);
 
-void GUI::trackLink(bool from, char* path, int width)
+void GUI::trackLink(bool from, char* path, int width, int height)
 {
   char*&  linkEnd   =from? linkFrom: linkTo;
   ImVec2& linkEndPos=from? linkFromPos: linkToPos;
@@ -474,7 +474,7 @@ void GUI::trackLink(bool from, char* path, int width)
   if(((from && linkDirection==LINK_TO)||(!from && linkDirection==LINK_FROM)) && ImGui::IsMouseDragging() && !dragPathId){
     ImVec2 cp=ImGui::GetCursorScreenPos();
     ImVec2 mp=ImGui::GetIO().MousePos;
-    if(mp.x>cp.x-width && mp.x<cp.x && mp.y>cp.y && mp.y<cp.y+buttonHeight){
+    if(mp.x>cp.x-width && mp.x<cp.x && mp.y>cp.y && mp.y<cp.y+height){
       if(linkEnd && strcmp(linkEnd, path)){ free(linkEnd); linkEnd=0; }
       if(!linkEnd) linkEnd=strdup(path);
     }
@@ -826,7 +826,7 @@ void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t de
   }
   if(!linkFrom) track_drag(addObjId, false);
   ImGui::SameLine();
-  trackLink(true, path, 0);
+  trackLink(true, path, 0, 0);
 
   char addLnkId[256]; snprintf(addLnkId, 256, " <## %s", pathj);
   if(ImGui::Button(addLnkId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
@@ -843,7 +843,7 @@ void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t de
   }
   if(!linkFrom) track_drag(addLnkId, false);
   ImGui::SameLine();
-  trackLink(true, path, w+smallButtonWidth);
+  trackLink(true, path, w+smallButtonWidth, buttonHeight*10);
 
   ImGui::PopStyleColor(4);
 }
@@ -969,7 +969,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
     }
     if(!linkTo) track_drag(barId, false);
     ImGui::SameLine();
-    trackLink(false, path, blankwidth);
+    trackLink(false, path, blankwidth, buttonHeight);
   }
 
   char maxId[256]; snprintf(maxId, 256, " ^## %s", path);
