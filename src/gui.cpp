@@ -879,13 +879,13 @@ object* GUI::createNewObjectLikeOthers(char* path)
   return r;
 }
 
-object* GUI::createNewEvent(struct tm* thisdate)
+object* GUI::createNewEvent(struct tm* thisdate, char* title)
 {
   object* r=object_new(0, 0, evaluate_any_object, 4);
   object_property_set(r, (char*)"is", (char*)"event");
   char ts[32]; strftime(ts, 32, "%Y-%m-%d", thisdate);
   object_property_set(r, (char*)"date", ts);
-  object_property_set(r, (char*)"title", (char*)"<title>");
+  object_property_set(r, (char*)"title", title);
   return r;
 }
 
@@ -1414,7 +1414,6 @@ void GUI::saveDay(char* path, int j, int col)
 void GUI::drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t width)
 {
   static char valBuf[256] = "";
-  static char editingPath[256]="";
   static char* editingCell=0;
   static bool grabbedFocus=false;
 
@@ -1424,7 +1423,7 @@ void GUI::drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t
   ImGuiIO& io = ImGui::GetIO();
   if(editing && grabbedFocus && !io.WantTextInput){
     hideKeyboard();
-    *editingPath=0; free(editingCell); editingCell=0;
+    free(editingCell); editingCell=0;
     *valBuf=0;
     grabbedFocus=false;
     editing=false;
@@ -1450,11 +1449,22 @@ void GUI::drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t
     int flags=ImGuiInputTextFlags_EnterReturnsTrue|ImGuiInputTextFlags_CtrlEnterForNewLine|ImGuiInputTextFlags_AutoSelectAll;
     char valId[256]; snprintf(valId, 256, "## editing %s:", path);
     if(ImGui::InputTextMultiline(valId, valBuf, 256, ImVec2(2*COLUMN_WIDTH, buttonHeight*2), flags)){
-      setNewValue(editingPath, valBuf, true);
-      hideKeyboard();
-      *editingPath=0; free(editingCell); editingCell=0;
-      *valBuf=0;
-      grabbedFocus=false;
+      if(*valBuf){
+        object* o=createNewEvent(thisdate, valBuf);
+        if(o){
+          char* evtuid=object_property(o, (char*)"UID");
+          char* caluid=calendarUIDs[col];
+          if(caluid){
+            object* objectEditing = onex_get_from_cache(caluid);
+            object_property_add(objectEditing, (char*)"list", evtuid);
+          }
+          object_property_add(user, (char*)"viewing-r", evtuid);
+          hideKeyboard();
+          free(editingCell); editingCell=0;
+          *valBuf=0;
+          grabbedFocus=false;
+        }
+      }
     }
     ImGui::PopStyleColor(2);
   }
@@ -1464,20 +1474,8 @@ void GUI::drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t
     ImGui::PushStyleColor(ImGuiCol_Text, renderColourSoft);
     ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0.5f,0.5f));
     if(ImGui::Button(addId, ImVec2(*titles? smallButtonWidth: 2*COLUMN_WIDTH, buttonHeight*2)) && canAdd && !editing && !dragPathId){
-      object* o=createNewEvent(thisdate);
-      if(o){
-        char* evtuid=object_property(o, (char*)"UID");
-        char* caluid=calendarUIDs[col];
-        if(caluid){
-          object* objectEditing = onex_get_from_cache(caluid);
-          object_property_add(objectEditing, (char*)"list", evtuid);
-        }
-        object_property_add(user, (char*)"viewing-r", evtuid);
-        int i=object_property_length(user, (char*)"viewing-r");
-        snprintf(editingPath, 256, "viewing-r:%d:title", i);
-        editingCell=strdup(addId);
-        showKeyboard(0);
-      }
+      editingCell=strdup(addId);
+      showKeyboard(0);
     }
     track_drag(addId, true);
     ImGui::PopStyleVar();
