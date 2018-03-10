@@ -884,7 +884,7 @@ object* GUI::createNewEvent(struct tm* thisdate)
   object* r=object_new(0, 0, evaluate_any_object, 4);
   object_property_set(r, (char*)"is", (char*)"event");
   char ts[32]; strftime(ts, 32, "%Y-%m-%d", thisdate);
-  object_property_set(r, (char*)"start-date", ts);
+  object_property_set(r, (char*)"date", ts);
   object_property_set(r, (char*)"title", (char*)"<title>");
   return r;
 }
@@ -1382,7 +1382,7 @@ void GUI::saveDays(char* path)
 
 void GUI::saveDay(char* path, int j, int col)
 {
-  char stpath[128]; snprintf(stpath, 128, "%s:%d:start-date", path, j);
+  char stpath[128]; snprintf(stpath, 128, "%s:%d:date", path, j);
   char* stvals=object_property_values(user, stpath);
   if(!stvals) return;
   struct tm start_time;
