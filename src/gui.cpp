@@ -879,13 +879,41 @@ object* GUI::createNewObjectLikeOthers(char* path)
   return r;
 }
 
+static const char* time_formats[] = { "%I:%M%p", "%I.%M%p", "%I%p", //  7:00pm 7pm
+                                      "%H:%M", "%H.%M",             //  19:00
+};
+
 object* GUI::createNewEvent(struct tm* thisdate, char* title)
 {
-  object* r=object_new(0, 0, evaluate_any_object, 4);
+  object* r=object_new(0, 0, evaluate_any_object, 8);
   object_property_set(r, (char*)"is", (char*)"event");
   char ts[32]; strftime(ts, 32, "%Y-%m-%d", thisdate);
   object_property_set(r, (char*)"date", ts);
   object_property_set(r, (char*)"title", title);
+  char* time=0;
+  char* endtime=0;
+  char* p=title;
+  for(;*p;p++){
+    if(isdigit(*p)){
+      struct tm parsed_time;
+      char* r=0;
+      for(int f=0; f<IM_ARRAYSIZE(time_formats); f++){
+        memset(&parsed_time, 0, sizeof(struct tm));
+        r=strptime(p, time_formats[f], &parsed_time);
+        if(r){ p=r; break; }
+      }
+      if(r){
+        char ts[32]; int n=strftime(ts, 32, "%I:%M%P", &parsed_time);
+        char* tsd=strdup(ts);
+        if(!time) time=tsd;
+        else
+        if(!endtime) endtime=tsd;
+        if(time && endtime) break;
+      }
+    }
+  }
+  if(time){    object_property_set(r, (char*)"time",     time);    free(time); }
+  if(endtime){ object_property_set(r, (char*)"end-time", endtime); free(endtime); }
   return r;
 }
 
@@ -1474,7 +1502,6 @@ void GUI::drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t
     }
     ImGui::PopStyleColor(2);
   }
-
   if(!editing){
     if(*titles) ImGui::SameLine();
     ImGui::PushStyleColor(ImGuiCol_Text, renderColourSoft);
