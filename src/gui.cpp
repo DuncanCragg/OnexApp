@@ -843,7 +843,7 @@ void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t de
   }
   if(!linkFrom) track_drag(addLnkId, false);
   ImGui::SameLine();
-  trackLink(true, path, w+smallButtonWidth, buttonHeight*10);
+  trackLink(true, path, w+smallButtonWidth, buttonHeight);
 
   ImGui::PopStyleColor(4);
 }
