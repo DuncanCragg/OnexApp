@@ -63,7 +63,7 @@ public:
   void saveDays(char* path);
   void saveDay(char* path, int j, int col);
   void makeLink();
-  void bestPropName(char* propname, object* from, object* to);
+  void bestPropName(char* propname, object* from, char* touid);
   void drawLink();
   void trackLink(bool from, char* path, int width, int height);
   char* getLastLink();

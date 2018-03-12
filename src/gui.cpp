@@ -511,7 +511,7 @@ void GUI::makeLink()
     char* touid=object_property(user, linkTo);
     if(objectEditing && touid){
       char newpropname[128];
-      if(!propname){ propname=newpropname; bestPropName(propname, objectEditing, onex_get_from_cache(touid)); }
+      if(!propname){ propname=newpropname; bestPropName(propname, objectEditing, touid); }
       if(object_property_is(objectEditing, propname, (char*)"--")){
         object_property_set(objectEditing, propname, touid);
       }
@@ -525,12 +525,13 @@ void GUI::makeLink()
   linkDirection=0;
 }
 
-void GUI::bestPropName(char* propname, object* from, object* to)
+void GUI::bestPropName(char* propname, object* from, char* touid)
 {
   if(object_property_contains(from, (char*)"is", (char*)"list")){
     strncpy(propname, "list", 128);
   }
   else{
+    object* to=onex_get_from_cache(touid);
     char* is=object_property_values(to, (char*)"is");
     strncpy(propname, is, 128);
     for(char* p=propname; *p; p++) if(*p==' ') *p='-';
