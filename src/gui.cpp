@@ -453,9 +453,9 @@ static ImVec2 linkFromPos=ImVec2(0,0);
 
 void GUI::trackLink(bool from, char* path, int width, int height)
 {
-  char*&  linkEnd   =from? linkFrom: linkTo;
-  ImVec2& linkEndPos=from? linkFromPos: linkToPos;
   if(ImGui::IsItemActive() && ImGui::IsMouseDragging() && !dragPathId){
+    char*&  linkEnd   =from? linkFrom: linkTo;
+    ImVec2& linkEndPos=from? linkFromPos: linkToPos;
     ImVec2 mp=ImGui::GetIO().MousePos;
     if(!linkEndPos.x && !linkEndPos.y) linkEndPos=mp;
     if(!linkEnd){
@@ -471,7 +471,8 @@ void GUI::trackLink(bool from, char* path, int width, int height)
     }
   }
   else
-  if(((from && linkDirection==LINK_TO)||(!from && linkDirection==LINK_FROM)) && ImGui::IsMouseDragging() && !dragPathId){
+  if(linkDirection && ImGui::IsMouseDragging() && !dragPathId){
+    char*&  linkEnd=(linkDirection==LINK_TO? linkFrom: linkTo);
     ImVec2 cp=ImGui::GetCursorScreenPos();
     ImVec2 mp=ImGui::GetIO().MousePos;
     if(mp.x>cp.x-width && mp.x<cp.x && mp.y>cp.y && mp.y<cp.y+height){
@@ -491,13 +492,29 @@ void GUI::trackLink(bool from, char* path, int width, int height)
 void GUI::makeLink()
 {
   if(linkTo && linkFrom){
-    char* lastcolon=strrchr(linkFrom,':'); *lastcolon=0;
-    object* objectEditing = onex_get_from_cache(object_property(user, linkFrom));
-    *lastcolon=':';
-    if(object_property_is(objectEditing, lastcolon+1, (char*)"--")){
-      object_property_set(objectEditing, lastcolon+1, object_property(user, linkTo));
+    char* lastcolon=strrchr(linkFrom,':');
+    char* fromuid=0;
+    char* propname;
+    if(lastcolon){
+      propname=lastcolon+1;
+      int n; if(!sscanf(propname, "%u", &n)){
+        *lastcolon=0;
+        fromuid=object_property(user, linkFrom);
+        *lastcolon=':';
+      }
     }
-    else object_property_add(objectEditing, lastcolon+1, object_property(user, linkTo));
+    if(!fromuid){
+      fromuid=object_property(user, linkFrom);
+      propname=(char*)"banana";
+    }
+    object* objectEditing = onex_get_from_cache(fromuid);
+    char* touid=object_property(user, linkTo);
+    if(objectEditing && touid){
+      if(object_property_is(objectEditing, propname, (char*)"--")){
+        object_property_set(objectEditing, propname, touid);
+      }
+      else object_property_add(objectEditing, propname, touid);
+    }
   }
   if(linkFrom) free(linkFrom); linkFrom=0;
   if(linkTo) free(linkTo); linkTo=0;
