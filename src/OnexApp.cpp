@@ -42,6 +42,25 @@ JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onSerialRe
   on_serial_recv((char*)chars);
   env->ReleaseStringUTFChars(b, chars);
 }
+
+void sprintExternalStorageDirectory(char* buf, int buflen, const char* format)
+{
+  JNIEnv* env; androidApp->activity->vm->AttachCurrentThread(&env, 0);
+
+  jclass osEnvClass = env->FindClass("android/os/Environment");
+  jmethodID getExternalStorageDirectoryMethod = env->GetStaticMethodID(osEnvClass, "getExternalStorageDirectory", "()Ljava/io/File;");
+  jobject extStorage = env->CallStaticObjectMethod(osEnvClass, getExternalStorageDirectoryMethod);
+
+  jclass extStorageClass = env->GetObjectClass(extStorage);
+  jmethodID getAbsolutePathMethod = env->GetMethodID(extStorageClass, "getAbsolutePath", "()Ljava/lang/String;");
+  jstring extStoragePath = (jstring)env->CallObjectMethod(extStorage, getAbsolutePathMethod);
+
+  const char* extStoragePathString=env->GetStringUTFChars(extStoragePath, 0);
+  snprintf(buf, buflen, format, extStoragePathString);
+  env->ReleaseStringUTFChars(extStoragePath, extStoragePathString);
+
+  androidApp->activity->vm->DetachCurrentThread();
+}
 #endif
 
 bool keyboardUp = false;
@@ -81,12 +100,6 @@ void serial_send(char* b)
 }
 #endif
 
-#if defined(__ANDROID__)
-#define FILE_PATH "data/data/network.object.onexapp/files/"
-#else
-#define FILE_PATH "./"
-#endif
-
 class OnexApp : public VulkanBase
 {
   GUI* gui;
@@ -114,7 +127,13 @@ public:
     camera.setRotation(glm::vec3(5.0f, 90.0f, 0.0f));
     camera.setPerspective(60.0f, (float)width / (float)height, 0.1f, 256.0f);
 
-    onex_init((char*)(FILE_PATH "onex.db"));
+#if defined(VK_USE_PLATFORM_ANDROID_KHR)
+    char dbpath[128];
+    sprintExternalStorageDirectory(dbpath, 128, "%s/Onex/onex.ondb");
+    onex_init(dbpath);
+#else
+    onex_init((char*)"Onex/onex.ondb");
+#endif
 
     onex_set_default_evaluator(evaluate_list);
 
@@ -318,11 +337,11 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)                
 OnexApp *vulkanApp;                                    \
 void android_main(android_app* state)                                \
 {                                                  \
+  androidApp = state;                                        \
   vulkanApp = new OnexApp();                              \
   state->userData = vulkanApp;                                \
   state->onAppCmd = OnexApp::handleAppCommand;                        \
   state->onInputEvent = OnexApp::handleAppInput;                      \
-  androidApp = state;                                        \
   vks::android::getDeviceConfig();                                \
   vulkanApp->renderLoop();                                  \
   delete(vulkanApp);                                      \
