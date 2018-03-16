@@ -2187,7 +2187,7 @@ void ImGui::ShowStyleEditor(ImGuiStyle* ref)
                     // Display all glyphs of the fonts in separate pages of 256 characters
                     const ImFontGlyph* glyph_fallback = font->FallbackGlyph; // Forcefully/dodgily make FindGlyph() return NULL on fallback, which isn't the default behavior.
                     font->FallbackGlyph = NULL;
-                    for (int base = 0; base < 0x10000; base += 256)
+                    for (int base = 0; base < 0x20000; base += 256)
                     {
                         int count = 0;
                         for (int n = 0; n < 256; n++)
