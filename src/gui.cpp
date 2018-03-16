@@ -220,8 +220,10 @@ uint16_t    yOffsetTarget=0;
 uint16_t    yOffset=0;
 uint16_t    yOffsetCounter=0;
 
+#define xTEST_ANDROID_KEYBOARD
+
 void GUI::showKeyboard(float multy){
-#if defined(__ANDROID__)
+#if defined(__ANDROID__) || defined(TEST_ANDROID_KEYBOARD)
   if(yOffsetTarget) return;
   yOffsetTarget=(multy!=0)? multy: (ImGui::GetCursorScreenPos().y-buttonHeight)/1.85;
   yOffsetCounter=100;
@@ -230,7 +232,7 @@ void GUI::showKeyboard(float multy){
 }
 
 void GUI::hideKeyboard(){
-#if defined(__ANDROID__)
+#if defined(__ANDROID__) || defined(TEST_ANDROID_KEYBOARD)
   yOffsetTarget=0;
   yOffsetCounter=0;
   yOffset=0;
@@ -280,7 +282,7 @@ void GUI::drawView()
   if(!rhsFullScreen){
     ImGui::BeginChild("Workspace1", ImVec2(workspace1Width,workspace1Height), true);
     {
-#if defined(__ANDROID__)
+#if defined(__ANDROID__) || defined(TEST_ANDROID_KEYBOARD)
       ImVec2 startingpoint = ImGui::GetCursorScreenPos();
       ImVec2 startpos(startingpoint.x, startingpoint.y - yOffset);
       ImGui::SetCursorScreenPos(startpos);
@@ -300,7 +302,7 @@ void GUI::drawView()
   uint16_t ws2width=rhsFullScreen? workspace1Width+workspace2Width: workspace2Width;
   ImGui::BeginChild("Workspace2", ImVec2(ws2width,workspace2Height), true);
   {
-#if defined(__ANDROID__)
+#if defined(__ANDROID__) || defined(TEST_ANDROID_KEYBOARD)
     ImVec2 startingpoint = ImGui::GetCursorScreenPos();
     ImVec2 startpos(startingpoint.x, startingpoint.y - yOffset);
     ImGui::SetCursorScreenPos(startpos);
@@ -1661,7 +1663,9 @@ void GUI::addAnyKeySym()
 
 void GUI::keyPressed(uint32_t keyCode, char32_t u32key)
 {
+#if defined(__ANDROID__) || defined(TEST_ANDROID_KEYBOARD)
   if(keyCode==BACK_BUTTON){ log_write("BACK\n"); return; }
+#endif
   ImGuiIO& io = ImGui::GetIO();
   if(keyCode) io.KeysDown[keyCode] = true;
   io.KeyCtrl = io.KeysDown[KEY_CTRL_LEFT] || io.KeysDown[KEY_CTRL_RIGHT];
