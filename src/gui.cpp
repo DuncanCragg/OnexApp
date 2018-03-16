@@ -155,20 +155,35 @@ void GUI::initImGUI(float width, float height)
 #define ASSET_PATH "./../data/"
 #endif
 
+#if defined(__ANDROID__)
+static char* getFontData(const char* fontfile, size_t* length)
+{
+  AAsset* asset = AAssetManager_open(androidApp->activity->assetManager, fontfile, AASSET_MODE_STREAMING);
+  *length = AAsset_getLength(asset);
+  char* font_data = new char[*length]; // TODO free?
+  AAsset_read(asset, font_data, *length);
+  AAsset_close(asset);
+  return font_data;
+}
+#endif
+
 void GUI::getFontInfo()
 {
   ImGuiIO& io = ImGui::GetIO();
-  const char* fontfile = ASSET_PATH "fonts/OpenSans-Regular.ttf";
+  const char* fontfilereg = ASSET_PATH "fonts/OpenSans-Regular.ttf";
+  const char* fontfileemo = ASSET_PATH "fonts/OpenSansEmoji.ttf";
+  static const ImWchar reg_range[] = { 0x0020, 0x00FF,  0 };
+  static const ImWchar emo_range[] = { 0x1F300, 0x1F6FF,  0 };
+  ImFontConfig config; config.MergeMode = true;
   float fontsize = 60.0f;
 #if defined(__ANDROID__)
-  AAsset* asset = AAssetManager_open(androidApp->activity->assetManager, fontfile, AASSET_MODE_STREAMING);
-  size_t size = AAsset_getLength(asset);
-  char* font_data = new char[size]; // TODO free?
-  AAsset_read(asset, font_data, size);
-  AAsset_close(asset);
-  io.Fonts->AddFontFromMemoryTTF(font_data, size, fontsize, NULL, io.Fonts->GetGlyphRangesDefault());
+  size_t lengthreg; char* fontdatareg=getFontData(fontfilereg, &lengthreg);
+  size_t lengthemo; char* fontdataemo=getFontData(fontfileemo, &lengthemo);
+  io.Fonts->AddFontFromMemoryTTF(fontdatareg, lengthreg, fontsize, 0,       reg_range);
+  io.Fonts->AddFontFromMemoryTTF(fontdataemo, lengthemo, fontsize, &config, emo_range);
 #else
-  io.Fonts->AddFontFromFileTTF(fontfile, fontsize, NULL, io.Fonts->GetGlyphRangesDefault());
+  io.Fonts->AddFontFromFileTTF(fontfilereg, fontsize, 0,       reg_range);
+  io.Fonts->AddFontFromFileTTF(fontfileemo, fontsize, &config, emo_range);
 #endif
   io.Fonts->GetTexDataAsRGBA32(&fontData, &texWidth, &texHeight);
 }

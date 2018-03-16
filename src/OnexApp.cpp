@@ -140,10 +140,10 @@ public:
     user=onex_get_from_cache((char*)"uid-1");
 
     if(!user){
-      object* art1p1=object_new_from((char*)"is: word list  list: Welcome to Onex! First thing to do is to go around trying all the buttons ..", 0, 2);
-      object* art1p2=object_new_from((char*)"is: word list  list: Then try making yourself a todo list..", 0, 2);
+      object* art1p1=object_new_from((char*)"is: word list  list: \xF0\x9F\x98\x83 \xF0\x9F\x93\xA6 Welcome to Onex! First thing to do is to go around trying all the buttons ..", 0, 2);
+      object* art1p2=object_new_from((char*)"is: word list  list: \xF0\x9F\x98\x83 \xF0\x9F\x93\xA6 Then try making yourself a todo list..", 0, 2);
 
-      object* art1=object_new_from((char*)"is: article title: First steps.. ", 0, 4);
+      object* art1=object_new_from((char*)"is: article title: \xF0\x9F\x98\x83 \xF0\x9F\x93\xA6 First steps.. ", 0, 4);
       object_property_set(art1, (char*)"text", object_property(art1p1, (char*)"UID"));
       object_property_add(art1, (char*)"text", object_property(art1p2, (char*)"UID"));
 
@@ -165,7 +165,7 @@ public:
       object_property_set(famp1, (char*)"partner", object_property(famp2, (char*)"UID"));
       object_property_set(famp2, (char*)"partner", object_property(famp1, (char*)"UID"));
 
-      object* famtree=object_new_from((char*)"is: family tree  title: My family  ", evaluate_list, 20);
+      object* famtree=object_new_from((char*)"is: family tree  title: \xF0\x9F\x98\x83 My family \xF0\x9F\x93\xA6", evaluate_list, 20);
       object_property_set(famtree, (char*)"people", object_property(famp1, (char*)"UID"));
       object_property_add(famtree, (char*)"people", object_property(famp2, (char*)"UID"));
 
