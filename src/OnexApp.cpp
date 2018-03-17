@@ -143,12 +143,18 @@ public:
     if(!config){
       // UTF-8 hex:  "\xF0\x9F\x98\x83  \xF0\x9F\x93\xA6"
 
-      object* tagbirth=object_new_from((char*)"is: tag  title: birthday  icon: 📦  colour: red", 0,52);
-      object* tagparty=object_new_from((char*)"is: tag  title: party     icon: 😃  colour: yellow", 0,52);
+      object* tagbirth=object_new_from((char*)"is: tag  title: birthday  icon: 📦  colour: red", 0,5);
+      object* tagparty=object_new_from((char*)"is: tag  title: party     icon: 🎉  colour: yellow", 0,5);
+      object* tagtrain=object_new_from((char*)"is: tag  title: train     icon: 🚆  colour: blue", 0,5);
+      object* tagceleb=object_new_from((char*)"is: tag  title: celebrate icon: 🎉  colour: red", 0,5);
+      object* taglove =object_new_from((char*)"is: tag  title: love      icon: 😍  colour: red", 0,5);
 
       object* taglookup=object_new_from((char*)"is: tag lookup", 0, 100);
-      object_property_set(taglookup, (char*)"birthday", object_property(tagbirth, (char*)"UID"));
-      object_property_set(taglookup, (char*)"party",    object_property(tagparty, (char*)"UID"));
+      object_property_set(taglookup, (char*)"birthday",  object_property(tagbirth, (char*)"UID"));
+      object_property_set(taglookup, (char*)"party",     object_property(tagparty, (char*)"UID"));
+      object_property_set(taglookup, (char*)"train",     object_property(tagtrain, (char*)"UID"));
+      object_property_set(taglookup, (char*)"celebrate", object_property(tagceleb, (char*)"UID"));
+      object_property_set(taglookup, (char*)"love",      object_property(taglove,  (char*)"UID"));
 
       object* links=object_new(0, (char*)"links list", evaluate_list, 4);
       object_property_set(links, (char*)"list", object_property(taglookup, (char*)"UID"));

@@ -933,6 +933,14 @@ static const char* time_formats[] = { "%I:%M%p", "%I.%M%p", "%I%p", //  7:00pm 7
                                       "%H:%M", "%H.%M",             //  19:00
 };
 
+static const char* calendarTags[] = {
+  "birthday",
+  "party",
+  "train",
+  "celebrate",
+  "love"
+};
+
 object* GUI::createNewEvent(struct tm* thisdate, char* title)
 {
   object* r=object_new(0, 0, evaluate_any_object, 8);
@@ -963,8 +971,11 @@ object* GUI::createNewEvent(struct tm* thisdate, char* title)
     }
   }
   char occasion[256]=""; int l=0;
-  if(strstr(title, "birthday")) l+=snprintf(occasion+l, 256-l, "%s ", object_property(config, (char*)"taglookup:birthday"));
-  if(strstr(title, "party"   )) l+=snprintf(occasion+l, 256-l, "%s ", object_property(config, (char*)"taglookup:party"));
+  for(int t=0; t<IM_ARRAYSIZE(calendarTags); t++){
+    const char* tag=calendarTags[t];
+    char tagpath[64]; snprintf(tagpath, 64, "taglookup:%s", tag);
+    if(strcasestr(title, tag)) l+=snprintf(occasion+l, 256-l, "%s ", object_property(config, tagpath));
+  }
   if(time){     object_property_set(r, (char*)"time",     time);     free(time); }
   if(endtime){  object_property_set(r, (char*)"end-time", endtime);  free(endtime); }
   if(*occasion) object_property_set(r, (char*)"occasion", occasion);
