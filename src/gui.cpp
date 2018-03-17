@@ -962,8 +962,12 @@ object* GUI::createNewEvent(struct tm* thisdate, char* title)
       }
     }
   }
-  if(time){    object_property_set(r, (char*)"time",     time);    free(time); }
-  if(endtime){ object_property_set(r, (char*)"end-time", endtime); free(endtime); }
+  char occasion[256]=""; int l=0;
+  if(strstr(title, "birthday")) l+=snprintf(occasion+l, 256-l, "%s ", object_property(config, (char*)"taglookup:birthday"));
+  if(strstr(title, "party"   )) l+=snprintf(occasion+l, 256-l, "%s ", object_property(config, (char*)"taglookup:party"));
+  if(time){     object_property_set(r, (char*)"time",     time);     free(time); }
+  if(endtime){  object_property_set(r, (char*)"end-time", endtime);  free(endtime); }
+  if(*occasion) object_property_set(r, (char*)"occasion", occasion);
   return r;
 }
 
