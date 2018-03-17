@@ -197,7 +197,7 @@ void GUI::drawGUI()
   ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiSetCond_FirstUseEver);
   ImGui::SetNextWindowSize(ImVec2((float)app->width, (float)app->height), ImGuiSetCond_FirstUseEver);
 
-  if(!ImGui::Begin("Onex Live Personal Database", NULL, window_flags)){
+  if(!ImGui::Begin("Onex Live Personal\033\x7F\x3F\x1F\xFF Database", NULL, window_flags)){
       ImGui::End();
       ImGui::Render();
       return;
