@@ -1544,11 +1544,11 @@ void GUI::drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t
             object_property_add(objectEditing, (char*)"list", evtuid);
           }
           object_property_add(user, (char*)"viewing-r", evtuid);
-          hideKeyboard();
-          free(editingCell); editingCell=0;
-          *valBuf=0;
-          grabbedFocus=false;
         }
+        hideKeyboard();
+        free(editingCell); editingCell=0;
+        *valBuf=0;
+        grabbedFocus=false;
       }
     }
     ImGui::PopStyleColor(2);
