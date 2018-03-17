@@ -945,13 +945,13 @@ object* GUI::createNewEvent(struct tm* thisdate, char* title)
   for(;*p;p++){
     if(isdigit(*p)){
       struct tm parsed_time;
-      char* r=0;
+      char* q=0;
       for(int f=0; f<IM_ARRAYSIZE(time_formats); f++){
         memset(&parsed_time, 0, sizeof(struct tm));
-        r=strptime(p, time_formats[f], &parsed_time);
-        if(r){ p=r; break; }
+        q=strptime(p, time_formats[f], &parsed_time);
+        if(q){ p=q; break; }
       }
-      if(r){
+      if(q){
         char ts[32]; int n=strftime(ts, 32, "%I:%M%P", &parsed_time);
         char* tsd=strdup(ts);
         if(!time) time=tsd;
