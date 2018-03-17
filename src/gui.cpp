@@ -1335,7 +1335,9 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, renderBackgroundActive);
       }
 
-      char dayId[256]; snprintf(dayId, 256, "%s %d\n%s## %d %s:", daytable[thisdate.tm_wday], thisdate.tm_mday, (thisdate.tm_mday==1 || day==0)? monthtable[thisdate.tm_mon]: "", day, path);
+      char tagicons[512]=""; getTagIcons(tagicons, 512, &thisdate, 4);
+      char dayId[256];
+      snprintf(dayId, 256, "%s %d\n%s%s## %d %s:", daytable[thisdate.tm_wday], thisdate.tm_mday, (thisdate.tm_mday==1 || day==0)? monthtable[thisdate.tm_mon]: "", tagicons, day, path);
       ImGui::Button(dayId, ImVec2(COLUMN_WIDTH, buttonHeight*2));
       track_drag(dayId, true);
 
@@ -1583,6 +1585,36 @@ void GUI::getCellTitles(char* titles, struct tm* thisdate, int col)
         snprintf(titlepath, 128, "%s:title", eventpath);
         char* title=object_property_values(user, titlepath);
         at+=snprintf(titles+at, 512-at, "%s\n", title? title: (char*)"--");
+      }
+    }
+  }
+}
+
+void GUI::getTagIcons(char* tagicons, int taglen, struct tm* thisdate, int cols)
+{
+  int ti=0;
+  static properties* uidseen=properties_new(100);
+  properties_clear(uidseen, false);
+  for(int col=1; col<=cols; col++){
+    char ts[32]; int n=strftime(ts, 32, "%Y-%m-%d", thisdate);
+    snprintf(ts+n, 32-n, "/%d", col);
+    list* l=(list*)properties_get(calstamps, value_new(ts));
+    if(!l) continue;
+    for(int e=1; e<=list_size(l); e++){
+      char* eventpath=value_string((value*)list_get_n(l,e));
+      char* eventuid=object_property(user, eventpath);
+      if(!properties_get(uidseen, value_new(eventuid))){
+        properties_set(uidseen, value_new(eventuid), value_new(eventuid));
+        char occpath[128];
+        snprintf(occpath, 128, "%s:occasion", eventpath);
+        int ln=object_property_length(user, occpath);
+        for(int i=1; i<=ln; i++){
+          size_t l=strlen(occpath);
+          snprintf(occpath+l, 128-l, ":%d:icon", i);
+          char* icon=object_property_values(user, occpath);
+          occpath[l] = 0;
+          if(icon) ti+=snprintf(tagicons+ti, taglen-ti, "%s ", icon);
+        }
       }
     }
   }
