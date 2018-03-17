@@ -9,6 +9,7 @@ extern "C" {
 
 static GUI* static_gui;
 
+object* config;
 object* user;
 
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
@@ -137,45 +138,30 @@ public:
 
     onex_set_default_evaluator(evaluate_list);
 
-    user=onex_get_from_cache((char*)"uid-1");
+    config=onex_get_from_cache((char*)"uid-0");
 
-    if(!user){
-      object* art1p1=object_new_from((char*)"is: word list  list: \xF0\x9F\x98\x83 \xF0\x9F\x93\xA6 Welcome to Onex! First thing to do is to go around trying all the buttons ..", 0, 2);
-      object* art1p2=object_new_from((char*)"is: word list  list: \xF0\x9F\x98\x83 \xF0\x9F\x93\xA6 Then try making yourself a todo list..", 0, 2);
+    if(!config){
+      object* tagparty=object_new_from((char*)"is: tag  title: party     icon: 😃  colour: yellow", 0,52);
+      object* tagbirth=object_new_from((char*)"is: tag  title: birthday  icon: 📦  colour: red", 0,52);
 
-      object* art1=object_new_from((char*)"is: article title: \xF0\x9F\x98\x83 \xF0\x9F\x93\xA6 First steps.. ", 0, 4);
-      object_property_set(art1, (char*)"text", object_property(art1p1, (char*)"UID"));
-      object_property_add(art1, (char*)"text", object_property(art1p2, (char*)"UID"));
+      // UTF-8 hex:  "\xF0\x9F\x98\x83  \xF0\x9F\x93\xA6"
 
-      object* art2p1=object_new_from((char*)"is: word list  list: Now that you've had a chance to try things out..", 0, 2);
-      object* art2p2=object_new_from((char*)"is: word list  list: You could connect your Micro:Bit..", 0, 2);
+      object* taglist=object_new_from((char*)"is: tag list", 0, 4);
+      object_property_set(taglist, (char*)"list", object_property(tagparty, (char*)"UID"));
+      object_property_add(taglist, (char*)"list", object_property(tagbirth, (char*)"UID"));
 
-      object* art2=object_new_from((char*)"is: article title: Going deeper.. ", 0, 4);
-      object_property_set(art2, (char*)"text", object_property(art2p1, (char*)"UID"));
-      object_property_add(art2, (char*)"text", object_property(art2p2, (char*)"UID"));
+      object* links=object_new(0, (char*)"links list", evaluate_list, 4);
+      object_property_set(links, (char*)"list", object_property(taglist, (char*)"UID"));
 
-      object* intro=object_new(0, (char*)"article list", evaluate_list, 4);
-      object_property_set(intro, (char*)"title", (char*)"Introduction to Onex, the live personal database");
-      object_property_set(intro, (char*)"list", object_property(art1, (char*)"UID"));
-      object_property_add(intro, (char*)"list", object_property(art2, (char*)"UID"));
+      user=object_new(0, (char*)"user", evaluate_user, 8);
+      object_property_set(user, (char*)"viewing-l", object_property(links, (char*)"UID"));
 
-      object* famp1=object_new_from((char*)"is: person  name: Joe Banana", evaluate_list, 20);
-      object* famp2=object_new_from((char*)"is: person  name: Ann Mango", evaluate_list, 20);
-
-      object_property_set(famp1, (char*)"partner", object_property(famp2, (char*)"UID"));
-      object_property_set(famp2, (char*)"partner", object_property(famp1, (char*)"UID"));
-
-      object* famtree=object_new_from((char*)"is: family tree  title: \xF0\x9F\x98\x83 My family \xF0\x9F\x93\xA6", evaluate_list, 20);
-      object_property_set(famtree, (char*)"people", object_property(famp1, (char*)"UID"));
-      object_property_add(famtree, (char*)"people", object_property(famp2, (char*)"UID"));
-
-      object* links=object_new((char*)"uid-2", (char*)"links list", evaluate_list, 4);
-      object_property_set(links, (char*)"list", object_property(intro, (char*)"UID"));
-      object_property_add(links, (char*)"list", object_property(famtree, (char*)"UID"));
-//    object_property_add(links, (char*)"list", (char*)"uid-1-2-3");
-
-      user=object_new((char*)"uid-1", (char*)"user", evaluate_user, 4);
-      object_property_set(user, (char*)"viewing-l", (char*)"uid-2");
+      config=object_new((char*)"uid-0", (char*)"config", 0, 10);
+      object_property_set(config, (char*)"user", object_property(user, (char*)"UID"));
+    }
+    else{
+      char* userid=object_property(config, (char*)"user");
+      user=onex_get_from_cache(userid);
     }
     gui = new GUI(this, user);
     static_gui = gui;
