@@ -1590,6 +1590,18 @@ void GUI::getCellTitles(char* titles, struct tm* thisdate, int col)
   }
 }
 
+static const char* getHexOfColour(char* colour)
+{
+  if(!colour) return "";
+  if(!strcmp(colour, "red"    )) return "\033\xff\x01\x01\xff";
+  if(!strcmp(colour, "yellow" )) return "\033\xff\xff\x01\xff";
+  if(!strcmp(colour, "green"  )) return "\033\x01\xdf\x01\xff";
+  if(!strcmp(colour, "cyan"   )) return "\033\x01\xff\xff\xff";
+  if(!strcmp(colour, "blue"   )) return "\033\x01\x01\xff\xff";
+  if(!strcmp(colour, "magenta")) return "\033\xff\x01\xff\xff";
+  return "";
+}
+
 void GUI::getTagIcons(char* tagicons, int taglen, struct tm* thisdate, int cols)
 {
   int ti=0;
@@ -1613,7 +1625,10 @@ void GUI::getTagIcons(char* tagicons, int taglen, struct tm* thisdate, int cols)
           snprintf(occpath+l, 128-l, ":%d:icon", i);
           char* icon=object_property_values(user, occpath);
           occpath[l] = 0;
-          if(icon) ti+=snprintf(tagicons+ti, taglen-ti, "%s ", icon);
+          snprintf(occpath+l, 128-l, ":%d:colour", i);
+          char* colour=object_property_values(user, occpath);
+          occpath[l] = 0;
+          if(icon) ti+=snprintf(tagicons+ti, taglen-ti, "%s%s ", getHexOfColour(colour), icon);
         }
       }
     }
