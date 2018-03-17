@@ -163,14 +163,14 @@ public:
       char* userid=object_property(config, (char*)"user");
       user=onex_get_from_cache(userid);
     }
-    gui = new GUI(this, user);
+    gui = new GUI(this, user, config);
     static_gui = gui;
   }
 
   virtual void startup()
   {
     VulkanBase::startup();
-    if(!gui) gui = new GUI(this, user);
+    if(!gui) gui = new GUI(this, user, config);
     static_gui = gui;
   }
 

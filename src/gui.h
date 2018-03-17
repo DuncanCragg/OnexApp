@@ -93,6 +93,7 @@ public:
   vks::VulkanDevice *device;
 
   object* user;
+  object* config;
 
   VulkanBase *app;
 
@@ -101,7 +102,7 @@ public:
     glm::vec2 translate;
   } pushConstBlock;
 
-  GUI(VulkanBase *app, object* user);
+  GUI(VulkanBase *app, object* user, object* config);
 
   void prepare();
 

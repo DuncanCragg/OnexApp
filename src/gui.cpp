@@ -11,10 +11,11 @@
 #include <time.h>
 #include "gui.h"
 
-GUI::GUI(VulkanBase* a, object* u)
+GUI::GUI(VulkanBase* a, object* u, object* c)
 {
   app = a;
   user = u;
+  config = c;
 };
 
 void GUI::prepare()
@@ -174,16 +175,16 @@ void GUI::getFontInfo()
   const char* fontfileemo = ASSET_PATH "fonts/OpenSansEmoji.ttf";
   static const ImWchar reg_range[] = { 0x0020, 0x00FF,  0 };
   static const ImWchar emo_range[] = { 0x1F300, 0x1F6FF,  0 };
-  ImFontConfig config; config.MergeMode = true;
+  ImFontConfig fontconf; fontconf.MergeMode = true;
   float fontsize = 60.0f;
 #if defined(__ANDROID__)
   size_t lengthreg; char* fontdatareg=getFontData(fontfilereg, &lengthreg);
   size_t lengthemo; char* fontdataemo=getFontData(fontfileemo, &lengthemo);
-  io.Fonts->AddFontFromMemoryTTF(fontdatareg, lengthreg, fontsize, 0,       reg_range);
-  io.Fonts->AddFontFromMemoryTTF(fontdataemo, lengthemo, fontsize, &config, emo_range);
+  io.Fonts->AddFontFromMemoryTTF(fontdatareg, lengthreg, fontsize, 0,         reg_range);
+  io.Fonts->AddFontFromMemoryTTF(fontdataemo, lengthemo, fontsize, &fontconf, emo_range);
 #else
-  io.Fonts->AddFontFromFileTTF(fontfilereg, fontsize, 0,       reg_range);
-  io.Fonts->AddFontFromFileTTF(fontfileemo, fontsize, &config, emo_range);
+  io.Fonts->AddFontFromFileTTF(fontfilereg, fontsize, 0,         reg_range);
+  io.Fonts->AddFontFromFileTTF(fontfileemo, fontsize, &fontconf, emo_range);
 #endif
   io.Fonts->GetTexDataAsRGBA32(&fontData, &texWidth, &texHeight);
 }
