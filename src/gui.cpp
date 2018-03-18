@@ -711,6 +711,7 @@ static const char* propertyNameChoices[] = {
   "end-time",
   "end-date",
   "every",
+  "tags",
   "cost",
   "total",
   "Rules",
@@ -970,15 +971,15 @@ object* GUI::createNewEvent(struct tm* thisdate, char* title)
       }
     }
   }
-  char occasion[256]=""; int l=0;
+  char tags[256]=""; int l=0;
   for(int t=0; t<IM_ARRAYSIZE(calendarTags); t++){
     const char* tag=calendarTags[t];
     char tagpath[64]; snprintf(tagpath, 64, "taglookup:%s", tag);
-    if(strcasestr(title, tag)) l+=snprintf(occasion+l, 256-l, "%s ", object_property(config, tagpath));
+    if(strcasestr(title, tag)) l+=snprintf(tags+l, 256-l, "%s ", object_property(config, tagpath));
   }
   if(time){     object_property_set(r, (char*)"time",     time);     free(time); }
   if(endtime){  object_property_set(r, (char*)"end-time", endtime);  free(endtime); }
-  if(*occasion) object_property_set(r, (char*)"occasion", occasion);
+  if(*tags) object_property_set(r, (char*)"tags", tags);
   return r;
 }
 
@@ -1634,7 +1635,7 @@ void GUI::getTagIcons(char* tagicons, int taglen, struct tm* thisdate, int cols)
       if(!properties_get(uidseen, value_new(eventuid))){
         properties_set(uidseen, value_new(eventuid), value_new(eventuid));
         char occpath[128];
-        snprintf(occpath, 128, "%s:occasion", eventpath);
+        snprintf(occpath, 128, "%s:tags", eventpath);
         int ln=object_property_length(user, occpath);
         for(int i=1; i<=ln; i++){
           size_t l=strlen(occpath);
