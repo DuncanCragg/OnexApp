@@ -652,11 +652,12 @@ char* GUI::getLastLink()
 
 // -------------
 
+static int ss= -1;
+static int se= -1;
+
 static int filter_and_autocomplete(ImGuiTextEditCallbackData* data, bool (*enforcer)(ImGuiTextEditCallbackData* data), const char** autoCompleteChoices, int autoCompleteChoicesSize)
 {
   static bool autocompletenext=false;
-  static int ss=0;
-  static int se=0;
   if(data->EventFlag==ImGuiInputTextFlags_CallbackCharFilter){
     autocompletenext=true;
     return enforcer(data)? 0: 1;
@@ -683,9 +684,9 @@ static int filter_and_autocomplete(ImGuiTextEditCallbackData* data, bool (*enfor
     }
   }
   if(data->EventFlag==ImGuiInputTextFlags_CallbackAlways){
-    data->CursorPos=ss;
-    data->SelectionStart=ss;
-    data->SelectionEnd=se;
+    if(ss!=-1) data->CursorPos=ss;
+    if(ss!=-1) data->SelectionStart=ss;
+    if(se!=-1) data->SelectionEnd=se;
     return 0;
   }
   return 0;
@@ -694,7 +695,9 @@ static int filter_and_autocomplete(ImGuiTextEditCallbackData* data, bool (*enfor
 static bool FilterAutoInputText(const char* id, char* buf, int buflen, ImGuiTextEditCallback fafn)
 {
   int flags=ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue|ImGuiInputTextFlags_CallbackAlways;
-  return ImGui::InputText(id, buf, buflen, flags, fafn, buf);
+  bool done=ImGui::InputText(id, buf, buflen, flags, fafn, buf);
+  if(done){ ss= -1; se= -1; }
+  return done;
 }
 
 // -------------
