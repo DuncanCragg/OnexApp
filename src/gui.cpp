@@ -650,6 +650,55 @@ char* GUI::getLastLink()
   return lastlink;
 }
 
+// -------------
+
+static int filter_and_autocomplete(ImGuiTextEditCallbackData* data, bool (*enforcer)(ImGuiTextEditCallbackData* data), const char** autoCompleteChoices, int autoCompleteChoicesSize)
+{
+  static bool autocompletenext=false;
+  static int ss=0;
+  static int se=0;
+  if(data->EventFlag==ImGuiInputTextFlags_CallbackCharFilter){
+    autocompletenext=true;
+    return enforcer(data)? 0: 1;
+  }
+  if(data->EventFlag==ImGuiInputTextFlags_CallbackAlways && autocompletenext){
+    autocompletenext=false;
+    int p=data->BufTextLen;
+    if(p){
+      int i;
+      for(i=0; i<autoCompleteChoicesSize; i++){
+        if(!strncasecmp(data->Buf, autoCompleteChoices[i], p)){
+          data->DeleteChars(0, p);
+          data->InsertChars(0, autoCompleteChoices[i]);
+          ss=p;
+          se=strlen(autoCompleteChoices[i]);
+          data->BufDirty=true;
+          break;
+        }
+      }
+      if(i==autoCompleteChoicesSize){
+        ss=p;
+        se=p;
+      }
+    }
+  }
+  if(data->EventFlag==ImGuiInputTextFlags_CallbackAlways){
+    data->CursorPos=ss;
+    data->SelectionStart=ss;
+    data->SelectionEnd=se;
+    return 0;
+  }
+  return 0;
+}
+
+static bool FilterAutoInputText(const char* id, char* buf, int buflen, ImGuiTextEditCallback fafn)
+{
+  int flags=ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue|ImGuiInputTextFlags_CallbackAlways;
+  return ImGui::InputText(id, buf, buflen, flags, fafn, buf);
+}
+
+// -------------
+
 void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool locallyEditable, int16_t width, int16_t height, int8_t depth)
 {
   if(!val){ log_write("val==null: path=%s\n", path); return; }
@@ -699,6 +748,18 @@ void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool lo
   ImGui::PopItemWidth();
 }
 
+static bool enforcePropertyName(ImGuiTextEditCallbackData* data)
+{
+  ImWchar ch = data->EventChar;
+  if(ch >=256) return false;
+  if(!strlen((char*)(data->UserData)) && !isalpha(ch)) return false;
+  if(ch == ' '){ data->EventChar = '-'; return true; }
+  if(ch == '-') return true;
+  if(!isalnum(ch)) return false;
+  data->EventChar = tolower(ch);
+  return true;
+}
+
 static const char* propertyNameChoices[] = {
   "is",
   "title",
@@ -718,6 +779,11 @@ static const char* propertyNameChoices[] = {
   "Timer",
   "Notifying"
 };
+
+static int filter_and_autocomplete_property_names(ImGuiTextEditCallbackData* data)
+{
+  return filter_and_autocomplete(data, enforcePropertyName, propertyNameChoices, IM_ARRAYSIZE(propertyNameChoices));
+}
 
 void GUI::drawObjectFooter(char* path, bool locallyEditable, int16_t width, int16_t keyWidth, int8_t depth)
 {
@@ -759,54 +825,6 @@ void GUI::drawObjectFooter(char* path, bool locallyEditable, int16_t width, int1
       track_drag(barId, true);
     }
   }else{
-    int flags=ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue|ImGuiInputTextFlags_CallbackAlways;
-    struct TextFilters {
-      static int FilterImGuiLetters(ImGuiTextEditCallbackData* data) {
-        static bool autocompletenext=false;
-        static int ss=0;
-        static int se=0;
-        if(data->EventFlag==ImGuiInputTextFlags_CallbackCharFilter){
-          autocompletenext=true;
-          ImWchar ch = data->EventChar;
-          if(ch >=256) return 1;
-          if(!strlen(valBuf) && !isalpha(ch)) return 1;
-          if(ch == ' '){ data->EventChar = '-'; return 0; }
-          if(ch == '-'){ return 0; }
-          if(!isalnum(ch)) return 1;
-          data->EventChar = tolower(ch);
-          return 0;
-        }
-        if(data->EventFlag==ImGuiInputTextFlags_CallbackAlways && autocompletenext){
-          autocompletenext=false;
-          int p=data->BufTextLen;
-          if(p){
-            int numwords=IM_ARRAYSIZE(propertyNameChoices);
-            int i;
-            for(i=0; i<numwords; i++){
-              if(!strncasecmp(data->Buf, propertyNameChoices[i], p)){
-                data->DeleteChars(0, p);
-                data->InsertChars(0, propertyNameChoices[i]);
-                ss=p;
-                se=strlen(propertyNameChoices[i]);
-                data->BufDirty=true;
-                break;
-              }
-            }
-            if(i==numwords){
-              ss=p;
-              se=p;
-            }
-          }
-        }
-        if(data->EventFlag==ImGuiInputTextFlags_CallbackAlways){
-          data->CursorPos=ss;
-          data->SelectionStart=ss;
-          data->SelectionEnd=se;
-          return 0;
-        }
-        return 0;
-      }
-    };
     if(!grabbedFocus){
       ImGui::SetKeyboardFocusHere();
       grabbedFocus = io.WantTextInput;
@@ -815,7 +833,7 @@ void GUI::drawObjectFooter(char* path, bool locallyEditable, int16_t width, int1
     ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
     ImGui::PushStyleColor(ImGuiCol_PopupBg, propertyBackground);
     ImGui::PushStyleColor(ImGuiCol_FrameBg, propertyBackground);
-    if(ImGui::InputText("## property name", valBuf, 256, flags, TextFilters::FilterImGuiLetters)){
+    if(FilterAutoInputText("## property name", valBuf, 256, filter_and_autocomplete_property_names)){
       if(*valBuf){
         if(!strcmp(valBuf, "Rules")) setPropertyNameAndObject(path, valBuf);
         else if(!strcmp(valBuf, "Notifying")) setPropertyNameAndLink(path, valBuf);
