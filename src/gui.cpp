@@ -595,6 +595,29 @@ void GUI::drawLink()
   }
 }
 
+void GUI::setNewTag(char* path, char* tag)
+{
+  char* lastcolon=strrchr(path,':'); *lastcolon=0;
+  object* objectEditing = onex_get_from_cache(object_property(user, path));
+  if(objectEditing){
+    if(*tag){
+      char tagpath[64]; snprintf(tagpath, 64, "taglookup:%s", tag);
+      char* tagUID=object_property(config, tagpath);
+      if(!tagUID) return;
+      if(object_property_is(objectEditing, lastcolon+1, (char*)"--")){
+        object_property_set(objectEditing, lastcolon+1, tagUID);
+      }
+      else object_property_add(objectEditing, lastcolon+1, tagUID);
+    }
+    else{
+      if(object_property_is(objectEditing, lastcolon+1, (char*)"--")){
+        object_property_set(objectEditing, lastcolon+1, (char*)"");
+      }
+    }
+  }
+  *lastcolon=':';
+}
+
 void GUI::setNewValue(char* path, char* buf, bool single)
 {
   if(single){
@@ -778,7 +801,8 @@ void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool lo
     if(height==buttonHeight) done=FilterAutoInputText(valId, valBuf, 256, faa);
     else                     done=ImGui::InputTextMultiline(valId, valBuf, 256, ImVec2(width, height), flags);
     if(done){
-      setNewValue(path, valBuf, single);
+      if(!strcmp(lastpropname, "tags")) setNewTag(path, valBuf);
+      else                              setNewValue(path, valBuf, single);
       hideKeyboard();
       free(propNameEditing); propNameEditing=0;
       *valBuf=0;

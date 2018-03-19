@@ -72,6 +72,7 @@ public:
   void setPropertyNameAndObject(char* path , char* name);
   void setPropertyNameAndLink(char* path , char* name);
   void setNewValue(char* path, char* valBuf, bool single);
+  void setNewTag(char* path, char* valBuf);
   void hideKeyboard();
   void showKeyboard(float multy);
   unsigned char* fontData;
