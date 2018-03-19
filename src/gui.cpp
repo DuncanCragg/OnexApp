@@ -660,7 +660,7 @@ static int filter_and_autocomplete(ImGuiTextEditCallbackData* data, bool (*enfor
   static bool autocompletenext=false;
   if(data->EventFlag==ImGuiInputTextFlags_CallbackCharFilter){
     autocompletenext=true;
-    return enforcer(data)? 0: 1;
+    return enforcer ? (enforcer(data)? 0: 1) : 0;
   }
   if(data->EventFlag==ImGuiInputTextFlags_CallbackAlways && autocompletenext){
     autocompletenext=false;
@@ -721,6 +721,11 @@ static const char* calendarTags[] = {
   "celebrate",
   "love"
 };
+static int filter_and_autocomplete_default(ImGuiTextEditCallbackData* data)
+{
+  return filter_and_autocomplete(data, 0, 0, 0);
+}
+
 void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool locallyEditable, int16_t width, int16_t height, int8_t depth)
 {
   if(!val){ log_write("val==null: path=%s\n", path); return; }
