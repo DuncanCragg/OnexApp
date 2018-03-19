@@ -755,7 +755,7 @@ static int filter_and_autocomplete_default(ImGuiTextEditCallbackData* data)
   return filter_and_autocomplete(data, 0, 0, 0);
 }
 
-void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool locallyEditable, int16_t width, int16_t height, int8_t depth)
+void GUI::drawNewPropertyValueEditor(char* path, char* propname, char* val, bool single, bool locallyEditable, int16_t width, int16_t height, int8_t depth)
 {
   if(!val){ log_write("val==null: path=%s\n", path); return; }
   char valId[256]; snprintf(valId, 256, "## val %s %s", val, path);
@@ -793,16 +793,12 @@ void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool lo
   else{
     bool done=false;
     ImGuiTextEditCallback faa=filter_and_autocomplete_default;
-    char* lastpropname=strrchr(propNameEditing, ':');
-    if(lastpropname){
-      lastpropname++;
-      if(!strcmp(lastpropname, "tags")) faa=filter_and_autocomplete_calendar_tags;
-    }
+    if(propname && !strcmp(propname, "tags")) faa=filter_and_autocomplete_calendar_tags;
     if(height==buttonHeight) done=FilterAutoInputText(valId, valBuf, 256, faa);
     else                     done=ImGui::InputTextMultiline(valId, valBuf, 256, ImVec2(width, height), flags);
     if(done){
-      if(!strcmp(lastpropname, "tags")) setNewTag(path, valBuf);
-      else                              setNewValue(path, valBuf, single);
+      if(propname && !strcmp(propname, "tags")) setNewTag(path, valBuf);
+      else                                      setNewValue(path, valBuf, single);
       hideKeyboard();
       free(propNameEditing); propNameEditing=0;
       *valBuf=0;
@@ -921,8 +917,10 @@ void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t de
 {
   bool nodarken=depth<3;
   char pathj[256]; snprintf(pathj, 256, "%s:%d", path, j);
-  if(valueToo){
-    drawNewPropertyValueEditor(path, (char*)"", true, true, (width-smallButtonWidth)/2, buttonHeight, depth);
+  char* propname=strrchr(path, ':');
+  if(propname) propname++;
+  if(valueToo || (propname && !strcmp(propname, "tags"))){
+    drawNewPropertyValueEditor(path, propname, (char*)"", true, true, (width-smallButtonWidth)/2, buttonHeight, depth);
     ImGui::SameLine();
   }
 
@@ -1272,7 +1270,7 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16
   ImGui::BeginChild(childName, ImVec2(width,height), true);
   {
     if(oneline || multiln){
-      drawNewPropertyValueEditor(path, textlines, true, locallyEditable, width, height, depth);
+      drawNewPropertyValueEditor(path, 0, textlines, true, locallyEditable, width, height, depth);
     }
     else
     if(newline){
@@ -1285,7 +1283,7 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16
         char* val=object_property_get_n(user, path, j);
         snprintf(path+l, 128-l, ":%d", j);
         if(!is_uid(val)){
-          drawNewPropertyValueEditor(path, val, false, locallyEditable, width-rhsPadding, buttonHeight, depth);
+          drawNewPropertyValueEditor(path, 0, val, false, locallyEditable, width-rhsPadding, buttonHeight, depth);
         }else{
           bool locallyEditable = object_is_local(val);
           drawObjectProperties(path, locallyEditable, width-rhsPadding, height, depth+1);
