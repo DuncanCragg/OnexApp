@@ -790,13 +790,13 @@ void GUI::drawObjectFooter(char* path, bool locallyEditable, int16_t width, int1
   if(depth>=3) return;
   if(!locallyEditable) return;
   static bool grabbedFocus=false;
-  static char valBuf[256] = "";
+  static char propNameBuf[256] = "";
   ImGuiIO& io = ImGui::GetIO();
   bool editing = propNameEditing && !strcmp(path, propNameEditing);
   if(editing && grabbedFocus && !io.WantTextInput){
     hideKeyboard();
     free(propNameEditing); propNameEditing=0;
-    *valBuf=0;
+    *propNameBuf=0;
     grabbedFocus=false;
     editing=false;
   }
@@ -833,12 +833,12 @@ void GUI::drawObjectFooter(char* path, bool locallyEditable, int16_t width, int1
     ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
     ImGui::PushStyleColor(ImGuiCol_PopupBg, propertyBackground);
     ImGui::PushStyleColor(ImGuiCol_FrameBg, propertyBackground);
-    if(FilterAutoInputText("## property name", valBuf, 256, filter_and_autocomplete_property_names)){
-      if(*valBuf){
-        if(!strcmp(valBuf, "Rules")) setPropertyNameAndObject(path, valBuf);
-        else if(!strcmp(valBuf, "Notifying")) setPropertyNameAndLink(path, valBuf);
-        else setPropertyName(path, valBuf);
-        *valBuf=0;
+    if(FilterAutoInputText("## property name", propNameBuf, 256, filter_and_autocomplete_property_names)){
+      if(*propNameBuf){
+        if(!strcmp(propNameBuf, "Rules")) setPropertyNameAndObject(path, propNameBuf);
+        else if(!strcmp(propNameBuf, "Notifying")) setPropertyNameAndLink(path, propNameBuf);
+        else setPropertyName(path, propNameBuf);
+        *propNameBuf=0;
       }
       hideKeyboard();
       free(propNameEditing); propNameEditing=0;
