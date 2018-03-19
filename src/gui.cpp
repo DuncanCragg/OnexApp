@@ -1009,6 +1009,7 @@ object* GUI::createNewEvent(struct tm* thisdate, char* title)
   char ts[32]; strftime(ts, 32, "%Y-%m-%d", thisdate);
   object_property_set(r, (char*)"title", title);
   object_property_set(r, (char*)"date", ts);
+  object_property_set(r, (char*)"tags", (char*)"--");
   char* time=0;
   char* endtime=0;
   char* p=title;
