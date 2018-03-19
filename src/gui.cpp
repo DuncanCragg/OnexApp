@@ -817,7 +817,7 @@ void GUI::drawObjectFooter(char* path, bool locallyEditable, int16_t width, int1
     ImGui::PushStyleColor(ImGuiCol_FrameBg, propertyBackground);
     if(ImGui::InputText("## property name", valBuf, 256, flags, TextFilters::FilterImGuiLetters)){
       if(*valBuf){
-        if(!strcmp(valBuf, "list") || !strcmp(valBuf, "Rules")) setPropertyNameAndObject(path, valBuf);
+        if(!strcmp(valBuf, "Rules")) setPropertyNameAndObject(path, valBuf);
         else if(!strcmp(valBuf, "Notifying")) setPropertyNameAndLink(path, valBuf);
         else setPropertyName(path, valBuf);
         *valBuf=0;
