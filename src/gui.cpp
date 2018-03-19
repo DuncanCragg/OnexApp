@@ -174,7 +174,8 @@ void GUI::getFontInfo()
   const char* fontfilereg = ASSET_PATH "fonts/OpenSans-Regular.ttf";
   const char* fontfileemo = ASSET_PATH "fonts/OpenSansEmoji.ttf";
   static const ImWchar reg_range[] = { 0x0020, 0x00FF,  0 };
-  static const ImWchar emo_range[] = { 0x1F300, 0x1F6FF,  0 };
+//static const ImWchar emo_range[] = { 0x1F300, 0x1F6FF,  0 }; // full range
+  static const ImWchar emo_range[] = { 0x1F389,0x1F389, 0x1F4E5,0x1F4E7, 0x1F60D,0x1F60D, 0x1F686,0x1F686,  0 };
   ImFontConfig fontconf; fontconf.MergeMode = true;
   float fontsize = 60.0f;
 #if defined(__ANDROID__)
