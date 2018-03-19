@@ -721,6 +721,12 @@ static const char* calendarTags[] = {
   "celebrate",
   "love"
 };
+
+static int filter_and_autocomplete_calendar_tags(ImGuiTextEditCallbackData* data)
+{
+  return filter_and_autocomplete(data, enforcePropertyName, calendarTags, IM_ARRAYSIZE(calendarTags));
+}
+
 static int filter_and_autocomplete_default(ImGuiTextEditCallbackData* data)
 {
   return filter_and_autocomplete(data, 0, 0, 0);
@@ -763,7 +769,13 @@ void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool lo
   }
   else{
     bool done=false;
-    if(height==buttonHeight) done=ImGui::InputText(valId, valBuf, 256, flags);
+    ImGuiTextEditCallback faa=filter_and_autocomplete_default;
+    char* lastpropname=strrchr(propNameEditing, ':');
+    if(lastpropname){
+      lastpropname++;
+      if(!strcmp(lastpropname, "tags")) faa=filter_and_autocomplete_calendar_tags;
+    }
+    if(height==buttonHeight) done=FilterAutoInputText(valId, valBuf, 256, faa);
     else                     done=ImGui::InputTextMultiline(valId, valBuf, 256, ImVec2(width, height), flags);
     if(done){
       setNewValue(path, valBuf, single);
