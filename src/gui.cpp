@@ -703,7 +703,7 @@ void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool lo
 {
   if(!val){ log_write("val==null: path=%s\n", path); return; }
   char valId[256]; snprintf(valId, 256, "## val %s %s", val, path);
-  static char valBuf[256] = ""; strncpy(valBuf, val, 256); valBuf[255]=0;
+  static char valBuf[256];
   ImGuiIO& io = ImGui::GetIO();
   bool editing = propNameEditing && !strcmp(path, propNameEditing);
   if(editing && !io.WantTextInput){
@@ -722,11 +722,12 @@ void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool lo
   if(!editing){
     ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, valueBackground);
     float multy=ImGui::GetCursorScreenPos().y-buttonHeight;
-    if(height==buttonHeight){ ImGui::InputText(valId, valBuf, 256, flags); multy=0; }
-    else                      ImGui::InputTextMultiline(valId, valBuf, 256, ImVec2(width, height), flags);
+    if(height==buttonHeight){ ImGui::InputText(valId, val, 256, flags); multy=0; }
+    else                      ImGui::InputTextMultiline(valId, val, 256, ImVec2(width, height), flags);
     if(ImGui::IsItemActive() && ImGui::IsMouseReleased(0) && !dragPathId){
       if(locallyEditable){
         propNameEditing = strdup(path);
+        strncpy(valBuf, val, 256); valBuf[255]=0;
         showKeyboard(multy);
       }
     }
