@@ -702,6 +702,25 @@ static bool FilterAutoInputText(const char* id, char* buf, int buflen, ImGuiText
 
 // -------------
 
+static bool enforcePropertyName(ImGuiTextEditCallbackData* data)
+{
+  ImWchar ch = data->EventChar;
+  if(ch >=256) return false;
+  if(!strlen((char*)(data->UserData)) && !isalpha(ch)) return false;
+  if(ch == ' '){ data->EventChar = '-'; return true; }
+  if(ch == '-') return true;
+  if(!isalnum(ch)) return false;
+  data->EventChar = tolower(ch);
+  return true;
+}
+
+static const char* calendarTags[] = {
+  "birthday",
+  "party",
+  "train",
+  "celebrate",
+  "love"
+};
 void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool locallyEditable, int16_t width, int16_t height, int8_t depth)
 {
   if(!val){ log_write("val==null: path=%s\n", path); return; }
@@ -750,18 +769,6 @@ void GUI::drawNewPropertyValueEditor(char* path, char* val, bool single, bool lo
   }
   if(depth) ImGui::PopStyleColor(2);
   ImGui::PopItemWidth();
-}
-
-static bool enforcePropertyName(ImGuiTextEditCallbackData* data)
-{
-  ImWchar ch = data->EventChar;
-  if(ch >=256) return false;
-  if(!strlen((char*)(data->UserData)) && !isalpha(ch)) return false;
-  if(ch == ' '){ data->EventChar = '-'; return true; }
-  if(ch == '-') return true;
-  if(!isalnum(ch)) return false;
-  data->EventChar = tolower(ch);
-  return true;
 }
 
 static const char* propertyNameChoices[] = {
@@ -954,14 +961,6 @@ object* GUI::createNewObjectLikeOthers(char* path)
 
 static const char* time_formats[] = { "%I:%M%p", "%I.%M%p", "%I%p", //  7:00pm 7pm
                                       "%H:%M", "%H.%M",             //  19:00
-};
-
-static const char* calendarTags[] = {
-  "birthday",
-  "party",
-  "train",
-  "celebrate",
-  "love"
 };
 
 object* GUI::createNewEvent(struct tm* thisdate, char* title)
