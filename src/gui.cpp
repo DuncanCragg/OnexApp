@@ -702,8 +702,8 @@ static int filter_and_autocomplete(ImGuiTextEditCallbackData* data, bool (*enfor
         }
       }
       if(i==autoCompleteChoicesSize){
-        ss=p;
-        se=p;
+        ss=-1;
+        se=-1;
       }
     }
   }
