@@ -5,7 +5,11 @@ import java.io.ByteArrayOutputStream;
 
 import android.os.*;
 import android.view.*;
-import android.view.inputmethod.InputMethodManager;
+import android.view.inputmethod.*;
+import android.view.ViewGroup.LayoutParams;
+import android.view.KeyEvent;
+import android.widget.*;
+import android.text.*;
 import android.content.Context;
 import android.app.NativeActivity;
 import android.hardware.usb.*;
@@ -18,9 +22,75 @@ import com.felhr.usbserial.UsbSerialDevice;
   */
 public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callback {
 
+    private int keyboardType;
+
+    public class KeyboardView extends EditText {
+      public KeyboardView(Context context) { super(context); }
+      @Override
+      public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
+        InputConnection inputConnection = super.onCreateInputConnection(outAttrs);
+        outAttrs.inputType |= keyboardType; // | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS;
+        outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_EXTRACT_UI;
+        return inputConnection;
+      }
+      @Override
+      public boolean onKeyPreIme(int keyCode, KeyEvent event) {
+        if(event.getKeyCode() == KeyEvent.KEYCODE_BACK && event.getAction() == KeyEvent.ACTION_UP) {
+System.out.println("BACK onKeyPreIme");
+        }
+        return super.onKeyPreIme(keyCode, event);
+      }
+    }
+
+    private KeyboardView kbdView;
+
+    public static final int BACKSPACE=0x43;
+
+    public void delay(int ms){ try{ Thread.sleep(ms); }catch(Exception e){}; }
+
+    public void setUpKeyboardView(){
+        kbdView = new KeyboardView(this);
+        kbdView.setFocusableInTouchMode(true);
+        kbdView.addTextChangedListener(new TextWatcher(){
+            String prevText="";
+            public void onTextChanged(CharSequence cs, int start, int before, int count) {
+              String currText=cs.toString();
+              int i; for(i=0; i<prevText.length() && i<currText.length(); i++){
+                  if(prevText.charAt(i) != currText.charAt(i)) break;
+              }
+              String deled=""; String added="";
+              if(i< prevText.length()) deled=prevText.substring(i);
+              if(i< currText.length()) added=currText.substring(i);
+              int deln=deled.length();
+              int addn=added.length();
+              int ch;
+              if(deled!="") for(int n=0; n< deln; n+=Character.charCount(ch)){ ch=deled.codePointAt(n); activateKey(BACKSPACE, 0); if(n<deln-1) delay(50); }
+              if(added!="") for(int n=0; n< addn; n+=Character.charCount(ch)){ ch=added.codePointAt(n); activateKey(0, ch);        if(n<addn-1) delay(50); }
+              prevText=currText;
+            }
+            public void beforeTextChanged(CharSequence s, int start, int count, int after){}
+            public void afterTextChanged(Editable s){}
+        });
+        addContentView(kbdView, new ViewGroup.LayoutParams(10, 10));
+    }
+
+    public void activateKey(int keyCode, int ch){
+      if(keyCode==0 && ch=='\n') keyCode=0x42;
+      if(keyCode==0 && ch==' ')  keyCode=0x3e;
+      onKeyPress(keyCode, ch);
+      final int keyCodef=keyCode;
+      new Thread(){ public void run(){
+        delay((keyCodef==BACKSPACE)? 50: 50);
+        onKeyRelease(keyCodef);
+      }}.start();
+    }
+
+    // -----------------------------------------------------------
+
     @Override
     public void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState); System.out.println("onCreate");
+        setUpKeyboardView();
         System.loadLibrary("onexapp");
     }
 
@@ -59,46 +129,19 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
     public void showKeyboard()
     {
         InputMethodManager imm=(InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.showSoftInput(this.getWindow().getDecorView(), InputMethodManager.SHOW_FORCED);
+        keyboardType = InputType.TYPE_CLASS_TEXT; // InputType.TYPE_CLASS_NUMBER;
+        imm.restartInput(kbdView);
+        imm.showSoftInput(kbdView, InputMethodManager.SHOW_FORCED);
     }
 
     public void hideKeyboard()
     {
         InputMethodManager imm=(InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(this.getWindow().getDecorView().getWindowToken(), 0);
+        imm.hideSoftInputFromWindow(kbdView.getWindowToken(), 0);
     }
 
-    // -----------------------------------------------------------
-
-    public static native void onKeyPress(int keyCode, String key);
+    public static native void onKeyPress(int keyCode, int key);
     public static native void onKeyRelease(int keyCode);
-
-    @Override
-    public boolean dispatchKeyEvent(final KeyEvent event)
-    {
-      int action = event.getAction();
-      if(!(action == KeyEvent.ACTION_UP || action == KeyEvent.ACTION_MULTIPLE)){
-        return super.dispatchKeyEvent(event);
-      }
-      String chars;
-      if(action == KeyEvent.ACTION_UP){
-        chars = event.isPrintingKey()? ""+((char)event.getUnicodeChar()): " ";
-      }
-      else{
-        chars = event.getCharacters();
-      }
-      final int keyCode = event.getKeyCode();
-      onKeyPress(keyCode, chars);
-      final int presstime = (keyCode == 0x43)? 50: 300;
-      new Thread(){ public void run(){ try { Thread.sleep(presstime); }catch(Exception e){}; onKeyRelease(keyCode); } }.start();
-      return true;
-    }
-
-    @Override
-    public void onBackPressed(){
-        System.out.println("Back button!");
-        return;
-    }
 
     // -----------------------------------------------------------
 

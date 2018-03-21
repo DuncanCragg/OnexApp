@@ -15,15 +15,13 @@ object* user;
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
 extern "C"
 {
-  JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyPress(JNIEnv* env, jobject thiz, jint keyCode, jstring key);
+  JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyPress(JNIEnv* env, jobject thiz, jint keyCode, jint key);
   JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyRelease(JNIEnv* env, jobject thiz, jint keyCode);
   JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onSerialRecv(JNIEnv* env, jobject thiz, jstring b);
 };
 
-JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyPress(JNIEnv* env, jobject thiz, jint keyCode, jstring key)
+JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyPress(JNIEnv* env, jobject thiz, jint keyCode, jint u32key)
 {
-  jchar keychars[1]; env->GetStringRegion(key, 0, 1, keychars);
-  char32_t u32key = keychars[0];
   if(u32key!=' ' || keyCode==KEY_SPACE) static_gui->keyPressed(keyCode, u32key);
   else                                  static_gui->keyPressed(keyCode, 0);
 }
