@@ -718,7 +718,7 @@ static int filter_and_autocomplete(ImGuiTextEditCallbackData* data, bool (*enfor
 
 static bool FilterAutoInputText(const char* id, char* buf, int buflen, ImGuiTextEditCallback fafn)
 {
-  int flags=ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_EnterReturnsTrue|ImGuiInputTextFlags_CallbackAlways;
+  int flags=ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_CallbackAlways|ImGuiInputTextFlags_EnterReturnsTrue;
   bool done=ImGui::InputText(id, buf, buflen, flags, fafn, buf);
   if(done){ ss= -1; se= -1; }
   return done;

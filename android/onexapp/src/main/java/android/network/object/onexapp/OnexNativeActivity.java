@@ -30,7 +30,7 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
       public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
         InputConnection inputConnection = super.onCreateInputConnection(outAttrs);
         outAttrs.inputType |= keyboardType; // | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS;
-        outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_EXTRACT_UI;
+        outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_FULLSCREEN;
         return inputConnection;
       }
       @Override
