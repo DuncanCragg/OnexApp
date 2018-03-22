@@ -22,7 +22,7 @@ import com.felhr.usbserial.UsbSerialDevice;
   */
 public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callback {
 
-    private int keyboardType;
+    private int keyboardType = InputType.TYPE_CLASS_TEXT;
 
     public class KeyboardView extends EditText {
       public KeyboardView(Context context) { super(context); }
@@ -126,10 +126,10 @@ System.out.println("BACK onKeyPreIme");
 
     // -----------------------------------------------------------
 
-    public void showKeyboard()
+    public void showKeyboard(int type)
     {
+        keyboardType = type;
         InputMethodManager imm=(InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-        keyboardType = InputType.TYPE_CLASS_TEXT; // InputType.TYPE_CLASS_NUMBER;
         imm.restartInput(kbdView);
         imm.showSoftInput(kbdView, InputMethodManager.SHOW_FORCED);
     }

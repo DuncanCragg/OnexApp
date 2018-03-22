@@ -64,6 +64,8 @@ void sprintExternalStorageDirectory(char* buf, int buflen, const char* format)
 
 bool keyboardUp = false;
 
+#define TEXTTYPE 1
+
 void showOrHideSoftKeyboard(bool show)
 {
   onex_run_evaluators(user);
@@ -73,8 +75,13 @@ void showOrHideSoftKeyboard(bool show)
   androidApp->activity->vm->AttachCurrentThread(&env, 0);
   jobject nativeActivity = androidApp->activity->clazz;
   jclass nativeActivityClass = env->GetObjectClass(nativeActivity);
-  jmethodID method = env->GetMethodID(nativeActivityClass, show? "showKeyboard": "hideKeyboard", "()V");
-  env->CallVoidMethod(nativeActivity, method);
+  if(show){
+    jmethodID method = env->GetMethodID(nativeActivityClass, "showKeyboard", "(I)V");
+    env->CallVoidMethod(nativeActivity, method, TEXTTYPE);
+  }else{
+    jmethodID method = env->GetMethodID(nativeActivityClass, "hideKeyboard", "()V");
+    env->CallVoidMethod(nativeActivity, method);
+  }
   androidApp->activity->vm->DetachCurrentThread();
   keyboardUp = show;
 #endif
