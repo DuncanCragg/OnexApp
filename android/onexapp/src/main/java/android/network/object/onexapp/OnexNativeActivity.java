@@ -64,8 +64,8 @@ System.out.println("BACK onKeyPreIme");
               int deln=deled.length();
               int addn=added.length();
               int ch;
-              if(deled!="") for(int n=0; n< deln; n+=Character.charCount(ch)){ ch=deled.codePointAt(n); activateKey(BACKSPACE, 0); if(n<deln-1) delay(50); }
-              if(added!="") for(int n=0; n< addn; n+=Character.charCount(ch)){ ch=added.codePointAt(n); activateKey(0, ch);        if(n<addn-1) delay(50); }
+              if(deled!="") for(int n=0; n< deln; n+=Character.charCount(ch)){ ch=deled.codePointAt(n); activateKey(BACKSPACE, 0); delay(35); }
+              if(added!="") for(int n=0; n< addn; n+=Character.charCount(ch)){ ch=added.codePointAt(n); activateKey(0, ch);        delay(35); }
               prevText=currText;
             }
             public void beforeTextChanged(CharSequence s, int start, int count, int after){}
@@ -80,7 +80,7 @@ System.out.println("BACK onKeyPreIme");
       onKeyPress(keyCode, ch);
       final int keyCodef=keyCode;
       new Thread(){ public void run(){
-        delay((keyCodef==BACKSPACE)? 50: 50);
+        delay(20);
         onKeyRelease(keyCodef);
       }}.start();
     }
