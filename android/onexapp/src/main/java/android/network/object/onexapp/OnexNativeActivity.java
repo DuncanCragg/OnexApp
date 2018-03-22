@@ -25,6 +25,7 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
     private int keyboardType = InputType.TYPE_CLASS_TEXT;
 
     public class KeyboardView extends EditText {
+      public String prevText="";
       public KeyboardView(Context context) { super(context); }
       @Override
       public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
@@ -52,9 +53,9 @@ System.out.println("BACK onKeyPreIme");
         kbdView = new KeyboardView(this);
         kbdView.setFocusableInTouchMode(true);
         kbdView.addTextChangedListener(new TextWatcher(){
-            String prevText="";
             public void onTextChanged(CharSequence cs, int start, int before, int count) {
               String currText=cs.toString();
+              String prevText=kbdView.prevText;
               int i; for(i=0; i<prevText.length() && i<currText.length(); i++){
                   if(prevText.charAt(i) != currText.charAt(i)) break;
               }
@@ -66,7 +67,7 @@ System.out.println("BACK onKeyPreIme");
               int ch;
               if(deled!="") for(int n=0; n< deln; n+=Character.charCount(ch)){ ch=deled.codePointAt(n); activateKey(BACKSPACE, 0); delay(35); }
               if(added!="") for(int n=0; n< addn; n+=Character.charCount(ch)){ ch=added.codePointAt(n); activateKey(0, ch);        delay(35); }
-              prevText=currText;
+              kbdView.prevText=currText;
             }
             public void beforeTextChanged(CharSequence s, int start, int count, int after){}
             public void afterTextChanged(Editable s){}
@@ -136,6 +137,7 @@ System.out.println("BACK onKeyPreIme");
 
     public void hideKeyboard()
     {
+        kbdView.post(new Runnable(){ public void run(){ kbdView.prevText=""; kbdView.setText(""); }});
         InputMethodManager imm=(InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(kbdView.getWindowToken(), 0);
     }
