@@ -8,6 +8,7 @@ import android.view.*;
 import android.view.inputmethod.*;
 import android.view.ViewGroup.LayoutParams;
 import android.view.KeyEvent;
+import android.view.View.*;
 import android.widget.*;
 import android.text.*;
 import android.content.Context;
@@ -71,6 +72,14 @@ System.out.println("BACK onKeyPreIme");
             }
             public void beforeTextChanged(CharSequence s, int start, int count, int after){}
             public void afterTextChanged(Editable s){}
+        });
+        kbdView.setOnKeyListener(new OnKeyListener(){
+          public boolean onKey(View v, int keyCode, KeyEvent event){
+            if(keyCode == KeyEvent.KEYCODE_DEL && event.getAction() == KeyEvent.ACTION_UP) {
+              activateKey(BACKSPACE, 0); delay(35);
+            }
+            return true;
+          }
         });
         addContentView(kbdView, new ViewGroup.LayoutParams(10, 10));
     }
