@@ -89,12 +89,9 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
     public void activateKey(int keyCode, int ch){
       if(keyCode==0 && ch=='\n') keyCode=0x42;
       if(keyCode==0 && ch==' ')  keyCode=0x3e;
+      if(keyCode==0 && ch> ' ')  keyCode=-1;
       onKeyPress(keyCode, ch);
-      final int keyCodef=keyCode;
-      new Thread(){ public void run(){
-        delay(20);
-        onKeyRelease(keyCodef);
-      }}.start();
+      onKeyRelease(keyCode);
       delay(20);
     }
 

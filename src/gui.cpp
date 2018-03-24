@@ -1737,9 +1737,20 @@ void GUI::getCellEventsAndShowOpen(struct tm* thisdate, int col)
 
 // ---------------------------------------------------------------------------------------------
 
+static int framecount=0;
+static int framewhendown=0;
+#define KEY_UP_FRAME_DELAY 2
+static uint32_t pendingKeyCodeUp=0;
+
 void GUI::render()
 {
+  framecount++;
   ImGuiIO& io = ImGui::GetIO();
+
+  if(framecount>=framewhendown+KEY_UP_FRAME_DELAY && pendingKeyCodeUp){
+    keyReleased(pendingKeyCodeUp);
+    pendingKeyCodeUp=0;
+  }
 
   io.DisplaySize = ImVec2((float)app->width, (float)app->height);
   io.DeltaTime = app->frameTimer;
@@ -1804,6 +1815,7 @@ void GUI::addAnyKeySym()
 
 void GUI::keyPressed(uint32_t keyCode, char32_t u32key)
 {
+  framewhendown=framecount;
 #if defined(__ANDROID__) || defined(TEST_ANDROID_KEYBOARD)
   if(keyCode==BACK_BUTTON){ log_write("BACK\n"); return; }
 #endif
@@ -1818,6 +1830,7 @@ void GUI::keyPressed(uint32_t keyCode, char32_t u32key)
 
 void GUI::keyReleased(uint32_t keyCode)
 {
+  if(framecount<framewhendown+KEY_UP_FRAME_DELAY){ pendingKeyCodeUp=keyCode; return; }
   ImGuiIO& io = ImGui::GetIO();
   if(keyCode) io.KeysDown[keyCode] = false;
   io.KeyCtrl = io.KeysDown[KEY_CTRL_LEFT] || io.KeysDown[KEY_CTRL_RIGHT];
