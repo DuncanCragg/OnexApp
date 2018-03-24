@@ -1343,6 +1343,11 @@ int32_t VulkanBase::handleAppInput(struct android_app* app, AInputEvent* event)
       if(keyCode == KEY_BACKSPACE){ // AKEYCODE_BACKSPACE:
         vulkanApp->keyReleased(KEY_BACKSPACE);
       }
+      else
+      if(keyCode == AKEYCODE_BACK){
+        vulkanApp->keyReleased(BACK_BUTTON);
+        return 1;
+      }
       return 0;
     }
 

@@ -66,6 +66,7 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
     public static final int KEY_BACK     =0x100a;
 
     private int keyboardType = InputType.TYPE_CLASS_TEXT;
+    private boolean keyboardUp=false;
 
     public class KeyboardView extends EditText {
       public String prevText="";
@@ -79,9 +80,9 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
       }
       @Override
       public boolean onKeyPreIme(int keyCode, KeyEvent event) {
-        if(event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+        if(keyboardUp && event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
           if(event.getAction() == KeyEvent.ACTION_DOWN) onKeyPress(KEY_BACK, 0);
-          if(event.getAction() == KeyEvent.ACTION_UP)   onKeyRelease(KEY_BACK);
+          if(event.getAction() == KeyEvent.ACTION_UP) { onKeyRelease(KEY_BACK); keyboardUp=false; }
         }
         return super.onKeyPreIme(keyCode, event);
       }
@@ -135,10 +136,12 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
         InputMethodManager imm=(InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.restartInput(kbdView);
         imm.showSoftInput(kbdView, InputMethodManager.SHOW_FORCED);
+        keyboardUp=true;
     }
 
     public void hideKeyboard()
     {
+        keyboardUp=false;
         kbdView.post(new Runnable(){ public void run(){ kbdView.prevText=""; kbdView.setText(""); }});
         InputMethodManager imm=(InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(kbdView.getWindowToken(), 0);
