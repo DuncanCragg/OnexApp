@@ -23,7 +23,9 @@ import com.felhr.usbserial.UsbSerialDevice;
   */
 public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callback {
 
+    public static final int KEY_BACKSPACE=0x0043;
     public static final int KEY_BACK     =0x100a;
+
     private int keyboardType = InputType.TYPE_CLASS_TEXT;
 
     public class KeyboardView extends EditText {
@@ -48,8 +50,6 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
 
     private KeyboardView kbdView;
 
-    public static final int BACKSPACE=0x43;
-
     public void delay(int ms){ try{ Thread.sleep(ms); }catch(Exception e){}; }
 
     public void setUpKeyboardView(){
@@ -68,8 +68,8 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
               int deln=deled.length();
               int addn=added.length();
               int ch;
-              if(deled!="") for(int n=0; n< deln; n+=Character.charCount(ch)){ ch=deled.codePointAt(n); activateKey(BACKSPACE, 0); delay(35); }
-              if(added!="") for(int n=0; n< addn; n+=Character.charCount(ch)){ ch=added.codePointAt(n); activateKey(0, ch);        delay(35); }
+              if(deled!="") for(int n=0; n< deln; n+=Character.charCount(ch)){ ch=deled.codePointAt(n); activateKey(KEY_BACKSPACE, 0); delay(35); }
+              if(added!="") for(int n=0; n< addn; n+=Character.charCount(ch)){ ch=added.codePointAt(n); activateKey(0, ch);            delay(35); }
               kbdView.prevText=currText;
             }
             public void beforeTextChanged(CharSequence s, int start, int count, int after){}
