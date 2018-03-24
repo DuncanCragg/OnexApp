@@ -1339,11 +1339,18 @@ int32_t VulkanBase::handleAppInput(struct android_app* app, AInputEvent* event)
     int32_t action = AKeyEvent_getAction((const AInputEvent*)event);
     int32_t button = 0;
 
-    if (action == AKEY_EVENT_ACTION_UP)
+    if (action == AKEY_EVENT_ACTION_UP){
+      if(keyCode == KEY_BACKSPACE){ // AKEYCODE_BACKSPACE:
+        vulkanApp->keyReleased(KEY_BACKSPACE);
+      }
       return 0;
+    }
 
     switch (keyCode)
     {
+    case KEY_BACKSPACE: // AKEYCODE_BACKSPACE:
+      vulkanApp->keyPressed(KEY_BACKSPACE, 0);
+      break;
     case AKEYCODE_BACK:
       vulkanApp->keyPressed(BACK_BUTTON, 0);
       break;
