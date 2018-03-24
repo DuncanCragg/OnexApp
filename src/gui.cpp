@@ -1817,7 +1817,7 @@ void GUI::keyPressed(uint32_t keyCode, char32_t u32key)
 {
   framewhendown=framecount;
 #if defined(__ANDROID__) || defined(TEST_ANDROID_KEYBOARD)
-  if(keyCode==BACK_BUTTON){ log_write("BACK\n"); return; }
+  if(keyCode==BACK_BUTTON){ log_write("BACK pressed\n"); return; }
 #endif
   ImGuiIO& io = ImGui::GetIO();
   if(keyCode) io.KeysDown[keyCode] = true;
@@ -1831,6 +1831,9 @@ void GUI::keyPressed(uint32_t keyCode, char32_t u32key)
 void GUI::keyReleased(uint32_t keyCode)
 {
   if(framecount<framewhendown+KEY_UP_FRAME_DELAY){ pendingKeyCodeUp=keyCode; return; }
+#if defined(__ANDROID__) || defined(TEST_ANDROID_KEYBOARD)
+  if(keyCode==BACK_BUTTON){ log_write("BACK released\n"); return; }
+#endif
   ImGuiIO& io = ImGui::GetIO();
   if(keyCode) io.KeysDown[keyCode] = false;
   io.KeyCtrl = io.KeysDown[KEY_CTRL_LEFT] || io.KeysDown[KEY_CTRL_RIGHT];
