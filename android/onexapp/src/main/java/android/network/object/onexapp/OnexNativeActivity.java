@@ -68,8 +68,8 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
               int deln=deled.length();
               int addn=added.length();
               int ch;
-              if(deled!="") for(int n=0; n< deln; n+=Character.charCount(ch)){ ch=deled.codePointAt(n); activateKey(KEY_BACKSPACE, 0); delay(35); }
-              if(added!="") for(int n=0; n< addn; n+=Character.charCount(ch)){ ch=added.codePointAt(n); activateKey(0, ch);            delay(35); }
+              if(deled!="") for(int n=0; n< deln; n+=Character.charCount(ch)){ ch=deled.codePointAt(n); activateKey(KEY_BACKSPACE, 0); }
+              if(added!="") for(int n=0; n< addn; n+=Character.charCount(ch)){ ch=added.codePointAt(n); activateKey(0, ch);            }
               kbdView.prevText=currText;
             }
             public void beforeTextChanged(CharSequence s, int start, int count, int after){}
@@ -95,6 +95,7 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
         delay(20);
         onKeyRelease(keyCodef);
       }}.start();
+      delay(20);
     }
 
     // -----------------------------------------------------------
