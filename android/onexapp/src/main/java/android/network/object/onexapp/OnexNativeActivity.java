@@ -23,6 +23,7 @@ import com.felhr.usbserial.UsbSerialDevice;
   */
 public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callback {
 
+    public static final int KEY_BACK     =0x100a;
     private int keyboardType = InputType.TYPE_CLASS_TEXT;
 
     public class KeyboardView extends EditText {
@@ -37,8 +38,9 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
       }
       @Override
       public boolean onKeyPreIme(int keyCode, KeyEvent event) {
-        if(event.getKeyCode() == KeyEvent.KEYCODE_BACK && event.getAction() == KeyEvent.ACTION_UP) {
-System.out.println("BACK onKeyPreIme");
+        if(event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+          if(event.getAction() == KeyEvent.ACTION_DOWN) onKeyPress(KEY_BACK, 0);
+          if(event.getAction() == KeyEvent.ACTION_UP)   onKeyRelease(KEY_BACK);
         }
         return super.onKeyPreIme(keyCode, event);
       }
