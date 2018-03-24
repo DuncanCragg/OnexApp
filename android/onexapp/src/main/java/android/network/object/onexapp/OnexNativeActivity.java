@@ -23,6 +23,45 @@ import com.felhr.usbserial.UsbSerialDevice;
   */
 public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callback {
 
+    @Override
+    public void onCreate(Bundle savedInstanceState){
+        super.onCreate(savedInstanceState); System.out.println("onCreate");
+        setUpKeyboardView();
+        System.loadLibrary("onexapp");
+    }
+
+    @Override
+    public void onRestart(){
+        super.onRestart(); System.out.println("onRestart");
+    }
+
+    @Override
+    public void onStart(){
+        super.onStart(); System.out.println("onStart");
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume(); System.out.println("onResume");
+    }
+
+    @Override
+    public void onPause(){
+        super.onPause(); System.out.println("onPause");
+    }
+
+    @Override
+    public void onStop(){
+        super.onStop(); System.out.println("onStop");
+    }
+
+    @Override
+    public void onDestroy(){
+        super.onDestroy(); System.out.println("onDestroy");
+    }
+
+    // -----------------------------------------------------------
+
     public static final int KEY_BACKSPACE=0x0043;
     public static final int KEY_BACK     =0x100a;
 
@@ -87,46 +126,8 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
       delay(20);
     }
 
-    // -----------------------------------------------------------
-
-    @Override
-    public void onCreate(Bundle savedInstanceState){
-        super.onCreate(savedInstanceState); System.out.println("onCreate");
-        setUpKeyboardView();
-        System.loadLibrary("onexapp");
-    }
-
-    @Override
-    public void onRestart(){
-        super.onRestart(); System.out.println("onRestart");
-    }
-
-    @Override
-    public void onStart(){
-        super.onStart(); System.out.println("onStart");
-    }
-
-    @Override
-    public void onResume(){
-        super.onResume(); System.out.println("onResume");
-    }
-
-    @Override
-    public void onPause(){
-        super.onPause(); System.out.println("onPause");
-    }
-
-    @Override
-    public void onStop(){
-        super.onStop(); System.out.println("onStop");
-    }
-
-    @Override
-    public void onDestroy(){
-        super.onDestroy(); System.out.println("onDestroy");
-    }
-
-    // -----------------------------------------------------------
+    public static native void onKeyPress(int keyCode, int key);
+    public static native void onKeyRelease(int keyCode);
 
     public void showKeyboard(int type)
     {
@@ -142,9 +143,6 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
         InputMethodManager imm=(InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(kbdView.getWindowToken(), 0);
     }
-
-    public static native void onKeyPress(int keyCode, int key);
-    public static native void onKeyRelease(int keyCode);
 
     // -----------------------------------------------------------
 
