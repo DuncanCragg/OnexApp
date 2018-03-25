@@ -3626,6 +3626,11 @@ void ImGui::CaptureKeyboardFromApp(bool capture)
     GImGui->WantCaptureKeyboardNextFrame = capture ? 1 : 0;
 }
 
+void ImGui::TextInputFromApp(bool capture)
+{
+    GImGui->WantTextInputNextFrame = capture ? 1 : 0;
+}
+
 void ImGui::CaptureMouseFromApp(bool capture)
 {
     GImGui->WantCaptureMouseNextFrame = capture ? 1 : 0;

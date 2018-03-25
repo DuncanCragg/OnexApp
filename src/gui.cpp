@@ -1817,7 +1817,7 @@ void GUI::keyPressed(uint32_t keyCode, char32_t u32key)
 {
   framewhendown=framecount;
 #if defined(__ANDROID__) || defined(TEST_ANDROID_KEYBOARD)
-  if(keyCode==BACK_BUTTON){ log_write("BACK pressed\n"); return; }
+  if(keyCode==BACK_BUTTON){ log_write("BACK pressed\n"); ImGui::TextInputFromApp(false); return; }
 #endif
   ImGuiIO& io = ImGui::GetIO();
   if(keyCode) io.KeysDown[keyCode] = true;
