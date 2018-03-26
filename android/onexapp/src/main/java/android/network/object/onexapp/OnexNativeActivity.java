@@ -129,7 +129,7 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
       if(keyCode==0 && ch> ' ')  keyCode=-1;
       onKeyPress(keyCode, ch);
       onKeyRelease(keyCode);
-      delay(40);
+      delay(50);
     }
 
     public static native void onKeyPress(int keyCode, int key);
