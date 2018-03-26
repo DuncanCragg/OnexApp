@@ -80,11 +80,12 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
       }
       @Override
       public boolean onKeyPreIme(int keyCode, KeyEvent event) {
+        boolean r=super.onKeyPreIme(keyCode, event);
         if(keyboardUp && event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
-          if(event.getAction() == KeyEvent.ACTION_DOWN) onKeyPress(KEY_BACK, 0);
-          if(event.getAction() == KeyEvent.ACTION_UP) { onKeyRelease(KEY_BACK); keyboardUp=false; }
+          if(event.getAction() == KeyEvent.ACTION_DOWN){ onKeyPress(KEY_BACK, 0); return true; }
+          if(event.getAction() == KeyEvent.ACTION_UP) {  onKeyRelease(KEY_BACK); keyboardUp=false; return true; }
         }
-        return super.onKeyPreIme(keyCode, event);
+        return r;
       }
     }
 
