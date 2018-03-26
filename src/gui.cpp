@@ -243,7 +243,7 @@ bool        keyboardCancelled=false;
 void GUI::showKeyboard(float multy){
 #if defined(__ANDROID__) || defined(TEST_ANDROID_KEYBOARD)
   if(yOffsetTarget) return;
-  yOffsetTarget=(multy!=0)? multy: (ImGui::GetCursorScreenPos().y-buttonHeight)/1.85;
+  yOffsetTarget=(multy!=0)? multy: (ImGui::GetCursorScreenPos().y-3*buttonHeight)*0.80;
   yOffsetCounter=100;
   showOrHideSoftKeyboard(true);
 #endif
