@@ -760,7 +760,8 @@ static int filter_and_autocomplete_default(ImGuiTextEditCallbackData* data)
 void GUI::drawNewPropertyValueEditor(char* path, char* propname, char* val, bool single, bool locallyEditable, int16_t width, int16_t height, int8_t depth)
 {
   if(!val){ log_write("val==null: path=%s\n", path); return; }
-  char valId[256]; snprintf(valId, 256, "## val %s %s", val, path);
+  static int blurrer=0;
+  char valId[256]; snprintf(valId, 256, "## val %s %s %d", val, path, blurrer);
   static char valBuf[256];
   ImGuiIO& io = ImGui::GetIO();
   bool editing = propNameEditing && !strcmp(path, propNameEditing);
@@ -769,6 +770,7 @@ void GUI::drawNewPropertyValueEditor(char* path, char* propname, char* val, bool
     free(propNameEditing); propNameEditing=0;
     *valBuf=0;
     editing=false;
+    blurrer++;
   }
   ImGui::PushItemWidth(width);
   if(depth){
