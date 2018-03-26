@@ -763,6 +763,7 @@ void GUI::drawNewPropertyValueEditor(char* path, char* propname, char* val, bool
   static int blurrer=0;
   char valId[256]; snprintf(valId, 256, "## val %s %s %d", val, path, blurrer);
   static char valBuf[256];
+  strncpy(valBuf, val, 256); valBuf[255]=0;
   ImGuiIO& io = ImGui::GetIO();
   bool editing = propNameEditing && !strcmp(path, propNameEditing);
   if(editing && (!io.WantTextInput || keyboardCancelled)){
@@ -782,12 +783,11 @@ void GUI::drawNewPropertyValueEditor(char* path, char* propname, char* val, bool
   if(!editing){
     ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, valueBackground);
     float multy=ImGui::GetCursorScreenPos().y-buttonHeight;
-    if(height==buttonHeight){ ImGui::InputText(valId, val, 256, flags); multy=0; }
-    else                      ImGui::InputTextMultiline(valId, val, 256, ImVec2(width, height), flags);
+    if(height==buttonHeight){ ImGui::InputText(valId, valBuf, IM_ARRAYSIZE(valBuf), flags); multy=0; }
+    else                      ImGui::InputTextMultiline(valId, valBuf, IM_ARRAYSIZE(valBuf), ImVec2(width, height), flags);
     if(ImGui::IsItemActive() && ImGui::IsMouseReleased(0) && !dragPathId){
       if(locallyEditable){
         propNameEditing = strdup(path);
-        strncpy(valBuf, val, 256); valBuf[255]=0;
         showKeyboard(multy);
       }
     }
@@ -798,8 +798,8 @@ void GUI::drawNewPropertyValueEditor(char* path, char* propname, char* val, bool
     bool done=false;
     ImGuiTextEditCallback faa=filter_and_autocomplete_default;
     if(propname && !strcmp(propname, "tags")) faa=filter_and_autocomplete_calendar_tags;
-    if(height==buttonHeight) done=FilterAutoInputText(valId, valBuf, 256, faa);
-    else                     done=ImGui::InputTextMultiline(valId, valBuf, 256, ImVec2(width, height), flags);
+    if(height==buttonHeight) done=FilterAutoInputText(valId, valBuf, IM_ARRAYSIZE(valBuf), faa);
+    else                     done=ImGui::InputTextMultiline(valId, valBuf, IM_ARRAYSIZE(valBuf), ImVec2(width, height), flags);
     if(done){
       if(propname && !strcmp(propname, "tags")) setNewTag(path, valBuf);
       else                                      setNewValue(path, valBuf, single);
@@ -885,7 +885,7 @@ void GUI::drawObjectFooter(char* path, bool locallyEditable, int16_t width, int1
     ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
     ImGui::PushStyleColor(ImGuiCol_PopupBg, propertyBackground);
     ImGui::PushStyleColor(ImGuiCol_FrameBg, propertyBackground);
-    if(FilterAutoInputText("## property name", propNameBuf, 256, filter_and_autocomplete_property_names)){
+    if(FilterAutoInputText("## property name", propNameBuf, IM_ARRAYSIZE(propNameBuf), filter_and_autocomplete_property_names)){
       if(*propNameBuf){
         if(!strcmp(propNameBuf, "Rules")) setPropertyNameAndObject(path, propNameBuf);
         else if(!strcmp(propNameBuf, "Notifying")) setPropertyNameAndLink(path, propNameBuf);
@@ -1615,7 +1615,7 @@ void GUI::drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t
     ImGui::PushStyleColor(ImGuiCol_FrameBgActive, valueBackgroundActive);
     int flags=ImGuiInputTextFlags_EnterReturnsTrue|ImGuiInputTextFlags_CtrlEnterForNewLine|ImGuiInputTextFlags_AutoSelectAll;
     char valId[256]; snprintf(valId, 256, "## editing %s:", path);
-    if(ImGui::InputTextMultiline(valId, dayBuf, 256, ImVec2(2*COLUMN_WIDTH, buttonHeight*2), flags)){
+    if(ImGui::InputTextMultiline(valId, dayBuf, IM_ARRAYSIZE(dayBuf), ImVec2(2*COLUMN_WIDTH, buttonHeight*2), flags)){
       if(*dayBuf){
         object* o=createNewEvent(thisdate, dayBuf);
         if(o){
