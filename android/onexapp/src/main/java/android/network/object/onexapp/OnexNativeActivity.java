@@ -73,6 +73,11 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
       public KeyboardView(Context context) { super(context); }
       @Override
       public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
+        if(!keyboardUp){
+          InputMethodManager imm=(InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+          imm.hideSoftInputFromWindow(kbdView.getWindowToken(), 0);
+          return null;
+        }
         InputConnection inputConnection = super.onCreateInputConnection(outAttrs);
         outAttrs.inputType |= keyboardType; // | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS;
         return inputConnection;
@@ -132,19 +137,19 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
 
     public void showKeyboard(int type)
     {
+        keyboardUp=true;
         keyboardType = type;
         InputMethodManager imm=(InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.restartInput(kbdView);
         imm.showSoftInput(kbdView, InputMethodManager.SHOW_FORCED);
-        keyboardUp=true;
     }
 
     public void hideKeyboard()
     {
-        keyboardUp=false;
         kbdView.post(new Runnable(){ public void run(){ kbdView.prevText=""; kbdView.setText(""); }});
         InputMethodManager imm=(InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(kbdView.getWindowToken(), 0);
+        keyboardUp=false;
     }
 
     // -----------------------------------------------------------
