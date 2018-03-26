@@ -236,6 +236,7 @@ char*       propNameEditing=0;
 uint16_t    yOffsetTarget=0;
 uint16_t    yOffset=0;
 uint16_t    yOffsetCounter=0;
+bool        keyboardCancelled=false;
 
 #define xTEST_ANDROID_KEYBOARD
 
@@ -763,7 +764,7 @@ void GUI::drawNewPropertyValueEditor(char* path, char* propname, char* val, bool
   static char valBuf[256];
   ImGuiIO& io = ImGui::GetIO();
   bool editing = propNameEditing && !strcmp(path, propNameEditing);
-  if(editing && !io.WantTextInput){
+  if(editing && (!io.WantTextInput || keyboardCancelled)){
     hideKeyboard();
     free(propNameEditing); propNameEditing=0;
     *valBuf=0;
@@ -842,7 +843,7 @@ void GUI::drawObjectFooter(char* path, bool locallyEditable, int16_t width, int1
   static char propNameBuf[256] = "";
   ImGuiIO& io = ImGui::GetIO();
   bool editing = propNameEditing && !strcmp(path, propNameEditing);
-  if(editing && grabbedFocus && !io.WantTextInput){
+  if(editing && grabbedFocus && (!io.WantTextInput || keyboardCancelled)){
     hideKeyboard();
     free(propNameEditing); propNameEditing=0;
     *propNameBuf=0;
@@ -1585,7 +1586,7 @@ void GUI::drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t
   char addId[256]; snprintf(addId, 256, canAdd? " +##%d %d %s:": "##%d %d %s:", day, col, path);
   bool editing = editingCell && !strcmp(addId, editingCell);
   ImGuiIO& io = ImGui::GetIO();
-  if(editing && grabbedFocus && !io.WantTextInput){
+  if(editing && grabbedFocus && (!io.WantTextInput || keyboardCancelled)){
     hideKeyboard();
     free(editingCell); editingCell=0;
     *dayBuf=0;
@@ -1817,7 +1818,7 @@ void GUI::keyPressed(uint32_t keyCode, char32_t u32key)
 {
   framewhendown=framecount;
 #if defined(__ANDROID__) || defined(TEST_ANDROID_KEYBOARD)
-  if(keyCode==BACK_BUTTON){ log_write("BACK pressed\n"); return; }
+  if(keyCode==BACK_BUTTON){ keyboardCancelled=true; return; }
 #endif
   ImGuiIO& io = ImGui::GetIO();
   if(keyCode) io.KeysDown[keyCode] = true;
@@ -1832,7 +1833,7 @@ void GUI::keyReleased(uint32_t keyCode)
 {
   if(framecount<framewhendown+KEY_UP_FRAME_DELAY){ pendingKeyCodeUp=keyCode; return; }
 #if defined(__ANDROID__) || defined(TEST_ANDROID_KEYBOARD)
-  if(keyCode==BACK_BUTTON){ log_write("BACK released\n"); return; }
+  if(keyCode==BACK_BUTTON){  keyboardCancelled=false; return; }
 #endif
   ImGuiIO& io = ImGui::GetIO();
   if(keyCode) io.KeysDown[keyCode] = false;
