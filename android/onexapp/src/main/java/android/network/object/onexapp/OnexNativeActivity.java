@@ -94,7 +94,6 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
 
     public void setUpKeyboardView(){
         kbdView = new KeyboardView(this);
-        kbdView.setFocusableInTouchMode(true);
         kbdView.setImeOptions(EditorInfo.IME_FLAG_NO_FULLSCREEN);
         kbdView.addTextChangedListener(new TextWatcher(){
             public void onTextChanged(CharSequence cs, int start, int before, int count) {
