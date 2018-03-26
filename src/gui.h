@@ -26,6 +26,7 @@ extern "C" {
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <imgui.h>
+extern void ImStrncpy(char* dst, const char* src, size_t count);
 #define IM_ARRAYSIZE(_ARR)  ((int)(sizeof(_ARR)/sizeof(*_ARR)))
 
 #include <vulkan/vulkan.h>
@@ -64,7 +65,7 @@ public:
   void saveDays(char* path);
   void saveDay(char* path, int j, int col);
   void makeLink();
-  void bestPropName(char* propname, object* from, char* touid);
+  void bestPropName(char* newpropname, int proplen, object* from, char* touid);
   void drawLink();
   void trackLink(bool from, char* path, int width, int height);
   char* getLastLink();
