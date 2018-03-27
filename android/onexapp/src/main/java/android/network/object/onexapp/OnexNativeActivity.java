@@ -14,7 +14,8 @@ import android.text.*;
 import android.content.Context;
 import android.app.NativeActivity;
 import android.hardware.usb.*;
-import android.content.Intent;
+import android.content.*;
+import android.app.*;
 
 import com.felhr.usbserial.UsbSerialInterface;
 import com.felhr.usbserial.UsbSerialDevice;
@@ -28,6 +29,7 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
         super.onCreate(savedInstanceState); System.out.println("onCreate");
         setUpKeyboardView();
         System.loadLibrary("onexapp");
+        scheduleAlarm(System.currentTimeMillis()+7000);
     }
 
     @Override
@@ -198,6 +200,14 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
     public void serialSend(String chars)
     {
       if(serialPort!=null) try{ serialPort.write(chars.getBytes("UTF-8")); }catch(Exception e){}
+    }
+
+    // -----------------------------------------------------------
+
+    public void scheduleAlarm(long when){
+      PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 54321, new Intent("Onex.Alarm"), 0);
+      AlarmManager am=(AlarmManager)getSystemService(Context.ALARM_SERVICE);
+      am.set(AlarmManager.RTC_WAKEUP, when, pendingIntent);
     }
 }
 

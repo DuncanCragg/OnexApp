@@ -41,5 +41,12 @@
                  android:resource="@xml/device_filter"/>
 
     </activity>
+
+    <receiver android:name=".AlarmReceiver" android:exported="false" >
+        <intent-filter>
+          <action android:name="Onex.Alarm" />
+        </intent-filter>
+    </receiver>
+
   </application>
 </manifest>
