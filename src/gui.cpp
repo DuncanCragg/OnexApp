@@ -1358,8 +1358,6 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
     todayseconds=time(0);
     todaydate = *localtime(&todayseconds);
   }
-  if(!calstamps) calstamps=properties_new(100);
-  else           properties_clear(calstamps, true);
   saveDays(path);
   static int firstdaydelta=0;
   static float scrollx=0;
@@ -1507,6 +1505,8 @@ static bool firstDateSet=false;
 
 void GUI::saveDays(char* path)
 {
+  if(!calstamps) calstamps=properties_new(100);
+  else           properties_clear(calstamps, true);
   uint16_t ln = object_property_length(user, path);
   int col=1;
   for(int c=1; c<16; c++){ calendarTitles[c]=0; calendarUIDs[c]=0; }
@@ -1664,8 +1664,7 @@ void GUI::getCellTitles(char* titles, struct tm* thisdate, int col)
       char* eventuid=object_property(user, eventpath);
       if(!properties_get(uidseen, value_new(eventuid))){
         properties_set(uidseen, value_new(eventuid), value_new(eventuid));
-        char titlepath[128];
-        snprintf(titlepath, 128, "%s:title", eventpath);
+        char titlepath[128]; snprintf(titlepath, 128, "%s:title", eventpath);
         char* title=object_property_values(user, titlepath);
         at+=snprintf(titles+at, 512-at, "%s\n", title? title: (char*)"--");
       }
