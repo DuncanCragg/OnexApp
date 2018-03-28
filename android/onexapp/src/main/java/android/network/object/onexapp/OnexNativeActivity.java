@@ -65,6 +65,7 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
     // -----------------------------------------------------------
 
     public static final int KEY_BACKSPACE=0x0043;
+    public static final int KEY_ENTER    =0x0042;
     public static final int KEY_BACK     =0x100a;
 
     private int keyboardType = InputType.TYPE_CLASS_TEXT;
@@ -116,7 +117,7 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
               int addn=added.length();
               int ch;
               if(deled!="") for(int n=0; n< deln; n+=Character.charCount(ch)){ ch=deled.codePointAt(n); activateKey(KEY_BACKSPACE, 0); }
-              if(added!="") for(int n=0; n< addn; n+=Character.charCount(ch)){ ch=added.codePointAt(n); activateKey(0, ch);            }
+              if(added!="") for(int n=0; n< addn; n+=Character.charCount(ch)){ ch=added.codePointAt(n); activateKey(-1, ch);           }
               kbdView.prevText=currText;
             }
             public void beforeTextChanged(CharSequence s, int start, int count, int after){}
@@ -126,9 +127,7 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
     }
 
     public void activateKey(int keyCode, int ch){
-      if(keyCode==0 && ch=='\n') keyCode=0x42;
-      if(keyCode==0 && ch==' ')  keyCode=0x3e;
-      if(keyCode==0 && ch> ' ')  keyCode=-1;
+      if(ch=='\n'){ keyCode=KEY_ENTER; ch=0; }
       onKeyPress(keyCode, ch);
       onKeyRelease(keyCode);
       delay(50);
