@@ -1262,7 +1262,7 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16
       if(is_uid(val)){ multiln=false; break; }
       int l=snprintf(textlines+n, 512-n, "%s ", val);
       n+=l; m+=l;
-      if(m*30>width){ n+=snprintf(textlines+n, 512-n, "\n"); m=0; }
+      if(m*30>width){ textlines[n-1]='\n'; m=0; }
     }
   }
   if(oneline || multiln || newline){
@@ -1275,6 +1275,7 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16
   ImGui::BeginChild(childName, ImVec2(width,height), true);
   {
     if(oneline || multiln){
+      if(n) textlines[n-1]=0;
       drawNewPropertyValueEditor(path, 0, textlines, true, locallyEditable, width, height, depth);
     }
     else
