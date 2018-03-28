@@ -118,6 +118,15 @@ void show_notification(char* title, char* text)
 }
 
 }
+#else
+extern "C" {
+
+void show_notification(char* title, char* text)
+{
+  log_write("NOTIFICATION!!!! %s %s\n", title, text);
+}
+
+}
 #endif
 
 class OnexApp : public VulkanBase
