@@ -289,6 +289,9 @@ static void closeAllStarting(char* prefix)
 static bool rhsFullScreen=false;
 static bool calendarView=false;
 static bool tableView=false;
+static time_t todayseconds = 0;
+static struct tm todaydate;
+static time_t lasttoday = 0;
 
 void GUI::drawView()
 {
@@ -370,8 +373,12 @@ void GUI::drawView()
 
     ImGui::Separator();
 
-    int8_t s=strlen("viewing-r")+1;
-    char path[s]; memcpy(path, "viewing-r", s);
+    if(!(lasttoday++%1000)){
+      todayseconds=time(0);
+      todaydate = *localtime(&todayseconds);
+      saveDays((char*)"viewing-r");
+    }
+    int8_t s=strlen("viewing-r")+1; char path[s]; memcpy(path, "viewing-r", s);
     if(calendarView) drawCalendar(path, ws2width-rhsPadding, workspace2Height-100);
     else
     if(tableView);// drawTable(..);
@@ -1117,6 +1124,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
   char pikId[256]; snprintf(pikId, 256, " >## %s", path);
   if(ImGui::Button(pikId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
     object_property_add(user, (char*)"viewing-r", object_property(user, path));
+    saveDays((char*)"viewing-r");
   }
   track_drag(pikId, true);
 
@@ -1333,9 +1341,6 @@ static const char* date_formats[] = {    "%d %b %I%p",  "%d %b %I%p",           
 static const char* daytable[] = {"Sun", "Mon", "Tues", "Wed", "Thu", "Fri", "Sat"};
 static const char* monthtable[] = {"January","February","March","April","May","June","July","August","September","October","November","December"};
 
-static time_t lasttoday = 0;
-static time_t todayseconds = 0;
-static struct tm todaydate;
 static properties* calstamps=0;
 static time_t firstDate=0;
 static time_t lastDate=0;
@@ -1354,11 +1359,6 @@ static bool sameDay(struct tm* d1, struct tm* d2)
 
 void GUI::drawCalendar(char* path, int16_t width, int16_t height)
 {
-  if(!(lasttoday++%1000)){
-    todayseconds=time(0);
-    todaydate = *localtime(&todayseconds);
-  }
-  saveDays(path);
   static int firstdaydelta=0;
   static float scrollx=0;
   static float scrolly=0;
@@ -1627,6 +1627,7 @@ void GUI::drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t
             object_property_add(objectEditing, (char*)"list", evtuid);
           }
           object_property_add(user, (char*)"viewing-r", evtuid);
+          saveDays((char*)"viewing-r");
         }
         hideKeyboard();
         free(editingCell); editingCell=0;
