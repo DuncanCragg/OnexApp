@@ -103,6 +103,20 @@ void serial_send(char* b)
   androidApp->activity->vm->DetachCurrentThread();
 }
 
+void show_notification(char* title, char* text)
+{
+  JNIEnv* env;
+  androidApp->activity->vm->AttachCurrentThread(&env, 0);
+  jobject nativeActivity = androidApp->activity->clazz;
+  jclass nativeActivityClass = env->GetObjectClass(nativeActivity);
+  jmethodID method = env->GetMethodID(nativeActivityClass, "showNotification", "(Ljava/lang/String;Ljava/lang/String;)V");
+  jstring jtitle = env->NewStringUTF(title);
+  jstring jtext  = env->NewStringUTF(text);
+  env->CallVoidMethod(nativeActivity, method, jtitle, jtext);
+  env->DeleteLocalRef(jtitle); env->DeleteLocalRef(jtext);
+  androidApp->activity->vm->DetachCurrentThread();
+}
+
 }
 #endif
 
