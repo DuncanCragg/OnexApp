@@ -29,7 +29,7 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
         super.onCreate(savedInstanceState); System.out.println("onCreate");
         setUpKeyboardView();
         System.loadLibrary("onexapp");
-        scheduleAlarm(System.currentTimeMillis()+7000);
+        showNotificationAt("Onex", "ALARM! :-)", System.currentTimeMillis()+7000);
     }
 
     @Override
@@ -204,13 +204,17 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
 
     // -----------------------------------------------------------
 
-    public void scheduleAlarm(long when){
+    public void showNotification(String title, String text){
+      showNotificationStatic(this, title, text);
+    }
+
+    public void showNotificationAt(String title, String text, long when){
       PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 54321, new Intent("Onex.Alarm"), 0);
       AlarmManager am=(AlarmManager)getSystemService(Context.ALARM_SERVICE);
       am.set(AlarmManager.RTC_WAKEUP, when, pendingIntent);
     }
 
-    static public void showNotification(Context context, String title, String text){
+    static public void showNotificationStatic(Context context, String title, String text){
       PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, new Intent(context, OnexNativeActivity.class), PendingIntent.FLAG_UPDATE_CURRENT);
       Notification.Builder notifbuilder = new Notification.Builder(context);
       notifbuilder.setContentTitle(title)
