@@ -999,7 +999,7 @@ object* GUI::createNewObjectLikeOthers(char* path)
     int8_t sz=object_property_size(user, path);
     if(sz>0) for(int j=1; j<=sz; j++){
       char* key=object_property_key(user, path, j);
-      char* is=0; if(!strcmp(key,"is")) is=object_property_val(user, path, j);
+      char* is=0; if(key && !strcmp(key,"is")) is=object_property_val(user, path, j);
       object_property_set(r, key, is? is: (char*)"--");
       filled=true;
     }
@@ -1730,7 +1730,7 @@ void GUI::getCellEventsAndShowOpen(struct tm* thisdate, int col)
       uint16_t ln = object_property_length(user, (char*)"viewing-r");
       int i; for(i=1; i<=ln; i++){
         char* uid=object_property_get_n(user, (char*)"viewing-r", i);
-        if(!strcmp(uid, openuid)) break;
+        if(uid && openuid && !strcmp(uid, openuid)) break;
       }
       if(i==ln+1) object_property_add(user, (char*)"viewing-r", openuid);
       char openPath[256]; snprintf(openPath, 256, "viewing-r:%d", i);
