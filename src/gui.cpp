@@ -1699,17 +1699,17 @@ void GUI::getTagIcons(char* tagicons, int taglen, struct tm* thisdate, int cols)
       char* eventuid=object_property(user, eventpath);
       if(!properties_get(uidseen, value_new(eventuid))){
         properties_set(uidseen, value_new(eventuid), value_new(eventuid));
-        char occpath[128];
-        snprintf(occpath, 128, "%s:tags", eventpath);
-        int ln=object_property_length(user, occpath);
+        char tagpath[128];
+        snprintf(tagpath, 128, "%s:tags", eventpath);
+        int ln=object_property_length(user, tagpath);
         for(int i=1; i<=ln; i++){
-          size_t l=strlen(occpath);
-          snprintf(occpath+l, 128-l, ":%d:icon", i);
-          char* icon=object_property_values(user, occpath);
-          occpath[l] = 0;
-          snprintf(occpath+l, 128-l, ":%d:colour", i);
-          char* colour=object_property_values(user, occpath);
-          occpath[l] = 0;
+          size_t l=strlen(tagpath);
+          snprintf(tagpath+l, 128-l, ":%d:icon", i);
+          char* icon=object_property_values(user, tagpath);
+          tagpath[l] = 0;
+          snprintf(tagpath+l, 128-l, ":%d:colour", i);
+          char* colour=object_property_values(user, tagpath);
+          tagpath[l] = 0;
           if(icon) ti+=snprintf(tagicons+ti, taglen-ti, "%s%s ", getHexOfColour(colour), icon);
         }
       }
