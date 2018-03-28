@@ -660,13 +660,13 @@ void GUI::setPropertyNameAndObject(char* path , char* name)
 
 void GUI::setPropertyNameAndLink(char* path , char* name)
 {
-  char* lastlink=getLastLink();
+  char* lastlink=popLastLink();
   if(!lastlink) return;
   object* objectEditing = onex_get_from_cache(object_property(user, path));
   object_property_set(objectEditing, name, lastlink);
 }
 
-char* GUI::getLastLink()
+char* GUI::popLastLink()
 {
   uint16_t viewrlen=object_property_length(user, (char*)"viewing-r");
   char popPath[64]; snprintf(popPath, 64, "viewing-r:%d", viewrlen);
@@ -953,7 +953,7 @@ void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t de
 
   char addLnkId[256]; snprintf(addLnkId, 256, " <## %s", pathj);
   if(ImGui::Button(addLnkId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
-    char* lastlink=getLastLink();
+    char* lastlink=popLastLink();
     if(lastlink){
       char* lastcolon=strrchr(path,':'); *lastcolon=0;
       object* objectEditing = onex_get_from_cache(object_property(user, path));

@@ -68,7 +68,7 @@ public:
   void bestPropName(char* newpropname, int proplen, object* from, char* touid);
   void drawLink();
   void trackLink(bool from, char* path, int width, int height);
-  char* getLastLink();
+  char* popLastLink();
   void setPropertyName(char* path , char* name);
   void setPropertyNameAndObject(char* path , char* name);
   void setPropertyNameAndLink(char* path , char* name);
