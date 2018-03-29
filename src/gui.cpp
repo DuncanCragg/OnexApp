@@ -289,16 +289,22 @@ static void closeAllStarting(char* prefix)
 static bool rhsFullScreen=false;
 static bool calendarView=false;
 static bool tableView=false;
+
 static time_t todayseconds = 0;
 static struct tm todaydate;
-static time_t lasttoday = 0;
 
 void GUI::drawView()
 {
+  int msperframe = (int)(1000.0f/ImGui::GetIO().Framerate);
   if(yOffsetCounter > 0){
-    int msperframe = (int)(1000.0f/ImGui::GetIO().Framerate);
     yOffset=yOffsetTarget*(100-yOffsetCounter)/100;
     yOffsetCounter-=msperframe >10? 10 : 5;
+  }
+  static int msSince=0; msSince+=msperframe;
+  if(msSince>100){ msSince=0;
+    todayseconds=time(0);
+    todaydate = *localtime(&todayseconds);
+    saveDays((char*)"viewing-r");
   }
   if(!rhsFullScreen){
     ImGui::BeginChild("Workspace1", ImVec2(workspace1Width,workspace1Height), true);
@@ -373,11 +379,6 @@ void GUI::drawView()
 
     ImGui::Separator();
 
-    if(!(lasttoday++%1000)){
-      todayseconds=time(0);
-      todaydate = *localtime(&todayseconds);
-      saveDays((char*)"viewing-r");
-    }
     int8_t s=strlen("viewing-r")+1; char path[s]; memcpy(path, "viewing-r", s);
     if(calendarView) drawCalendar(path, ws2width-rhsPadding, workspace2Height-100);
     else
@@ -1124,7 +1125,6 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
   char pikId[256]; snprintf(pikId, 256, " >## %s", path);
   if(ImGui::Button(pikId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
     object_property_add(user, (char*)"viewing-r", object_property(user, path));
-    saveDays((char*)"viewing-r");
   }
   track_drag(pikId, true);
 
@@ -1627,7 +1627,6 @@ void GUI::drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t
             object_property_add(objectEditing, (char*)"list", evtuid);
           }
           object_property_add(user, (char*)"viewing-r", evtuid);
-          saveDays((char*)"viewing-r");
         }
         hideKeyboard();
         free(editingCell); editingCell=0;
