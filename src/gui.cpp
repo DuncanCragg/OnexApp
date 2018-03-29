@@ -293,6 +293,10 @@ static bool tableView=false;
 static time_t todayseconds = 0;
 static struct tm todaydate;
 
+void GUI::changed()
+{
+}
+
 void GUI::drawView()
 {
   int msperframe = (int)(1000.0f/ImGui::GetIO().Framerate);

@@ -137,6 +137,8 @@ public:
 
   void render();
 
+  void changed();
+
   ~GUI();
 };
 

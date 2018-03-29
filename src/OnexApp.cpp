@@ -137,6 +137,7 @@ public:
   static bool evaluator(object* o)
   {
     char* is=object_property_values(o, (char*)"is");
+    if(is && !strcmp(is, "user") && static_gui) static_gui->changed();
     return true;
   }
 
