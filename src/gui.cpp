@@ -295,6 +295,9 @@ static struct tm todaydate;
 
 void GUI::changed()
 {
+  todayseconds=time(0);
+  todaydate = *localtime(&todayseconds);
+  saveDays((char*)"viewing-r");
 }
 
 void GUI::drawView()
@@ -303,12 +306,6 @@ void GUI::drawView()
   if(yOffsetCounter > 0){
     yOffset=yOffsetTarget*(100-yOffsetCounter)/100;
     yOffsetCounter-=msperframe >10? 10 : 5;
-  }
-  static int msSince=0; msSince+=msperframe;
-  if(msSince>100){ msSince=0;
-    todayseconds=time(0);
-    todaydate = *localtime(&todayseconds);
-    saveDays((char*)"viewing-r");
   }
   if(!rhsFullScreen){
     ImGui::BeginChild("Workspace1", ImVec2(workspace1Width,workspace1Height), true);
