@@ -134,13 +134,9 @@ class OnexApp : public VulkanBase
 
 public:
 
-  static bool evaluate_user(object* user)
+  static bool evaluator(object* o)
   {
-    return true;
-  }
-
-  static bool evaluate_list(object* user)
-  {
+    char* is=object_property_values(o, (char*)"is");
     return true;
   }
 
@@ -163,7 +159,7 @@ public:
     onex_init((char*)"Onex/onex.ondb");
 #endif
 
-    onex_set_default_evaluator(evaluate_list);
+    onex_set_default_evaluator(evaluator);
 
     config=onex_get_from_cache((char*)"uid-0");
 
@@ -183,10 +179,10 @@ public:
       object_property_set(taglookup, (char*)"celebrate", object_property(tagceleb, (char*)"UID"));
       object_property_set(taglookup, (char*)"love",      object_property(taglove,  (char*)"UID"));
 
-      object* links=object_new(0, (char*)"links list", evaluate_list, 4);
+      object* links=object_new(0, (char*)"links list", evaluator, 4);
       object_property_set(links, (char*)"list", object_property(taglookup, (char*)"UID"));
 
-      user=object_new(0, (char*)"user", evaluate_user, 8);
+      user=object_new(0, (char*)"user", evaluator, 8);
       object_property_set(user, (char*)"viewing-l", object_property(links, (char*)"UID"));
 
       config=object_new((char*)"uid-0", (char*)"config", 0, 10);
