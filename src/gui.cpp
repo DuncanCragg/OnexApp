@@ -1237,7 +1237,7 @@ void GUI::drawKey(char* path, char* key, int16_t width, int16_t height, int16_t 
   ImGui::PushStyleColor(ImGuiCol_Button, nodarken? propertyBackground: propertyBackgroundActive);
   ImGui::PushStyleColor(ImGuiCol_ButtonHovered, nodarken? propertyBackground: propertyBackgroundActive);
   ImGui::PushStyleColor(ImGuiCol_ButtonActive, propertyBackgroundActive);
-  char keyId[256]; snprintf(keyId, 256, "%s ## %s", key, path);
+  char keyId[256]; snprintf(keyId, 256, "%s ## key %s", key, path);
   ImGui::Button(keyId, ImVec2(keyWidth, height));
   track_drag(keyId, true);
   ImGui::PopStyleColor(4);
@@ -1616,7 +1616,7 @@ void GUI::drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t
     ImGui::PushStyleColor(ImGuiCol_FrameBg, valueBackground);
     ImGui::PushStyleColor(ImGuiCol_FrameBgActive, valueBackgroundActive);
     int flags=ImGuiInputTextFlags_EnterReturnsTrue|ImGuiInputTextFlags_CtrlEnterForNewLine|ImGuiInputTextFlags_AutoSelectAll;
-    char valId[256]; snprintf(valId, 256, "## editing %s:", path);
+    char valId[256]; snprintf(valId, 256, "## day cell %s:", path);
     if(ImGui::InputTextMultiline(valId, dayBuf, IM_ARRAYSIZE(dayBuf), ImVec2(2*COLUMN_WIDTH, buttonHeight*2), flags)){
       if(*dayBuf){
         object* o=createNewEvent(thisdate, dayBuf);
