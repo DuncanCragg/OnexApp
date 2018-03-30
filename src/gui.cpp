@@ -1093,6 +1093,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
       }
       else{
         object_property_set(user, path, (char*)"");
+        changed();
       }
     }
     track_drag(dropId, true);
@@ -1126,6 +1127,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
   char pikId[256]; snprintf(pikId, 256, " >## %s", path);
   if(ImGui::Button(pikId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
     object_property_add(user, (char*)"viewing-r", object_property(user, path));
+    changed();
   }
   track_drag(pikId, true);
 
@@ -1629,6 +1631,7 @@ void GUI::drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t
           }
           else{
             object_property_add(user, path, evtuid);
+            changed();
           }
         }
         hideKeyboard();
