@@ -150,6 +150,8 @@ void GUI::initImGUI(float width, float height)
 //  window_flags |= ImGuiWindowFlags_AlwaysUseWindowPadding;
 }
 
+#define DARKEN_DEPTH 4
+
 #if defined(__ANDROID__)
 #define ASSET_PATH ""
 #else
@@ -784,7 +786,7 @@ void GUI::drawNewPropertyValueEditor(char* path, char* propname, char* val, bool
   }
   ImGui::PushItemWidth(width);
   if(depth){
-    bool nodarken=depth<3;
+    bool nodarken=depth<DARKEN_DEPTH;
     ImGui::PushStyleColor(ImGuiCol_FrameBg, nodarken? valueBackground: valueBackgroundActive);
     ImGui::PushStyleColor(ImGuiCol_FrameBgActive, valueBackgroundActive);
   }
@@ -864,7 +866,7 @@ void GUI::drawObjectFooter(char* path, bool locallyEditable, int16_t width, int1
   if(!editing){
     int c=0;
     char prpId[256]; snprintf(prpId, 256, " +## property %s", path);
-    bool nodarken=depth<3;
+    bool nodarken=depth<DARKEN_DEPTH;
     ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
     ImGui::PushStyleColor(ImGuiCol_Button, nodarken? propertyBackground: propertyBackgroundActive);
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, nodarken? propertyBackground: propertyBackgroundActive);
@@ -915,7 +917,7 @@ void GUI::drawObjectFooter(char* path, bool locallyEditable, int16_t width, int1
 
 void GUI::drawPadding(char* path, int16_t width, int16_t height, int8_t depth)
 {
-  bool nodarken=depth<3;
+  bool nodarken=depth<DARKEN_DEPTH;
   ImGui::PushStyleColor(ImGuiCol_Button, nodarken? listBackground: listBackgroundDark);
   ImGui::PushStyleColor(ImGuiCol_ButtonHovered, nodarken? listBackground: listBackgroundDark);
   ImGui::PushStyleColor(ImGuiCol_Border, nodarken? listBackground: listBackgroundDark);
@@ -928,7 +930,7 @@ void GUI::drawPadding(char* path, int16_t width, int16_t height, int8_t depth)
 
 void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t depth, bool valueToo)
 {
-  bool nodarken=depth<3;
+  bool nodarken=depth<DARKEN_DEPTH;
   char pathj[256]; snprintf(pathj, 256, "%s:%d", path, j);
   char* propname=strrchr(path, ':');
   if(propname) propname++;
@@ -1059,7 +1061,7 @@ object* GUI::createNewEvent(struct tm* thisdate, char* title)
 
 void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8_t depth)
 {
-  bool nodarken=depth<3;
+  bool nodarken=depth<DARKEN_DEPTH;
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));
   ImGui::PushStyleColor(ImGuiCol_Text, actionColour);
   ImGui::PushStyleColor(ImGuiCol_Button, nodarken? actionBackground: actionBackgroundActive);
@@ -1081,7 +1083,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
     track_drag(backId, true);
     ImGui::SameLine();
   }
-  else if(depth<3){
+  else if(depth<DARKEN_DEPTH){
     char dropId[256]; snprintf(dropId, 256, " X## %s", path);
     if(ImGui::Button(dropId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
       if(!strncmp(path, "viewing-l", strlen("viewing-l"))){
@@ -1100,7 +1102,7 @@ void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8
     ImGui::SameLine();
   }
 
-  int blankwidth = width-(depth==1? buttonWidth: (depth<3? smallButtonWidth: 0))-2*smallButtonWidth;
+  int blankwidth = width-(depth==1? buttonWidth: (depth<DARKEN_DEPTH? smallButtonWidth: 0))-2*smallButtonWidth;
   if(blankwidth>10){
     char summary[128]="";
     getSummary(path, summary);
@@ -1234,7 +1236,7 @@ void GUI::drawPropertyList(char* path, char* key, bool locallyEditable, int16_t 
 
 void GUI::drawKey(char* path, char* key, int16_t width, int16_t height, int16_t keyWidth, int8_t depth)
 {
-  bool nodarken=depth<3;
+  bool nodarken=depth<DARKEN_DEPTH;
   ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
   ImGui::PushStyleColor(ImGuiCol_Button, nodarken? propertyBackground: propertyBackgroundActive);
   ImGui::PushStyleColor(ImGuiCol_ButtonHovered, nodarken? propertyBackground: propertyBackgroundActive);
@@ -1279,7 +1281,7 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16
   if(oneline || multiln || newline){
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));
   }
-  bool nodarken=depth<3;
+  bool nodarken=depth<DARKEN_DEPTH;
   ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, nodarken? listBackground: listBackgroundDark);
   ImGui::SameLine();
   char childName[128]; memcpy(childName, path, strlen(path)+1);
