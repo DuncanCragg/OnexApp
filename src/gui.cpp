@@ -1627,7 +1627,9 @@ void GUI::drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t
             object* objectEditing = onex_get_from_cache(caluid);
             object_property_add(objectEditing, (char*)"list", evtuid);
           }
-          object_property_add(user, (char*)"viewing-r", evtuid);
+          else{
+            object_property_add(user, path, evtuid);
+          }
         }
         hideKeyboard();
         free(editingCell); editingCell=0;
