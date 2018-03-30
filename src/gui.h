@@ -61,7 +61,7 @@ public:
   void drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t width);
   void getCellTitles(char* titles, struct tm* thisdate, int col);
   void getTagIcons(char* tagicons, int taglen, struct tm* thisdate, int cols);
-  void getCellEventsAndShowOpen(struct tm* thisdate, int col);
+  void getCellEventsAndShowOpen(char* path, struct tm* thisdate, int col);
   void saveDays(char* path);
   void saveDay(char* path, int j, int col);
   void makeLink();
