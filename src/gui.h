@@ -94,9 +94,6 @@ public:
   VkDescriptorSet descriptorSet;
   vks::VulkanDevice *device;
 
-  object* user;
-  object* config;
-
   VulkanBase *app;
 
   struct PushConstBlock {

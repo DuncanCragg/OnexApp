@@ -11,6 +11,9 @@
 #include <time.h>
 #include "gui.h"
 
+static object* user;
+static object* config;
+
 GUI::GUI(VulkanBase* a, object* u, object* c)
 {
   app = a;
