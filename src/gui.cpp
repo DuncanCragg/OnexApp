@@ -694,7 +694,7 @@ char* GUI::popLast(char* path)
 static int ss= -1;
 static int se= -1;
 
-static int filter_and_autocomplete(ImGuiTextEditCallbackData* data, bool (*enforcer)(ImGuiTextEditCallbackData* data), const char** autoCompleteChoices, int autoCompleteChoicesSize)
+static int filter_and_autocomplete(ImGuiTextEditCallbackData* data, bool (*enforcer)(ImGuiTextEditCallbackData* data), char** autoCompleteChoices, int autoCompleteChoicesSize)
 {
   static bool autocompletenext=false;
   if(data->EventFlag==ImGuiInputTextFlags_CallbackCharFilter){
@@ -753,17 +753,15 @@ static bool enforcePropertyName(ImGuiTextEditCallbackData* data)
   return true;
 }
 
-static const char* calendarTags[] = {
-  "birthday",
-  "party",
-  "train",
-  "celebrate",
-  "love"
-};
 
 static int filter_and_autocomplete_calendar_tags(ImGuiTextEditCallbackData* data)
 {
-  return filter_and_autocomplete(data, enforcePropertyName, calendarTags, IM_ARRAYSIZE(calendarTags));
+  int tls=object_property_size(config, (char*)"taglookup");
+  char* calendarTags[tls-1];
+  for(int t=2; t<=tls; t++){
+    calendarTags[t-2]=object_property_key(config, (char*)"taglookup", t);
+  }
+  return filter_and_autocomplete(data, enforcePropertyName, calendarTags, tls-1);
 }
 
 static int filter_and_autocomplete_default(ImGuiTextEditCallbackData* data)
@@ -848,7 +846,7 @@ static const char* propertyNameChoices[] = {
 
 static int filter_and_autocomplete_property_names(ImGuiTextEditCallbackData* data)
 {
-  return filter_and_autocomplete(data, enforcePropertyName, propertyNameChoices, IM_ARRAYSIZE(propertyNameChoices));
+  return filter_and_autocomplete(data, enforcePropertyName, (char**)propertyNameChoices, IM_ARRAYSIZE(propertyNameChoices));
 }
 
 void GUI::drawObjectFooter(char* path, bool locallyEditable, int16_t width, int16_t keyWidth, int8_t depth)
@@ -1051,10 +1049,11 @@ object* GUI::createNewEvent(struct tm* thisdate, char* title)
     }
   }
   char tags[256]=""; int l=0;
-  for(int t=0; t<IM_ARRAYSIZE(calendarTags); t++){
-    const char* tag=calendarTags[t];
-    char tagpath[64]; snprintf(tagpath, 64, "taglookup:%s", tag);
-    if(strcasestr(title, tag)) l+=snprintf(tags+l, 256-l, "%s ", object_property(config, tagpath));
+  int tls=object_property_size(config, (char*)"taglookup");
+  for(int t=2; t<=tls; t++){
+    char* tag=object_property_key(config, (char*)"taglookup", t);
+    char* val=object_property_val(config, (char*)"taglookup", t);
+    if(strcasestr(title, tag)) l+=snprintf(tags+l, 256-l, "%s ", val);
   }
   if(time){     object_property_set(r, (char*)"time",     time);     free(time); }
   if(endtime){  object_property_set(r, (char*)"end-time", endtime);  free(endtime); }
