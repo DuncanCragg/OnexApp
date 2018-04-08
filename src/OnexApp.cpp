@@ -136,10 +136,7 @@ public:
 
   static bool evaluate_default(object* o)
   {
-    log_write("evaluate_default\n");
-    object_log(o);
-    char* is=object_property_values(o, (char*)"is");
-    if(is && !strcmp(is, "user")) evaluate_user(o);
+    log_write("evaluate_default\n"); object_log(o);
     return true;
   }
 
