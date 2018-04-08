@@ -1053,6 +1053,7 @@ object* GUI::createNewEvent(struct tm* thisdate, char* title)
   if(time){     object_property_set(r, (char*)"time",     time);     free(time); }
   if(endtime){  object_property_set(r, (char*)"end-time", endtime);  free(endtime); }
   if(*tags) object_property_set(r, (char*)"tags", tags);
+  object_keep_active(r, true);
   return r;
 }
 
