@@ -395,11 +395,6 @@ void GUI::drawView()
   drawLink();
 }
 
-static bool evaluate_any_object(object* user)
-{
-  return true;
-}
-
 #define DRAG_THRESHOLD         30.0f
 #define START_DRIFT_THRESHOLD  10.0f
 #define END_DRIFT_THRESHOLD     0.01f
@@ -985,7 +980,7 @@ void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t de
 
 object* GUI::createNewObjectForPropertyName(char* path, char* name)
 {
-  object* r=object_new(0, 0, evaluate_any_object, 4);
+  object* r=object_new(0, (char*)"default", 0, 4);
   char* is;
   if(!strcmp(name,"Rules")) is=(char*)"Rule";
   else is=name;
@@ -995,7 +990,7 @@ object* GUI::createNewObjectForPropertyName(char* path, char* name)
 
 object* GUI::createNewObjectLikeOthers(char* path)
 {
-  object* r=object_new(0, 0, evaluate_any_object, 4);
+  object* r=object_new(0, (char*)"default", 0, 4);
   bool filled=false;
   int16_t ln = object_property_length(user, path);
   for(int i=1; i<=ln; i++){
@@ -1020,7 +1015,7 @@ static const char* time_formats[] = { "%I:%M%p", "%I.%M%p", "%I%p", //  7:00pm 7
 
 object* GUI::createNewEvent(struct tm* thisdate, char* title)
 {
-  object* r=object_new(0, 0, evaluate_any_object, 8);
+  object* r=object_new(0, (char*)"default", 0, 8);
   object_property_set(r, (char*)"is", (char*)"event");
   char ts[32]; strftime(ts, 32, "%Y-%m-%d", thisdate);
   object_property_set(r, (char*)"title", title);

@@ -67,7 +67,7 @@ bool keyboardUp = false;
 
 void showOrHideSoftKeyboard(bool show)
 {
-  onex_run_evaluators(user);
+  onex_run_evaluator(user);
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
   if(keyboardUp == show) return;
   JNIEnv* env;
@@ -134,10 +134,18 @@ class OnexApp : public VulkanBase
 
 public:
 
-  static bool evaluator(object* o)
+  static bool evaluate_default(object* o)
   {
+    log_write("evaluate_default\n");
+    object_log(o);
     char* is=object_property_values(o, (char*)"is");
-    if(is && !strcmp(is, "user") && static_gui) static_gui->changed();
+    if(is && !strcmp(is, "user")) evaluate_user(o);
+    return true;
+  }
+
+  static bool evaluate_user(object* o)
+  {
+    if(static_gui) static_gui->changed();
     return true;
   }
 
@@ -160,7 +168,8 @@ public:
     onex_init((char*)"Onex/onex.ondb");
 #endif
 
-    onex_set_default_evaluator(evaluator);
+    onex_set_evaluator((char*)"default", evaluate_default);
+    onex_set_evaluator((char*)"user", evaluate_user);
 
     config=onex_get_from_cache((char*)"uid-0");
 
@@ -180,13 +189,13 @@ public:
       object_property_set(taglookup, (char*)"celebrate", object_property(tagceleb, (char*)"UID"));
       object_property_set(taglookup, (char*)"love",      object_property(taglove,  (char*)"UID"));
 
-      object* links=object_new(0, (char*)"links list", evaluator, 4);
+      object* links=object_new(0, (char*)"default", (char*)"links list", 4);
       object_property_set(links, (char*)"list", object_property(taglookup, (char*)"UID"));
 
-      user=object_new(0, (char*)"user", evaluator, 8);
+      user=object_new(0, (char*)"user", (char*)"user", 8);
       object_property_set(user, (char*)"viewing-l", object_property(links, (char*)"UID"));
 
-      config=object_new((char*)"uid-0", (char*)"config", 0, 10);
+      config=object_new((char*)"uid-0", 0, (char*)"config", 10);
       object_property_set(config, (char*)"user",      object_property(user, (char*)"UID"));
       object_property_set(config, (char*)"taglookup", object_property(taglookup, (char*)"UID"));
     }
