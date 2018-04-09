@@ -1009,14 +1009,19 @@ object* GUI::createNewObjectLikeOthers(char* path)
   return r;
 }
 
+bool evaluate_event(object* o)
+{
+  log_write("evaluate_event\n"); object_log(o);
+  return true;
+}
+
 static const char* time_formats[] = { "%I:%M%p", "%I.%M%p", "%I%p", //  7:00pm 7pm
                                       "%H:%M", "%H.%M",             //  19:00
 };
 
 object* GUI::createNewEvent(struct tm* thisdate, char* title)
 {
-  object* r=object_new(0, (char*)"default", 0, 8);
-  object_property_set(r, (char*)"is", (char*)"event");
+  object* r=object_new(0, (char*)"event", (char*)"event", 8);
   char ts[32]; strftime(ts, 32, "%Y-%m-%d", thisdate);
   object_property_set(r, (char*)"title", title);
   object_property_set(r, (char*)"date", ts);

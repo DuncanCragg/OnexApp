@@ -128,6 +128,8 @@ void show_notification(char* title, char* text)
 }
 #endif
 
+extern bool evaluate_event(object* o);
+
 class OnexApp : public VulkanBase
 {
   GUI* gui;
@@ -159,6 +161,7 @@ public:
 
     onex_set_evaluator((char*)"default", evaluate_default);
     onex_set_evaluator((char*)"user", evaluate_user);
+    onex_set_evaluator((char*)"event", evaluate_event);
 
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
     char dbpath[128];
@@ -186,7 +189,7 @@ public:
       object_property_set(taglookup, (char*)"celebrate", object_property(tagceleb, (char*)"UID"));
       object_property_set(taglookup, (char*)"love",      object_property(taglove,  (char*)"UID"));
 
-      object* links=object_new(0, (char*)"default", (char*)"links list", 4);
+      object* links=object_new(0, 0, (char*)"links list", 4);
       object_property_set(links, (char*)"list", object_property(taglookup, (char*)"UID"));
 
       user=object_new(0, (char*)"user", (char*)"user", 8);
