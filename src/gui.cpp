@@ -1009,6 +1009,41 @@ object* GUI::createNewObjectLikeOthers(char* path)
   return r;
 }
 
+static const char* date_formats[] = {    "%d %b %I%p",  "%d %b %I%p",           //     23 Feb 7pm
+                                         "%b %d %I%p",  "%b %d %I%p",           //     Feb 23 7pm
+                                         "%d %b %I:%M%p",  "%d %b %I.%M%p",     //     23 Feb 7:15pm
+                                         "%b %d %I:%M%p",  "%b %d %I.%M%p",     //     Feb 23 7:15pm
+                                         "%d %b %H:%M",    "%d %b %H.%M",       //     23 Feb 19:00
+                                         "%b %d %H:%M",    "%b %d %H.%M",       //     Feb 23 19:00
+                                         "%d %b %Y",       "%d %b",             //     23 Feb (2019)
+                                         "%b %d %Y",       "%b %d",             //     Feb 23 (2019)
+                                      "%a %d %b %H:%M", "%a %d %b %H.%M",       // Mon 23 Feb 19:00
+                                      "%a %b %d %H:%M", "%a %b %d %H.%M",       // Mon Feb 23 19:00
+                                      "%a %d %b %Y",    "%a %d %b",             // Mon 23 Feb (2019)
+                                      "%a %b %d %Y",    "%a %b %d",             // Mon Feb 23 (2019)
+                                      "%Y-%m-%d", "%Y/%m/%d",                   //  2019-02-23 2019/02/23
+                                      "%I:%M%p", "%I.%M%p", "%I%p",             //  7:00pm 7pm
+                                      "%H:%M", "%H.%M",                         //  19:00
+                                      "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S"  //  2019-2-23T19:00:11, 2019-02-23 19:00:11
+};
+
+time_t getDate(object* o, char* path, struct tm* start_time)
+{
+  char* stvals=object_property_values(o, path);
+  if(!stvals) return -1;
+  char* r=0;
+  for(int f=0; f<IM_ARRAYSIZE(date_formats); f++){
+    memset(start_time, 0, sizeof(struct tm));
+    (*start_time).tm_mday=todaydate.tm_mday;
+    (*start_time).tm_mon =todaydate.tm_mon;
+    (*start_time).tm_year=todaydate.tm_year;
+    r=strptime(stvals, date_formats[f], start_time);
+    if(r) break;
+  }
+  if(!r) return -1;
+  return mktime(start_time);
+}
+
 bool evaluate_event(object* o)
 {
   log_write("evaluate_event\n"); object_log(o);
@@ -1328,24 +1363,6 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16
   }
 }
 
-static const char* date_formats[] = {    "%d %b %I%p",  "%d %b %I%p",           //     23 Feb 7pm
-                                         "%b %d %I%p",  "%b %d %I%p",           //     Feb 23 7pm
-                                         "%d %b %I:%M%p",  "%d %b %I.%M%p",     //     23 Feb 7:15pm
-                                         "%b %d %I:%M%p",  "%b %d %I.%M%p",     //     Feb 23 7:15pm
-                                         "%d %b %H:%M",    "%d %b %H.%M",       //     23 Feb 19:00
-                                         "%b %d %H:%M",    "%b %d %H.%M",       //     Feb 23 19:00
-                                         "%d %b %Y",       "%d %b",             //     23 Feb (2019)
-                                         "%b %d %Y",       "%b %d",             //     Feb 23 (2019)
-                                      "%a %d %b %H:%M", "%a %d %b %H.%M",       // Mon 23 Feb 19:00
-                                      "%a %b %d %H:%M", "%a %b %d %H.%M",       // Mon Feb 23 19:00
-                                      "%a %d %b %Y",    "%a %d %b",             // Mon 23 Feb (2019)
-                                      "%a %b %d %Y",    "%a %b %d",             // Mon Feb 23 (2019)
-                                      "%Y-%m-%d", "%Y/%m/%d",                   //  2019-02-23 2019/02/23
-                                      "%I:%M%p", "%I.%M%p", "%I%p",             //  7:00pm 7pm
-                                      "%H:%M", "%H.%M",                         //  19:00
-                                      "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S"  //  2019-2-23T19:00:11, 2019-02-23 19:00:11
-};
-
 static const char* daytable[] = {"Sun", "Mon", "Tues", "Wed", "Thu", "Fri", "Sat"};
 static const char* monthtable[] = {"January","February","March","April","May","June","July","August","September","October","November","December"};
 
@@ -1559,20 +1576,8 @@ void GUI::saveDays(char* path)
 void GUI::saveDay(char* path, int j, int col)
 {
   char stpath[128]; snprintf(stpath, 128, "%s:%d:date", path, j);
-  char* stvals=object_property_values(user, stpath);
-  if(!stvals) return;
   struct tm start_time;
-  char* r=0;
-  for(int f=0; f<IM_ARRAYSIZE(date_formats); f++){
-    memset(&start_time, 0, sizeof(struct tm));
-    start_time.tm_mday=todaydate.tm_mday;
-    start_time.tm_mon =todaydate.tm_mon;
-    start_time.tm_year=todaydate.tm_year;
-    r=strptime(stvals, date_formats[f], &start_time);
-    if(r) break;
-  }
-  if(!r) return;
-  time_t t=mktime(&start_time);
+  time_t t=getDate(user, stpath, &start_time);
   if(t== -1) return;
   if(!firstDateSet){
     if(firstDate==0 || t<firstDate) firstDate=t;
