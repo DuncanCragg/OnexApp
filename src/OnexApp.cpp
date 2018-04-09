@@ -67,7 +67,7 @@ bool keyboardUp = false;
 
 void showOrHideSoftKeyboard(bool show)
 {
-  onex_run_evaluator(user);
+  onex_run_evaluator(user); // ?
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
   if(keyboardUp == show) return;
   JNIEnv* env;
@@ -157,6 +157,9 @@ public:
     camera.setRotation(glm::vec3(5.0f, 90.0f, 0.0f));
     camera.setPerspective(60.0f, (float)width / (float)height, 0.1f, 256.0f);
 
+    onex_set_evaluator((char*)"default", evaluate_default);
+    onex_set_evaluator((char*)"user", evaluate_user);
+
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
     char dbpath[128];
     sprintExternalStorageDirectory(dbpath, 128, "%s/Onex/onex.ondb");
@@ -164,9 +167,6 @@ public:
 #else
     onex_init((char*)"Onex/onex.ondb");
 #endif
-
-    onex_set_evaluator((char*)"default", evaluate_default);
-    onex_set_evaluator((char*)"user", evaluate_user);
 
     config=onex_get_from_cache((char*)"uid-0");
 
@@ -202,6 +202,7 @@ public:
     }
     gui = new GUI(this, user, config);
     static_gui = gui;
+    onex_run_evaluator(user); // !
   }
 
   virtual void startup()
