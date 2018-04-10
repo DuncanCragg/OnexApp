@@ -35,6 +35,7 @@ extern void ImStrncpy(char* dst, const char* src, size_t count);
 #include "../sascha/VulkanBuffer.hpp"
 
 extern void showOrHideSoftKeyboard(bool show);
+extern void showNotification(char* title, char* text);
 
 class GUI {
 public:

@@ -102,7 +102,9 @@ void serial_send(char* b)
   androidApp->activity->vm->DetachCurrentThread();
 }
 
-void show_notification(char* title, char* text)
+}
+
+void showNotification(char* title, char* text)
 {
   JNIEnv* env;
   androidApp->activity->vm->AttachCurrentThread(&env, 0);
@@ -116,15 +118,10 @@ void show_notification(char* title, char* text)
   androidApp->activity->vm->DetachCurrentThread();
 }
 
-}
 #else
-extern "C" {
-
-void show_notification(char* title, char* text)
+void showNotification(char* title, char* text)
 {
   log_write("NOTIFICATION!!!! %s %s\n", title, text);
-}
-
 }
 #endif
 
