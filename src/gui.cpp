@@ -1027,6 +1027,10 @@ static const char* date_formats[] = {    "%d %b %I%p",  "%d %b %I%p",           
                                       "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S"  //  2019-2-23T19:00:11, 2019-02-23 19:00:11
 };
 
+static const char* time_formats[] = { "%I:%M%p", "%I.%M%p", "%I%p", //  7:00pm 7pm
+                                      "%H:%M", "%H.%M",             //  19:00
+};
+
 time_t getDate(object* o, char* path, struct tm* start_time)
 {
   char* stvals=object_property_values(o, path);
@@ -1044,15 +1048,21 @@ time_t getDate(object* o, char* path, struct tm* start_time)
   return mktime(start_time);
 }
 
+bool getTime(char** p, struct tm* parsed_time)
+{
+  for(int f=0; f<IM_ARRAYSIZE(time_formats); f++){
+    memset(parsed_time, 0, sizeof(struct tm));
+    char* q=strptime(*p, time_formats[f], parsed_time);
+    if(q){ *p=q; return true; }
+  }
+  return false;
+}
+
 bool evaluate_event(object* o)
 {
   log_write("evaluate_event\n"); object_log(o);
   return true;
 }
-
-static const char* time_formats[] = { "%I:%M%p", "%I.%M%p", "%I%p", //  7:00pm 7pm
-                                      "%H:%M", "%H.%M",             //  19:00
-};
 
 object* GUI::createNewEvent(struct tm* thisdate, char* title)
 {
@@ -1067,13 +1077,7 @@ object* GUI::createNewEvent(struct tm* thisdate, char* title)
   for(;*p;p++){
     if(isdigit(*p)){
       struct tm parsed_time;
-      char* q=0;
-      for(int f=0; f<IM_ARRAYSIZE(time_formats); f++){
-        memset(&parsed_time, 0, sizeof(struct tm));
-        q=strptime(p, time_formats[f], &parsed_time);
-        if(q){ p=q; break; }
-      }
-      if(q){
+      if(getTime(&p, &parsed_time)){
         char ts[32]; int n=strftime(ts, 32, "%I:%M%P", &parsed_time);
         char* tsd=strdup(ts);
         if(!time) time=tsd;
