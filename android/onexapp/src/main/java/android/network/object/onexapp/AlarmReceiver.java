@@ -6,6 +6,6 @@ import android.app.*;
 public class AlarmReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
-        OnexNativeActivity.showNotificationStatic(context, "Onex", "Alarm");
+        OnexNativeActivity.alarmReceived(context, intent);
     }
 }

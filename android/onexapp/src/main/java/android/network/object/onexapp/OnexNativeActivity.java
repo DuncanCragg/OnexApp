@@ -209,13 +209,16 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
     }
 
     public void setAlarm(long when, String uid){
-      showNotificationAt("setAlarm", uid, when);
+      Intent intent = new Intent("Onex.Alarm");
+      intent.putExtra("UID", uid);
+      PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 54321, intent, 0);
+      AlarmManager am=(AlarmManager)getSystemService(Context.ALARM_SERVICE);
+      am.set(AlarmManager.RTC_WAKEUP, when*1000, pendingIntent);
     }
 
-    public void showNotificationAt(String title, String text, long when){
-      PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 54321, new Intent("Onex.Alarm"), 0);
-      AlarmManager am=(AlarmManager)getSystemService(Context.ALARM_SERVICE);
-      am.set(AlarmManager.RTC_WAKEUP, when, pendingIntent);
+    static public void alarmReceived(Context context, Intent intent){
+      String uid=intent.getStringExtra("UID");
+      showNotificationStatic(context, "alarm", uid);
     }
 
     static public void showNotificationStatic(Context context, String title, String text){
@@ -228,5 +231,7 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
       NotificationManager notifMgr = (NotificationManager)context.getSystemService(context.NOTIFICATION_SERVICE);
       notifMgr.notify(12345, notifbuilder.build());
     }
+
+    // -----------------------------------------------------------
 }
 
