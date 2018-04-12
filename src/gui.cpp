@@ -1009,6 +1009,14 @@ object* GUI::createNewObjectLikeOthers(char* path)
   return r;
 }
 
+int date_compare(struct tm* d1, struct tm* d2)
+{
+  int yd=(d1->tm_year - d2->tm_year); if(yd) return yd;
+  int md=(d1->tm_mon  - d2->tm_mon);  if(md) return md;
+  int dd=(d1->tm_mday - d2->tm_mday); if(dd) return dd;
+  return 0;
+}
+
 static const char* date_formats[] = {    "%d %b %I%p",  "%d %b %I%p",           //     23 Feb 7pm
                                          "%b %d %I%p",  "%b %d %I%p",           //     Feb 23 7pm
                                          "%d %b %I:%M%p",  "%d %b %I.%M%p",     //     23 Feb 7:15pm
