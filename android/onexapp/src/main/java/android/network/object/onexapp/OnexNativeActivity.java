@@ -24,9 +24,12 @@ import com.felhr.usbserial.UsbSerialDevice;
   */
 public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callback {
 
+    static OnexNativeActivity self=null;
+
     @Override
     public void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState); System.out.println("onCreate");
+        self=this;
         setUpKeyboardView();
         System.loadLibrary("onexapp");
     }
@@ -59,6 +62,7 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
     @Override
     public void onDestroy(){
         super.onDestroy(); System.out.println("onDestroy");
+        self=null;
     }
 
     // -----------------------------------------------------------
@@ -218,7 +222,8 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
 
     static public void alarmReceived(Context context, Intent intent){
       String uid=intent.getStringExtra("UID");
-      showNotificationStatic(context, "alarm", uid);
+      if(self!=null) self.onAlarmRecv(uid);
+      else context.startActivity(new Intent(context, OnexNativeActivity.class));
     }
 
     static public void showNotificationStatic(Context context, String title, String text){
