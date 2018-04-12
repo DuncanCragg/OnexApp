@@ -1073,6 +1073,12 @@ bool getTime(char** p, struct tm* parsed_time)
 bool evaluate_event(object* o)
 {
   log_write("evaluate_event\n"); object_log(o);
+  if(!object_property_contains(o, (char*)"is", (char*)"event")){   log_write("object is no longer an is: event\n");
+    object_keep_active(o, false);
+    object_set_run_data(o, 0);
+    object_set_evaluator(o, (char*)"default");
+    return true;
+  }
   return true;
 }
 
