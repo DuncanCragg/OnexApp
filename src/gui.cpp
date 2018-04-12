@@ -1085,6 +1085,9 @@ bool evaluate_event(object* o)
     object_keep_active(o, false);
     return true;
   }
+  if(object_get_run_data(o)) return true;
+  log_write("event for today or future\n");
+  object_set_run_data(o, t);
   return true;
 }
 
