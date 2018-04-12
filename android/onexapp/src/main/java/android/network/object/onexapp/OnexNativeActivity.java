@@ -29,7 +29,6 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
         super.onCreate(savedInstanceState); System.out.println("onCreate");
         setUpKeyboardView();
         System.loadLibrary("onexapp");
-        showNotificationAt("Onex", "ALARM! :-)", System.currentTimeMillis()+7000);
     }
 
     @Override
