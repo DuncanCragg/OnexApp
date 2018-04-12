@@ -1031,21 +1031,25 @@ static const char* time_formats[] = { "%I:%M%p", "%I.%M%p", "%I%p", //  7:00pm 7
                                       "%H:%M", "%H.%M",             //  19:00
 };
 
-time_t getDate(object* o, char* path, struct tm* start_time)
+bool getDate(char* p, struct tm* parsed_date)
 {
-  char* stvals=object_property_values(o, path);
-  if(!stvals) return -1;
-  char* r=0;
   for(int f=0; f<IM_ARRAYSIZE(date_formats); f++){
-    memset(start_time, 0, sizeof(struct tm));
-    (*start_time).tm_mday=todaydate.tm_mday;
-    (*start_time).tm_mon =todaydate.tm_mon;
-    (*start_time).tm_year=todaydate.tm_year;
-    r=strptime(stvals, date_formats[f], start_time);
-    if(r) break;
+    memset(parsed_date, 0, sizeof(struct tm));
+    (*parsed_date).tm_mday=todaydate.tm_mday;
+    (*parsed_date).tm_mon =todaydate.tm_mon;
+    (*parsed_date).tm_year=todaydate.tm_year;
+    char* q=strptime(p, date_formats[f], parsed_date);
+    if(q) return true;
   }
-  if(!r) return -1;
-  return mktime(start_time);
+  return false;
+}
+
+time_t getDateFromObject(object* o, char* path, struct tm* parsed_date)
+{
+  char* p=object_property_values(o, path);
+  if(!p) return -1;
+  if(!getDate(p, parsed_date)) return -1;
+  return mktime(parsed_date);
 }
 
 bool getTime(char** p, struct tm* parsed_time)
@@ -1580,14 +1584,14 @@ void GUI::saveDays(char* path)
 void GUI::saveDay(char* path, int j, int col)
 {
   char stpath[128]; snprintf(stpath, 128, "%s:%d:date", path, j);
-  struct tm start_time;
-  time_t t=getDate(user, stpath, &start_time);
+  struct tm start_date;
+  time_t t=getDateFromObject(user, stpath, &start_date);
   if(t== -1) return;
   if(!firstDateSet){
     if(firstDate==0 || t<firstDate) firstDate=t;
     if(lastDate==0  || t>lastDate)  lastDate=t;
   }
-  char ts[32]; int n=strftime(ts, 32, "%Y-%m-%d", &start_time);
+  char ts[32]; int n=strftime(ts, 32, "%Y-%m-%d", &start_date);
   snprintf(ts+n, 32-n, "/%d", col);
   char eventpath[128]; snprintf(eventpath, 128, "%s:%d", path, j);
   list* l=(list*)properties_get(calstamps, value_new(ts));
