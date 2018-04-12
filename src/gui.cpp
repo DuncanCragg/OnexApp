@@ -1107,6 +1107,11 @@ bool evaluate_event(object* o)
   return true;
 }
 
+void GUI::onAlarmRecv(char* uid)
+{
+log_write("onAlarmRecv=%s\n",uid);
+}
+
 object* GUI::createNewEvent(struct tm* thisdate, char* title)
 {
   object* r=object_new(0, (char*)"event", (char*)"event", 8);

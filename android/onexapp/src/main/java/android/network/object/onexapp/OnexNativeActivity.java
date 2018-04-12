@@ -203,6 +203,8 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
 
     // -----------------------------------------------------------
 
+    public static native void onAlarmRecv(String uid);
+
     public void showNotification(String title, String text){
       showNotificationStatic(this, title, text);
     }

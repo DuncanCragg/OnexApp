@@ -18,6 +18,7 @@ extern "C"
   JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyPress(JNIEnv* env, jobject thiz, jint keyCode, jint key);
   JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyRelease(JNIEnv* env, jobject thiz, jint keyCode);
   JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onSerialRecv(JNIEnv* env, jobject thiz, jstring b);
+  JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onAlarmRecv(JNIEnv* env, jobject thiz, jstring juid);
 };
 
 JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyPress(JNIEnv* env, jobject thiz, jint keyCode, jint u32key)
@@ -39,6 +40,13 @@ JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onSerialRe
   const char* chars = env->GetStringUTFChars(b, 0);
   on_serial_recv((char*)chars);
   env->ReleaseStringUTFChars(b, chars);
+}
+
+JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onAlarmRecv(JNIEnv* env, jobject thiz, jstring juid)
+{
+  const char* uid = env->GetStringUTFChars(juid, 0);
+  static_gui->onAlarmRecv((char*)uid);
+  env->ReleaseStringUTFChars(juid, uid);
 }
 
 void sprintExternalStorageDirectory(char* buf, int buflen, const char* format)
