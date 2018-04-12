@@ -118,10 +118,29 @@ void showNotification(char* title, char* text)
   androidApp->activity->vm->DetachCurrentThread();
 }
 
+void setAlarm(time_t when, char* uid)
+{
+  JNIEnv* env;
+  androidApp->activity->vm->AttachCurrentThread(&env, 0);
+  jobject nativeActivity = androidApp->activity->clazz;
+  jclass nativeActivityClass = env->GetObjectClass(nativeActivity);
+  jmethodID method = env->GetMethodID(nativeActivityClass, "setAlarm", "(JLjava/lang/String;)V");
+  jlong jwhen = (jlong)when;
+  jstring juid  = env->NewStringUTF(uid);
+  env->CallVoidMethod(nativeActivity, method, jwhen, juid);
+  env->DeleteLocalRef(juid);
+  androidApp->activity->vm->DetachCurrentThread();
+}
+
 #else
 void showNotification(char* title, char* text)
 {
   log_write("NOTIFICATION!!!! %s %s\n", title, text);
+}
+
+void setAlarm(time_t when, char* uid)
+{
+  log_write("setAlarm %ld %s\n", when, uid);
 }
 #endif
 

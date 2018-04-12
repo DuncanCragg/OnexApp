@@ -207,6 +207,10 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
       showNotificationStatic(this, title, text);
     }
 
+    public void setAlarm(long when, String uid){
+      showNotificationAt("setAlarm", uid, when);
+    }
+
     public void showNotificationAt(String title, String text, long when){
       PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 54321, new Intent("Onex.Alarm"), 0);
       AlarmManager am=(AlarmManager)getSystemService(Context.ALARM_SERVICE);
