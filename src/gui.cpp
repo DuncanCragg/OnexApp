@@ -1087,6 +1087,14 @@ bool evaluate_event(object* o)
   }
   if(object_get_run_data(o)) return true;
   log_write("event for today or future\n");
+  char* ts=object_property_values(o, (char*)"time");
+  struct tm time;
+  if(ts && getTime(&ts, &time)){
+    date.tm_sec =time.tm_sec;
+    date.tm_min =time.tm_min;
+    date.tm_hour=time.tm_hour;
+    t=mktime(&date);
+  }
   object_set_run_data(o, t);
   return true;
 }
