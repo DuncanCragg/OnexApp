@@ -206,12 +206,6 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
 
     // -----------------------------------------------------------
 
-    public static native void onAlarmRecv(String uid);
-
-    public void showNotification(String title, String text){
-      showNotificationStatic(this, title, text);
-    }
-
     public void setAlarm(long when, String uid){
       Intent intent = new Intent("Onex.Alarm");
       intent.putExtra("UID", uid);
@@ -220,20 +214,22 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
       am.set(AlarmManager.RTC_WAKEUP, when*1000, pendingIntent);
     }
 
+    public static native void onAlarmRecv(String uid);
+
     static public void alarmReceived(Context context, Intent intent){
       String uid=intent.getStringExtra("UID");
       if(self!=null) self.onAlarmRecv(uid);
       else context.startActivity(new Intent(context, OnexNativeActivity.class));
     }
 
-    static public void showNotificationStatic(Context context, String title, String text){
-      PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, new Intent(context, OnexNativeActivity.class), PendingIntent.FLAG_UPDATE_CURRENT);
-      Notification.Builder notifbuilder = new Notification.Builder(context);
+    public void showNotification(String title, String text){
+      PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, OnexNativeActivity.class), PendingIntent.FLAG_UPDATE_CURRENT);
+      Notification.Builder notifbuilder = new Notification.Builder(this);
       notifbuilder.setContentTitle(title)
                   .setContentText(text)
                   .setSmallIcon(R.drawable.icon)
                   .setContentIntent(pendingIntent);
-      NotificationManager notifMgr = (NotificationManager)context.getSystemService(context.NOTIFICATION_SERVICE);
+      NotificationManager notifMgr = (NotificationManager)this.getSystemService(this.NOTIFICATION_SERVICE);
       notifMgr.notify(12345, notifbuilder.build());
     }
 
