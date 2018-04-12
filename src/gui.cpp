@@ -1095,6 +1095,14 @@ bool evaluate_event(object* o)
     date.tm_hour=time.tm_hour;
     t=mktime(&date);
   }
+  if(t<=todayseconds+3){
+    char* title=object_property_values(o, (char*)"title");
+    char* text=(char*)"!!";
+    showNotification(title, text);
+  }
+  else{
+    setAlarm(t, object_property(o, (char*)"UID"));
+  }
   object_set_run_data(o, t);
   return true;
 }
