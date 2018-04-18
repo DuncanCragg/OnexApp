@@ -11,6 +11,7 @@ static GUI* static_gui;
 
 object* config;
 object* user;
+char*   userUID;
 
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
 extern "C"
@@ -75,7 +76,7 @@ bool keyboardUp = false;
 
 void showOrHideSoftKeyboard(bool show)
 {
-  onex_run_evaluator(user); // ?
+  onex_run_evaluator(userUID, 0, 0); // ?
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
   if(keyboardUp == show) return;
   JNIEnv* env;
@@ -217,19 +218,20 @@ public:
       object_property_set(links, (char*)"list", object_property(taglookup, (char*)"UID"));
 
       user=object_new(0, (char*)"user", (char*)"user", 8);
+      userUID=object_property(user, (char*)"UID");
       object_property_set(user, (char*)"viewing-l", object_property(links, (char*)"UID"));
 
       config=object_new((char*)"uid-0", 0, (char*)"config", 10);
-      object_property_set(config, (char*)"user",      object_property(user, (char*)"UID"));
+      object_property_set(config, (char*)"user", userUID);
       object_property_set(config, (char*)"taglookup", object_property(taglookup, (char*)"UID"));
     }
     else{
-      char* userid=object_property(config, (char*)"user");
-      user=onex_get_from_cache(userid);
+      userUID=object_property(config, (char*)"user");
+      user=onex_get_from_cache(userUID);
     }
     gui = new GUI(this, user, config);
     static_gui = gui;
-    onex_run_evaluator(user); // !
+    onex_run_evaluator(userUID, 0, 0); // !
   }
 
   virtual void startup()

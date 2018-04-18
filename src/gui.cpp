@@ -1110,7 +1110,7 @@ bool evaluate_event(object* o)
 void GUI::onAlarmRecv(char* uid)
 {
 log_write("onAlarmRecv=%s\n",uid);
-  onex_run_evaluator(onex_get_from_cache(uid));
+  onex_run_evaluator(uid, 0, 0);
 }
 
 object* GUI::createNewEvent(struct tm* thisdate, char* title)
