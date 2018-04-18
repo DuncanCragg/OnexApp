@@ -629,15 +629,29 @@ void GUI::setNewTag(char* path, char* tag)
   *lastcolon=':';
 }
 
+typedef struct {
+  char* key;
+  char* val;
+} keyval;
+
+static bool set_val(object* o, void* kv){
+  char* key=((keyval*)kv)->key;
+  char* val=((keyval*)kv)->val;
+  object_property_set(o, key, val);
+  if(object_property_contains(o, (char*)"is", (char*)"event")){
+    object_set_run_data(o, 0);
+    object_set_evaluator(o, (char*)"event");
+  }
+  return true;
+};
+
 void GUI::setNewValue(char* path, char* buf, bool single)
 {
   if(single){
     char* lastcolon=strrchr(path,':'); *lastcolon=0;
-    object* objectEditing = onex_get_from_cache(object_property(user, path));
-    if(objectEditing){
-      if(!*buf) object_property_set(objectEditing, lastcolon+1, (char*)"");
-      else object_property_set(objectEditing, lastcolon+1, buf);
-    }
+    char* uid=object_property(user, path);
+    keyval kv = { lastcolon+1, buf };
+    onex_run_evaluator(uid, &kv, set_val, 0);
     *lastcolon=':';
   }
   else{
@@ -1070,7 +1084,7 @@ bool getTime(char** p, struct tm* parsed_time)
   return false;
 }
 
-bool evaluate_event(object* o)
+bool evaluate_event(object* o, void* d)
 {
   log_write("evaluate_event\n"); object_log(o);
   if(!object_property_contains(o, (char*)"is", (char*)"event")){   log_write("object is no longer an is: event\n");
@@ -1111,7 +1125,7 @@ bool evaluate_event(object* o)
 void GUI::onAlarmRecv(char* uid)
 {
 log_write("onAlarmRecv=%s\n",uid);
-  onex_run_evaluator(uid, 0, 0);
+  onex_run_evaluator(uid, 0, 0, 0);
 }
 
 object* GUI::createNewEvent(struct tm* thisdate, char* title)

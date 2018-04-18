@@ -76,7 +76,7 @@ bool keyboardUp = false;
 
 void showOrHideSoftKeyboard(bool show)
 {
-  onex_run_evaluator(userUID, 0, 0); // ?
+  onex_run_evaluator(userUID, 0, 0, 0); // ?
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
   if(keyboardUp == show) return;
   JNIEnv* env;
@@ -129,6 +129,7 @@ void showNotification(char* title, char* text)
 
 void setAlarm(time_t when, char* uid)
 {
+  log_write("setAlarm %ld %s\n", when, uid);
   JNIEnv* env;
   androidApp->activity->vm->AttachCurrentThread(&env, 0);
   jobject nativeActivity = androidApp->activity->clazz;
@@ -153,7 +154,7 @@ void setAlarm(time_t when, char* uid)
 }
 #endif
 
-extern bool evaluate_event(object* o);
+extern bool evaluate_event(object* o, void* d);
 
 class OnexApp : public VulkanBase
 {
@@ -161,13 +162,13 @@ class OnexApp : public VulkanBase
 
 public:
 
-  static bool evaluate_default(object* o)
+  static bool evaluate_default(object* o, void* d)
   {
-    log_write("evaluate_default\n"); object_log(o);
+    log_write("evaluate_default data=%p\n", d); object_log(o);
     return true;
   }
 
-  static bool evaluate_user(object* o)
+  static bool evaluate_user(object* o, void* d)
   {
     if(static_gui) static_gui->changed();
     return true;
@@ -231,7 +232,7 @@ public:
     }
     gui = new GUI(this, user, config);
     static_gui = gui;
-    onex_run_evaluator(userUID, 0, 0); // !
+    onex_run_evaluator(userUID, 0, 0, 0); // !
   }
 
   virtual void startup()
