@@ -50,7 +50,6 @@ public:
   object* createNewObjectLikeOthers(char* path);
   object* createNewObjectForPropertyName(char* path, char* name);
   object* createNewEvent(struct tm* thisdate, char* title);
-  void onAlarmRecv(char* uid);
   int16_t calculateScrollerHeight(char* path, int16_t height);
   void getSummary(char* path, char* summary);
   bool getSummaryFrom(char* path, char* summary, const char* key);

@@ -35,13 +35,6 @@ JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onSerialRe
   env->ReleaseStringUTFChars(b, chars);
 }
 
-JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onAlarmRecv(JNIEnv* env, jobject thiz, jstring juid)
-{
-  const char* uid = env->GetStringUTFChars(juid, 0);
-  static_gui->onAlarmRecv((char*)uid);
-  env->ReleaseStringUTFChars(juid, uid);
-}
-
 void sprintExternalStorageDirectory(char* buf, int buflen, const char* format)
 {
   JNIEnv* env; androidApp->activity->vm->AttachCurrentThread(&env, 0);
@@ -457,3 +450,13 @@ int main(const int argc, const char *argv[])                              \
 #endif
 
 VULKAN_EXAMPLE_MAIN()
+extern "C" {
+
+JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onAlarmRecv(JNIEnv* env, jobject thiz, jstring juid)
+{
+  const char* uid = env->GetStringUTFChars(juid, 0);
+  log_write("onAlarmRecv=%s\n",uid);
+  env->ReleaseStringUTFChars(juid, uid);
+}
+
+}
