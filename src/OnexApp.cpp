@@ -142,6 +142,8 @@ void setAlarm(time_t when, char* uid)
 
 extern bool evaluate_event(object* o, void* d);
 
+static char* pendingAlarmUID=0;
+
 class OnexApp : public VulkanBase
 {
   GUI* gui;
@@ -311,6 +313,11 @@ public:
 
   virtual void loop()
   {
+    if(pendingAlarmUID){
+      onex_run_evaluator(pendingAlarmUID, 0, 0, 0);
+      free(pendingAlarmUID);
+      pendingAlarmUID=0;
+    }
     onex_loop();
   }
 
@@ -450,12 +457,15 @@ int main(const int argc, const char *argv[])                              \
 #endif
 
 VULKAN_EXAMPLE_MAIN()
+
 extern "C" {
 
 JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onAlarmRecv(JNIEnv* env, jobject thiz, jstring juid)
 {
   const char* uid = env->GetStringUTFChars(juid, 0);
   log_write("onAlarmRecv=%s\n",uid);
+  pendingAlarmUID=strdup(uid);
+  if(!vulkanApp->focused) vulkanApp->alarm=true;
   env->ReleaseStringUTFChars(juid, uid);
 }
 
