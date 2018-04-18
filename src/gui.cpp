@@ -1102,6 +1102,7 @@ bool evaluate_event(object* o)
   }
   else{
     setAlarm(t, object_property(o, (char*)"UID"));
+    object_keep_active(o, true);
   }
   object_set_run_data(o, t);
   return true;
