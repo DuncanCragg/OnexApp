@@ -299,9 +299,7 @@ public:
 
   virtual void render()
   {
-    if (!prepared) return;
-
-    onex_loop();
+    loop();
 
     gui->render();
 
@@ -315,6 +313,12 @@ public:
     VK_CHECK_RESULT(vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE));
 
     VulkanBase::submitFrame();
+  }
+
+
+  virtual void loop()
+  {
+    onex_loop();
   }
 
   virtual void viewChanged()

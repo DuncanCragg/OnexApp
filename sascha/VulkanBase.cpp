@@ -269,9 +269,7 @@ void VulkanBase::renderLoop()
     struct android_poll_source* source;
     bool destroy = false;
 
-    focused = true;
-
-    while ((ident = ALooper_pollAll(focused ? 0 : -1, NULL, &events, (void**)&source)) >= 0)
+    while ((ident = ALooper_pollAll(focused ? 0 : 500, NULL, &events, (void**)&source)) >= 0)
     {
       if (source != NULL)
       {
@@ -284,6 +282,15 @@ void VulkanBase::renderLoop()
         break;
       }
     }
+
+    if(!focused){
+      if(alarm){
+        alarm=false;
+        loop();
+      }
+      if(ident==ALOOPER_POLL_TIMEOUT) continue;
+    }
+
 
     // App destruction requested
     // Exit loop, example will be destroyed in application main

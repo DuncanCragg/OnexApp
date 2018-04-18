@@ -201,7 +201,8 @@ public:
   HINSTANCE windowInstance;
 #elif defined(VK_USE_PLATFORM_ANDROID_KHR)
   // true if application has focused, false if moved to background
-  bool focused = false;
+  bool focused = true;
+  bool alarm = false;
   struct TouchPos {
     int32_t x;
     int32_t y;
@@ -313,6 +314,7 @@ public:
 
   // Pure virtual render function (override in derived class)
   virtual void render() = 0;
+  virtual void loop() = 0;
   // Called when view change occurs
   // Can be overriden in derived class to e.g. update uniform buffers 
   // Containing view dependant matrices
