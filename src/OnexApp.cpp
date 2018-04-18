@@ -14,13 +14,7 @@ object* user;
 char*   userUID;
 
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
-extern "C"
-{
-  JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyPress(JNIEnv* env, jobject thiz, jint keyCode, jint key);
-  JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyRelease(JNIEnv* env, jobject thiz, jint keyCode);
-  JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onSerialRecv(JNIEnv* env, jobject thiz, jstring b);
-  JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onAlarmRecv(JNIEnv* env, jobject thiz, jstring juid);
-};
+extern "C" {
 
 JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyPress(JNIEnv* env, jobject thiz, jint keyCode, jint u32key)
 {
@@ -32,9 +26,7 @@ JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyRelea
   static_gui->keyReleased(keyCode);
 }
 
-extern "C" {
 void on_serial_recv(char* b);
-}
 
 JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onSerialRecv(JNIEnv* env, jobject thiz, jstring b)
 {
@@ -67,6 +59,8 @@ void sprintExternalStorageDirectory(char* buf, int buflen, const char* format)
   env->ReleaseStringUTFChars(extStoragePath, extStoragePathString);
 
   androidApp->activity->vm->DetachCurrentThread();
+}
+
 }
 #endif
 
@@ -111,8 +105,6 @@ void serial_send(char* b)
   androidApp->activity->vm->DetachCurrentThread();
 }
 
-}
-
 void showNotification(char* title, char* text)
 {
   JNIEnv* env;
@@ -142,6 +134,7 @@ void setAlarm(time_t when, char* uid)
   androidApp->activity->vm->DetachCurrentThread();
 }
 
+}
 #else
 void showNotification(char* title, char* text)
 {
