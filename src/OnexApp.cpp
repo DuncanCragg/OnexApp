@@ -233,7 +233,7 @@ public:
   virtual void cleanup()
   {
     if(keyboardUp){ showOrHideSoftKeyboard(false); keyboardUp = true; }
-    delete gui; gui=0;
+    delete gui; gui=0; static_gui=0;
     VulkanBase::cleanup();
   }
 
