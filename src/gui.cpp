@@ -638,8 +638,7 @@ static bool set_val(object* o, void* kv){
   char* key=((keyval*)kv)->key;
   char* val=((keyval*)kv)->val;
   object_property_set(o, key, val);
-  if(object_property_contains(o, (char*)"is", (char*)"event")){
-    object_set_run_data(o, 0);
+  if(!strcmp(key, (char*)"is") && !strcmp(val, (char*)"event")){
     object_set_evaluator(o, (char*)"event");
   }
   return true;
@@ -1089,7 +1088,6 @@ bool evaluate_event(object* o, void* d)
   log_write("evaluate_event\n"); object_log(o);
   if(!object_property_contains(o, (char*)"is", (char*)"event")){   log_write("object is no longer an is: event\n");
     object_keep_active(o, false);
-    object_set_run_data(o, 0);
     object_set_evaluator(o, (char*)"default");
     return true;
   }
@@ -1100,7 +1098,6 @@ bool evaluate_event(object* o, void* d)
     object_keep_active(o, false);
     return true;
   }
-  if(object_get_run_data(o)) return true;
   log_write("event for today or future\n");
   char* ts=object_property_values(o, (char*)"time");
   struct tm time;
@@ -1116,10 +1113,12 @@ bool evaluate_event(object* o, void* d)
     showNotification(title, text);
   }
   else{
-    setAlarm(t, object_property(o, (char*)"UID"));
-    object_keep_active(o, true);
+    if(t!=object_get_run_data(o)){
+      object_set_run_data(o, t);
+      setAlarm(t, object_property(o, (char*)"UID"));
+      object_keep_active(o, true);
+    }
   }
-  object_set_run_data(o, t);
   return true;
 }
 
