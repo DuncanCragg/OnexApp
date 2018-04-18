@@ -1095,6 +1095,7 @@ bool evaluate_event(object* o, void* d)
   }
   struct tm date; time_t t=getDateFromObject(o, (char*)"date", &date);
   todayseconds=time(0); todaydate = *localtime(&todayseconds);
+  if(t== -1) date=todaydate;
   if(date_compare(&date, &todaydate) < 0){    log_write("event for past date, ignored\n");
     object_keep_active(o, false);
     return true;
