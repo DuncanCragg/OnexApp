@@ -13,58 +13,16 @@ object* config;
 object* user;
 char*   userUID;
 
-#if defined(VK_USE_PLATFORM_ANDROID_KHR)
-extern "C" {
-
-JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyPress(JNIEnv* env, jobject thiz, jint keyCode, jint u32key)
-{
-  static_gui->keyPressed(keyCode, u32key);
-}
-
-JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyRelease(JNIEnv* env, jobject thiz, jint keyCode)
-{
-  static_gui->keyReleased(keyCode);
-}
-
-void on_serial_recv(char* b);
-
-JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onSerialRecv(JNIEnv* env, jobject thiz, jstring b)
-{
-  const char* chars = env->GetStringUTFChars(b, 0);
-  on_serial_recv((char*)chars);
-  env->ReleaseStringUTFChars(b, chars);
-}
-
-void sprintExternalStorageDirectory(char* buf, int buflen, const char* format)
-{
-  JNIEnv* env; androidApp->activity->vm->AttachCurrentThread(&env, 0);
-
-  jclass osEnvClass = env->FindClass("android/os/Environment");
-  jmethodID getExternalStorageDirectoryMethod = env->GetStaticMethodID(osEnvClass, "getExternalStorageDirectory", "()Ljava/io/File;");
-  jobject extStorage = env->CallStaticObjectMethod(osEnvClass, getExternalStorageDirectoryMethod);
-
-  jclass extStorageClass = env->GetObjectClass(extStorage);
-  jmethodID getAbsolutePathMethod = env->GetMethodID(extStorageClass, "getAbsolutePath", "()Ljava/lang/String;");
-  jstring extStoragePath = (jstring)env->CallObjectMethod(extStorage, getAbsolutePathMethod);
-
-  const char* extStoragePathString=env->GetStringUTFChars(extStoragePath, 0);
-  snprintf(buf, buflen, format, extStoragePathString);
-  env->ReleaseStringUTFChars(extStoragePath, extStoragePathString);
-
-  androidApp->activity->vm->DetachCurrentThread();
-}
-
-}
-#endif
-
 bool keyboardUp = false;
 
 #define TEXTTYPE 1
 
+#if defined(VK_USE_PLATFORM_ANDROID_KHR)
+extern "C" {
+
 void showOrHideSoftKeyboard(bool show)
 {
   onex_run_evaluator(userUID, 0, 0, 0); // ?
-#if defined(VK_USE_PLATFORM_ANDROID_KHR)
   if(keyboardUp == show) return;
   JNIEnv* env;
   androidApp->activity->vm->AttachCurrentThread(&env, 0);
@@ -79,11 +37,7 @@ void showOrHideSoftKeyboard(bool show)
   }
   androidApp->activity->vm->DetachCurrentThread();
   keyboardUp = show;
-#endif
 }
-
-#if defined(VK_USE_PLATFORM_ANDROID_KHR)
-extern "C" {
 
 void serial_send(char* b)
 {
@@ -127,8 +81,32 @@ void setAlarm(time_t when, char* uid)
   androidApp->activity->vm->DetachCurrentThread();
 }
 
+void sprintExternalStorageDirectory(char* buf, int buflen, const char* format)
+{
+  JNIEnv* env; androidApp->activity->vm->AttachCurrentThread(&env, 0);
+
+  jclass osEnvClass = env->FindClass("android/os/Environment");
+  jmethodID getExternalStorageDirectoryMethod = env->GetStaticMethodID(osEnvClass, "getExternalStorageDirectory", "()Ljava/io/File;");
+  jobject extStorage = env->CallStaticObjectMethod(osEnvClass, getExternalStorageDirectoryMethod);
+
+  jclass extStorageClass = env->GetObjectClass(extStorage);
+  jmethodID getAbsolutePathMethod = env->GetMethodID(extStorageClass, "getAbsolutePath", "()Ljava/lang/String;");
+  jstring extStoragePath = (jstring)env->CallObjectMethod(extStorage, getAbsolutePathMethod);
+
+  const char* extStoragePathString=env->GetStringUTFChars(extStoragePath, 0);
+  snprintf(buf, buflen, format, extStoragePathString);
+  env->ReleaseStringUTFChars(extStoragePath, extStoragePathString);
+
+  androidApp->activity->vm->DetachCurrentThread();
+}
+
 }
 #else
+void showOrHideSoftKeyboard(bool show)
+{
+  onex_run_evaluator(userUID, 0, 0, 0); // ?
+}
+
 void showNotification(char* title, char* text)
 {
   log_write("NOTIFICATION!!!! %s %s\n", title, text);
@@ -356,7 +334,6 @@ public:
   }
 };
 
-
 // OS specific macros for the example main entry points
 #if defined(_WIN32)
 // Windows entry point
@@ -458,7 +435,27 @@ int main(const int argc, const char *argv[])                              \
 
 VULKAN_EXAMPLE_MAIN()
 
+#if defined(VK_USE_PLATFORM_ANDROID_KHR)
 extern "C" {
+
+JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyPress(JNIEnv* env, jobject thiz, jint keyCode, jint u32key)
+{
+  static_gui->keyPressed(keyCode, u32key);
+}
+
+JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyRelease(JNIEnv* env, jobject thiz, jint keyCode)
+{
+  static_gui->keyReleased(keyCode);
+}
+
+void on_serial_recv(char* b);
+
+JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onSerialRecv(JNIEnv* env, jobject thiz, jstring b)
+{
+  const char* chars = env->GetStringUTFChars(b, 0);
+  on_serial_recv((char*)chars);
+  env->ReleaseStringUTFChars(b, chars);
+}
 
 JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onAlarmRecv(JNIEnv* env, jobject thiz, jstring juid)
 {
@@ -470,3 +467,4 @@ JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onAlarmRec
 }
 
 }
+#endif
