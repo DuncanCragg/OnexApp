@@ -1113,11 +1113,8 @@ bool evaluate_event(object* o, void* d)
     showNotification(title, text);
   }
   else{
-    if(t!=object_get_run_data(o)){
-      object_set_run_data(o, t);
       setAlarm(t, object_property(o, (char*)"UID"));
       object_keep_active(o, true);
-    }
   }
   return true;
 }
