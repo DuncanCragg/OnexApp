@@ -152,8 +152,8 @@ public:
     camera.setPerspective(60.0f, (float)width / (float)height, 0.1f, 256.0f);
 
     onex_set_evaluator((char*)"default", evaluate_default);
-    onex_set_evaluator((char*)"user", evaluate_user);
-    onex_set_evaluator((char*)"event", evaluate_event);
+    onex_set_evaluator((char*)"user",    evaluate_user);
+    onex_set_evaluator((char*)"event",   evaluate_event);
 
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
     char dbpath[128];
