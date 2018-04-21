@@ -1083,6 +1083,12 @@ bool getTime(char** p, struct tm* parsed_time)
   return false;
 }
 
+void ensureAlarm(object* o, time_t t)
+{
+  setAlarm(t, object_property(o, (char*)"UID"));
+  object_keep_active(o, true);
+}
+
 bool evaluate_event(object* o, void* d)
 {
   log_write("evaluate_event\n"); object_log(o);
@@ -1113,8 +1119,7 @@ bool evaluate_event(object* o, void* d)
     showNotification(title, text);
   }
   else{
-      setAlarm(t, object_property(o, (char*)"UID"));
-      object_keep_active(o, true);
+    ensureAlarm(o, t);
   }
   return true;
 }
