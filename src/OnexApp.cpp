@@ -120,6 +120,18 @@ void setAlarm(time_t when, char* uid)
 
 extern bool evaluate_event(object* o, void* d);
 
+static bool evaluate_default(object* o, void* d)
+{
+  log_write("evaluate_default data=%p\n", d); object_log(o);
+  return true;
+}
+
+static bool evaluate_user(object* o, void* d)
+{
+  if(static_gui) static_gui->changed();
+  return true;
+}
+
 static char* pendingAlarmUID=0;
 
 class OnexApp : public VulkanBase
@@ -127,18 +139,6 @@ class OnexApp : public VulkanBase
   GUI* gui;
 
 public:
-
-  static bool evaluate_default(object* o, void* d)
-  {
-    log_write("evaluate_default data=%p\n", d); object_log(o);
-    return true;
-  }
-
-  static bool evaluate_user(object* o, void* d)
-  {
-    if(static_gui) static_gui->changed();
-    return true;
-  }
 
   OnexApp() : VulkanBase(ENABLE_VALIDATION)
   {
