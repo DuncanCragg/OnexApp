@@ -1089,11 +1089,17 @@ void ensureAlarm(object* o, time_t t)
   object_keep_active(o, true);
 }
 
+void cancelAlarm(object* o)
+{
+  setAlarm(0, object_property(o, (char*)"UID"));
+  object_keep_active(o, false);
+}
+
 bool evaluate_event(object* o, void* d)
 {
   log_write("evaluate_event\n"); object_log(o);
   if(!object_property_contains(o, (char*)"is", (char*)"event")){   log_write("object is no longer an is: event\n");
-    object_keep_active(o, false);
+    cancelAlarm(o);
     object_set_evaluator(o, (char*)"default");
     return true;
   }
@@ -1101,7 +1107,7 @@ bool evaluate_event(object* o, void* d)
   todayseconds=time(0); todaydate = *localtime(&todayseconds);
   if(t== -1) date=todaydate;
   if(date_compare(&date, &todaydate) < 0){    log_write("event for past date, ignored\n");
-    object_keep_active(o, false);
+    cancelAlarm(o);
     return true;
   }
   log_write("event for today or future\n");
@@ -1116,6 +1122,7 @@ bool evaluate_event(object* o, void* d)
   if(t<=todayseconds+3){
     char* title=object_property_values(o, (char*)"title");
     char* text=(char*)"!!";
+    cancelAlarm(o);
     showNotification(title, text);
   }
   else{

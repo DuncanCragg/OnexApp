@@ -211,7 +211,8 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
       intent.putExtra("UID", uid);
       PendingIntent pendingIntent = PendingIntent.getBroadcast(this, uid.hashCode(), intent, 0);
       AlarmManager am=(AlarmManager)getSystemService(Context.ALARM_SERVICE);
-      am.set(AlarmManager.RTC_WAKEUP, when*1000, pendingIntent);
+      if(when!=0) am.set(AlarmManager.RTC_WAKEUP, when*1000, pendingIntent);
+      else        am.cancel(pendingIntent);
     }
 
     public static native void onAlarmRecv(String uid);
