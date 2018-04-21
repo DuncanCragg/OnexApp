@@ -209,7 +209,7 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
     public void setAlarm(long when, String uid){
       Intent intent = new Intent("Onex.Alarm");
       intent.putExtra("UID", uid);
-      PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 54321, intent, 0);
+      PendingIntent pendingIntent = PendingIntent.getBroadcast(this, uid.hashCode(), intent, 0);
       AlarmManager am=(AlarmManager)getSystemService(Context.ALARM_SERVICE);
       am.set(AlarmManager.RTC_WAKEUP, when*1000, pendingIntent);
     }
