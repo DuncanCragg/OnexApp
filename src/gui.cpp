@@ -1083,91 +1083,6 @@ bool getTime(char** p, struct tm* parsed_time)
   return false;
 }
 
-void ensureAlarm(object* o, time_t t)
-{
-  setAlarm(t, object_property(o, (char*)"UID"));
-  object_keep_active(o, true);
-}
-
-void cancelAlarm(object* o)
-{
-  setAlarm(0, object_property(o, (char*)"UID"));
-  object_keep_active(o, false);
-}
-
-bool evaluate_event(object* o, void* d)
-{
-  log_write("evaluate_event\n"); object_log(o);
-  if(!object_property_contains(o, (char*)"is", (char*)"event")){   log_write("object is no longer an is: event\n");
-    cancelAlarm(o);
-    object_set_evaluator(o, (char*)"default");
-    return true;
-  }
-  struct tm date; time_t t=getDateFromObject(o, (char*)"date", &date);
-  todayseconds=time(0); todaydate = *localtime(&todayseconds);
-  if(t== -1) date=todaydate;
-  if(date_compare(&date, &todaydate) < 0){    log_write("event for past date, ignored\n");
-    cancelAlarm(o);
-    return true;
-  }
-  log_write("event for today or future\n");
-  char* ts=object_property_values(o, (char*)"time");
-  struct tm time;
-  if(ts && getTime(&ts, &time)){
-    date.tm_sec =time.tm_sec;
-    date.tm_min =time.tm_min;
-    date.tm_hour=time.tm_hour;
-    t=mktime(&date);
-  }
-  if(t<=todayseconds+3){
-    char* title=object_property_values(o, (char*)"title");
-    char* text=(char*)"!!";
-    cancelAlarm(o);
-    showNotification(title, text);
-  }
-  else{
-    ensureAlarm(o, t);
-  }
-  return true;
-}
-
-object* GUI::createNewEvent(struct tm* thisdate, char* title)
-{
-  object* r=object_new(0, (char*)"event", (char*)"event", 8);
-  char ts[32]; strftime(ts, 32, "%Y-%m-%d", thisdate);
-  object_property_set(r, (char*)"title", title);
-  object_property_set(r, (char*)"date", ts);
-  char* time=0;
-  char* endtime=0;
-  char* p=title;
-  for(;*p;p++){
-    if(isdigit(*p)){
-      struct tm parsed_time;
-      if(getTime(&p, &parsed_time)){
-        char ts[32]; int n=strftime(ts, 32, "%I:%M%P", &parsed_time);
-        char* tsd=strdup(ts);
-        if(!time) time=tsd;
-        else
-        if(!endtime) endtime=tsd;
-        if(time && endtime) break;
-      }
-    }
-  }
-  char tags[256]=""; int l=0;
-  int tls=object_property_size(config, (char*)"taglookup");
-  for(int t=2; t<=tls; t++){
-    char* tag=object_property_key(config, (char*)"taglookup", t);
-    char* val=object_property_val(config, (char*)"taglookup", t);
-    if(strcasestr(title, tag)) l+=snprintf(tags+l, 256-l, "%s ", val);
-  }
-  if(time){     object_property_set(r, (char*)"time",     time);     free(time); }
-  if(endtime){  object_property_set(r, (char*)"end-time", endtime);  free(endtime); }
-  if(*tags) object_property_set(r, (char*)"tags", tags);
-  else      object_property_set(r, (char*)"tags", (char*)"--");
-  object_keep_active(r, true);
-  return r;
-}
-
 void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8_t depth)
 {
   bool nodarken=depth<DARKEN_DEPTH;
@@ -1595,6 +1510,99 @@ void GUI::drawCalendar(char* path, int16_t width, int16_t height)
 
   ImGui::PopStyleColor(5);
   ImGui::PopStyleVar();
+}
+
+void ensureAlarm(object* o, time_t t)
+{
+  setAlarm(t, object_property(o, (char*)"UID"));
+  object_keep_active(o, true);
+}
+
+void cancelAlarm(object* o)
+{
+  setAlarm(0, object_property(o, (char*)"UID"));
+  object_keep_active(o, false);
+}
+
+bool evaluate_event(object* o, void* d)
+{
+  log_write("evaluate_event\n"); object_log(o);
+  if(!object_property_contains(o, (char*)"is", (char*)"event")){   log_write("object is no longer an is: event\n");
+    cancelAlarm(o);
+    object_set_evaluator(o, (char*)"default");
+    return true;
+  }
+  struct tm date; time_t t=getDateFromObject(o, (char*)"date", &date);
+  todayseconds=time(0); todaydate = *localtime(&todayseconds);
+  if(t== -1) date=todaydate;
+  if(date_compare(&date, &todaydate) < 0){    log_write("event for past date, ignored\n");
+    cancelAlarm(o);
+    return true;
+  }
+  log_write("event for today or future\n");
+  char* ts=object_property_values(o, (char*)"time");
+  struct tm time;
+  if(ts && getTime(&ts, &time)){
+    date.tm_sec =time.tm_sec;
+    date.tm_min =time.tm_min;
+    date.tm_hour=time.tm_hour;
+    t=mktime(&date);
+  }
+  if(t<=todayseconds+3){
+    char* title=object_property_values(o, (char*)"title");
+    char* text=(char*)"!!";
+    cancelAlarm(o);
+    showNotification(title, text);
+  }
+  else{
+    ensureAlarm(o, t);
+  }
+  return true;
+}
+
+typedef struct {
+  char* title;
+  char* date;
+  char* time;
+  char* endtime;
+  char* tags;
+} eventinit;
+
+object* GUI::createNewEvent(struct tm* thisdate, char* title)
+{
+  object* r=object_new(0, (char*)"event", (char*)"event", 8);
+  char ts[32]; strftime(ts, 32, "%Y-%m-%d", thisdate);
+  object_property_set(r, (char*)"title", title);
+  object_property_set(r, (char*)"date", ts);
+  char* time=0;
+  char* endtime=0;
+  char* p=title;
+  for(;*p;p++){
+    if(isdigit(*p)){
+      struct tm parsed_time;
+      if(getTime(&p, &parsed_time)){
+        char ts[32]; int n=strftime(ts, 32, "%I:%M%P", &parsed_time);
+        char* tsd=strdup(ts);
+        if(!time) time=tsd;
+        else
+        if(!endtime) endtime=tsd;
+        if(time && endtime) break;
+      }
+    }
+  }
+  char tags[256]=""; int l=0;
+  int tls=object_property_size(config, (char*)"taglookup");
+  for(int t=2; t<=tls; t++){
+    char* tag=object_property_key(config, (char*)"taglookup", t);
+    char* val=object_property_val(config, (char*)"taglookup", t);
+    if(strcasestr(title, tag)) l+=snprintf(tags+l, 256-l, "%s ", val);
+  }
+  if(time){     object_property_set(r, (char*)"time",     time);     free(time); }
+  if(endtime){  object_property_set(r, (char*)"end-time", endtime);  free(endtime); }
+  if(*tags) object_property_set(r, (char*)"tags", tags);
+  else      object_property_set(r, (char*)"tags", (char*)"--");
+  object_keep_active(r, true);
+  return r;
 }
 
 static bool firstDateSet=false;
