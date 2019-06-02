@@ -3,6 +3,7 @@
 #include <onex-kernel/gpio.h>
 #include <onex-kernel/serial.h>
 #include <onf.h>
+#include <behaviours.h>
 
 object* button;
 object* light;
@@ -11,8 +12,6 @@ const uint8_t leds_list[LEDS_NUMBER] = LEDS_LIST;
 
 bool evaluate_button_io(object* button, void* pressed);
 bool evaluate_light_io(object* light, void* d);
-
-bool evaluate_light_logic(object* light, void* d);
 
 int main()
 {
@@ -65,11 +64,3 @@ bool evaluate_light_io(object* light, void* d)
   return true;
 }
 
-
-bool evaluate_light_logic(object* light, void* d)
-{
-  bool buttonpressed=object_property_is(light, "button:state", "down");
-  char* s=(char*)(buttonpressed? "on": "off");
-  object_property_set(light, "light", s);
-  return true;
-}
