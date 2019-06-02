@@ -121,6 +121,8 @@ SIZE    = $(GCC_BIN)/arm-none-eabi-size
 clean:
 	rm -f *.bin *.elf
 	rm -f ,*
+	(cd OnexKernel; make clean)
+	(cd OnexLang; make clean)
 	@echo "------------------------------"
 
 cleanx: clean
