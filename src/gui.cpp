@@ -8,6 +8,8 @@
 * This code is licensed under the MIT license (MIT) (http://opensource.org/licenses/MIT)
 */
 
+#pragma GCC diagnostic ignored "-Wformat-truncation"
+
 #include <time.h>
 #include "gui.h"
 

@@ -1,9 +1,5 @@
 
 #include "gui.h"
-extern "C" {
-#include <onex-kernel/log.h>
-#include <onf.h>
-}
 
 #define ENABLE_VALIDATION false
 
