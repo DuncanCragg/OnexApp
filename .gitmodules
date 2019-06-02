@@ -4,3 +4,6 @@
 [submodule "OnexKernel"]
 	path = OnexKernel
 	url = git@github.com:DuncanCragg/OnexKernel.git
+[submodule "OnexLang"]
+	path = OnexLang
+	url = git@github.com:DuncanCragg/OnexLang.git
