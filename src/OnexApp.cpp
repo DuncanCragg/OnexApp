@@ -18,7 +18,7 @@ extern "C" {
 
 void showOrHideSoftKeyboard(bool show)
 {
-  onex_run_evaluator(userUID, 0, 0, 0); // ?
+  onex_run_evaluators(userUID, 0); // ?
   if(keyboardUp == show) return;
   JNIEnv* env;
   androidApp->activity->vm->AttachCurrentThread(&env, 0);
@@ -100,7 +100,7 @@ void sprintExternalStorageDirectory(char* buf, int buflen, const char* format)
 #else
 void showOrHideSoftKeyboard(bool show)
 {
-  onex_run_evaluator(userUID, 0, 0, 0); // ?
+  onex_run_evaluators(userUID, 0); // ?
 }
 
 void showNotification(char* title, char* text)
@@ -128,6 +128,17 @@ static bool evaluate_user(object* o, void* d)
   return true;
 }
 
+static bool evaluate_object_input(object* o, void* kv){
+  if(!kv) return true;
+  char* key=((keyval*)kv)->key;
+  char* val=((keyval*)kv)->val;
+  object_property_set(o, key, val);
+  if(!strcmp(key, (char*)"is") && !strcmp(val, (char*)"event")){
+    object_set_evaluator(o, (char*)"event");
+  }
+  return true;
+};
+
 static char* pendingAlarmUID=0;
 
 class OnexApp : public VulkanBase
@@ -147,9 +158,9 @@ public:
     camera.setRotation(glm::vec3(5.0f, 90.0f, 0.0f));
     camera.setPerspective(60.0f, (float)width / (float)height, 0.1f, 256.0f);
 
-    onex_set_evaluator((char*)"default", evaluate_default);
-    onex_set_evaluator((char*)"user",    evaluate_user);
-    onex_set_evaluator((char*)"event",   evaluate_event);
+    onex_set_evaluators((char*)"default", evaluate_object_input, evaluate_default, 0);
+    onex_set_evaluators((char*)"user",    evaluate_user, 0);
+    onex_set_evaluators((char*)"event",   evaluate_object_input, evaluate_event, 0);
 
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
     char dbpath[128];
@@ -194,7 +205,7 @@ public:
     }
     gui = new GUI(this, user, config);
     static_gui = gui;
-    onex_run_evaluator(userUID, 0, 0, 0); // !
+    onex_run_evaluators(userUID, 0); // !
   }
 
   virtual void startup()
@@ -288,7 +299,7 @@ public:
   virtual void loop()
   {
     if(pendingAlarmUID){
-      onex_run_evaluator(pendingAlarmUID, 0, 0, 0);
+      onex_run_evaluators(pendingAlarmUID, 0);
       free(pendingAlarmUID);
       pendingAlarmUID=0;
     }

@@ -631,28 +631,13 @@ void GUI::setNewTag(char* path, char* tag)
   *lastcolon=':';
 }
 
-typedef struct {
-  char* key;
-  char* val;
-} keyval;
-
-static bool set_val(object* o, void* kv){
-  char* key=((keyval*)kv)->key;
-  char* val=((keyval*)kv)->val;
-  object_property_set(o, key, val);
-  if(!strcmp(key, (char*)"is") && !strcmp(val, (char*)"event")){
-    object_set_evaluator(o, (char*)"event");
-  }
-  return true;
-};
-
 void GUI::setNewValue(char* path, char* buf, bool single)
 {
   if(single){
     char* lastcolon=strrchr(path,':'); *lastcolon=0;
     char* uid=object_property(user, path);
     keyval kv = { lastcolon+1, buf };
-    onex_run_evaluator(uid, &kv, set_val, 0);
+    onex_run_evaluators(uid, &kv);
     *lastcolon=':';
   }
   else{
