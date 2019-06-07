@@ -59,8 +59,21 @@ bool evaluate_button_io(object* button, void* pressed)
 
 bool evaluate_light_io(object* light, void* d)
 {
-  if(object_property_is(light, "light", "on")){ gpio_set(leds_list[3], 1); gpio_set(leds_list[10], 1); }
-  else                                        { gpio_set(leds_list[3], 0); gpio_set(leds_list[10], 0); }
+  if(object_property_is(light, "light", "on")){
+    gpio_set(leds_list[0], 1);
+    gpio_set(leds_list[1], 1);
+    gpio_set(leds_list[2], 0);
+    gpio_set(leds_list[3], 1);
+    gpio_set(leds_list[4], 1);
+    gpio_set(leds_list[5], 1);
+    gpio_set(leds_list[6], 1);
+    gpio_set(leds_list[7], 1);
+    gpio_set(leds_list[8], 1);
+    gpio_set(leds_list[10], 1);
+  }
+  else {
+    gpio_set(leds_list[10], 0);
+  }
   return true;
 }
 
