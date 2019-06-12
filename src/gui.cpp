@@ -69,14 +69,15 @@ ImVec4 schemeLightPurple(0.8f, 0.7f, 0.9f, 1.0f);
 ImVec4 schemeDarkerPurple(0.73f, 0.63f, 0.83f, 1.0f);
 ImVec4 schemePlum(230.0f/255, 179.0f/255, 230.0f/255, 1.0f);
 
-#define shorterValWidth 680
-#define objectHeight 400
-#define listHeight 1000
-#define buttonWidth 190
-#define smallButtonWidth 65
-#define buttonHeight 70
-#define rhsPadding 20
-#define paddingHeight 15
+static uint16_t buttonHeight=70;
+static uint16_t paddingHeight=15;
+static uint16_t objectHeight=400;
+static uint16_t listHeight=1000;
+
+static uint16_t shorterValWidth=680;
+static uint16_t buttonWidth=190;
+static uint16_t smallButtonWidth=65;
+static uint16_t rhsPadding=20;
 
 static uint16_t workspace1Width;
 static uint16_t workspace1Height;
@@ -85,10 +86,6 @@ static uint16_t workspace2Height;
 
 void GUI::initImGUI(float width, float height)
 {
-  workspace1Width=((int)width)/2-10;
-  workspace1Height=(int)height-70;
-  workspace2Width=((int)width)/2-10;
-  workspace2Height=(int)height-70;
   ImGuiStyle& style = ImGui::GetStyle();
   style.Colors[ImGuiCol_Header] = ImVec4(0.8f, 0.7f, 0.9f, 1.0f);
   style.Colors[ImGuiCol_Text] = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
@@ -155,7 +152,7 @@ void GUI::initImGUI(float width, float height)
 //  window_flags |= ImGuiWindowFlags_AlwaysUseWindowPadding;
 }
 
-#define DARKEN_DEPTH 4
+#define DARKEN_DEPTH 3
 
 #if defined(__ANDROID__)
 #define ASSET_PATH ""
@@ -1829,6 +1826,24 @@ static uint32_t pendingKeyCodeUp=0;
 
 void GUI::render()
 {
+  float heightratio = ((float)app->height)/1350.0;
+  float widthratio = ((float)app->width)/2000.0;
+
+  buttonHeight=70*heightratio;
+  paddingHeight=15*heightratio;
+  objectHeight=400*heightratio;
+  listHeight=1000*heightratio;
+
+  shorterValWidth=680*widthratio;
+  buttonWidth=190*widthratio;
+  smallButtonWidth=65*widthratio;
+  rhsPadding=20*widthratio;
+
+  workspace1Width=((int)app->width)/2-10;
+  workspace1Height=(int)app->height-70;
+  workspace2Width=((int)app->width)/2-10;
+  workspace2Height=(int)app->height-70;
+
   framecount++;
   ImGuiIO& io = ImGui::GetIO();
 
@@ -1839,7 +1854,7 @@ void GUI::render()
 
   io.DisplaySize = ImVec2((float)app->width, (float)app->height);
   io.DeltaTime = app->frameTimer;
-  io.FontGlobalScale = 1.0;
+  io.FontGlobalScale = ((float)app->height)/1500.0;
 
 #if not defined(__ANDROID__)
   io.MousePos = ImVec2(app->mousePos.x, app->mousePos.y);
