@@ -119,6 +119,7 @@ SIZE    = $(GCC_BIN)/arm-none-eabi-size
 #############################:
 
 clean:
+	find src tests -name '*.o' -o -name '*.d' | xargs rm -f
 	rm -f *.bin *.elf
 	rm -f ,*
 	(cd OnexKernel; make clean)
