@@ -136,6 +136,9 @@ static bool evaluate_object_input(object* o, void* kv){
   if(!strcmp(key, (char*)"is") && !strcmp(val, (char*)"event")){
     object_set_evaluator(o, (char*)"event");
   }
+  if(!strcmp(key, (char*)"is") && !strcmp(val, (char*)"light")){
+    object_set_evaluator(o, (char*)"light");
+  }
   return true;
 };
 
