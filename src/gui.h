@@ -17,6 +17,7 @@
 extern "C" {
 #include <onex-kernel/log.h>
 #include <onf.h>
+#include <onr.h>
 #include <items.h>
 }
 

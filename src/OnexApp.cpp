@@ -161,6 +161,7 @@ public:
     onex_set_evaluators((char*)"default", evaluate_object_input, evaluate_default, 0);
     onex_set_evaluators((char*)"user",    evaluate_user, 0);
     onex_set_evaluators((char*)"event",   evaluate_object_input, evaluate_event, 0);
+    onex_set_evaluators((char*)"light",   evaluate_object_input, evaluate_light_logic, 0);
 
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
     char dbpath[128];
