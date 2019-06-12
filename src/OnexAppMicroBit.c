@@ -60,6 +60,7 @@ bool evaluate_button_io(object* button, void* pressed)
 bool evaluate_light_io(object* light, void* d)
 {
   if(object_property_is(light, "light", "on")){
+    // move M:B-specific display stuff into display.h
     gpio_set(leds_list[0], 1);
     gpio_set(leds_list[1], 1);
     gpio_set(leds_list[2], 0);
