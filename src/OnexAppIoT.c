@@ -38,7 +38,6 @@ int main()
   onex_run_evaluators(lightuid, 0);
 
   bool button_pressed=false;
-  int todo=0;
   while(1){
 
     onex_loop();
