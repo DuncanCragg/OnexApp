@@ -1,6 +1,6 @@
 
 ############################################################################################
-# makefile for OnexAppMicroBit
+# makefile for OnexAppIoT
 ############################################################################################
 
 targets:
@@ -53,8 +53,8 @@ LIB_OBJECTS = \
 ./OnexLang/src/behaviours.c \
 
 
-ONEXAPP_MICROBIT_OBJECTS = \
-./src/OnexAppMicroBit.c \
+ONEXAPP_IOT_OBJECTS = \
+./src/OnexAppIoT.c \
 
 
 ############################################################################################
@@ -62,7 +62,7 @@ ONEXAPP_MICROBIT_OBJECTS = \
 onexapp.microbit.elf: COMPILE_LINE=${M0_CPU} $(M0_CC_FLAGS) $(NRF51_CC_SYMBOLS) $(NRF5_INCLUDES)
 onexapp.microbit.elf: TARGET=TARGET_MICRO_BIT
 onexapp.microbit.elf: CHANNELS=-DONP_CHANNEL_SERIAL
-onexapp.microbit.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF5_C_SOURCE_FILES:.c=.o) ${LIB_OBJECTS:.c=.o} $(ONEXAPP_MICROBIT_OBJECTS:.c=.o)
+onexapp.microbit.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF5_C_SOURCE_FILES:.c=.o) ${LIB_OBJECTS:.c=.o} $(ONEXAPP_IOT_OBJECTS:.c=.o)
 	$(LD) $(M0_LD_FLAGS) -L${M0_TEMPLATE_PATH} -T$(LINKER_SCRIPT_16K) -o $@ $^
 
 #############################:
