@@ -8,12 +8,10 @@
 * This code is licensed under the MIT license (MIT) (http://opensource.org/licenses/MIT)
 */
 
-#pragma GCC diagnostic ignored "-Wformat-truncation"
-
 #include <time.h>
+#include <imgui.h>
 #include "gui.h"
-#include "imgui.cpp"
-
+#include "im-gui.h"
 
 GUI::GUI(VulkanBase* a, object* u, object* c)
 {
@@ -25,9 +23,7 @@ GUI::GUI(VulkanBase* a, object* u, object* c)
 
 void GUI::changed()
 {
-  todayseconds=time(0);
-  todaydate = *localtime(&todayseconds);
-  save_days((char*)"viewing-r");
+  set_time_save_days();
 }
 
 void GUI::prepare()
@@ -55,23 +51,7 @@ static uint32_t pendingKeyCodeUp=0;
 
 void GUI::render()
 {
-  float heightratio = ((float)app->height)/1350.0;
-  float widthratio = ((float)app->width)/2000.0;
-
-  buttonHeight=70*heightratio;
-  paddingHeight=15*heightratio;
-  objectHeight=400*heightratio;
-  listHeight=1000*heightratio;
-
-  shorterValWidth=680*widthratio;
-  buttonWidth=190*widthratio;
-  smallButtonWidth=65*widthratio;
-  rhsPadding=20*widthratio;
-
-  workspace1Width=((int)app->width)/2-10;
-  workspace1Height=(int)app->height-70;
-  workspace2Width=((int)app->width)/2-10;
-  workspace2Height=(int)app->height-70;
+  set_scaling();
 
   framecount++;
   ImGuiIO& io = ImGui::GetIO();
@@ -482,7 +462,7 @@ void GUI::drawFrame(VkCommandBuffer commandBuffer)
 void GUI::buildCommandBuffers(int32_t i)
 {
   if(i==0){
-    drawGUI();
+    draw_gui();
     updateBuffers();
   }
   drawFrame(app->drawCmdBuffers[i]);

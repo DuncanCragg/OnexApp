@@ -1,3 +1,6 @@
+#ifndef GUI_H
+#define GUI_H
+
 /*
 * Vulkan Example - imGui (https://github.com/ocornut/imgui)
 *
@@ -31,18 +34,10 @@ typedef struct {
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <imgui.h>
-extern void ImStrncpy(char* dst, const char* src, size_t count);
-#define IM_ARRAYSIZE(_ARR)  ((int)(sizeof(_ARR)/sizeof(*_ARR)))
-
 #include <vulkan/vulkan.h>
 #include "../sascha/VulkanBase.h"
 #include "../sascha/VulkanDevice.hpp"
 #include "../sascha/VulkanBuffer.hpp"
-
-extern "C" void showOrHideSoftKeyboard(bool show);
-extern "C" void showNotification(char* title, char* text);
-extern "C" void setAlarm(time_t when, char* uid);
 
 class GUI {
 public:
@@ -80,25 +75,17 @@ public:
   void setupDescriptorSets();
   void createPipelineCache();
   void createPipelines(VkRenderPass renderPass);
-
   void updateBuffers();
-
   void drawFrame(VkCommandBuffer commandBuffer);
-
   void buildCommandBuffers(int32_t i);
-
   void updateUniformBuffers(){}
-
   void addAnyKeySym();
-
   void keyPressed(uint32_t keyCode, char32_t u32key);
-
   void keyReleased(uint32_t keyCode);
-
   void render();
-
   void changed();
 
   ~GUI();
 };
 
+#endif

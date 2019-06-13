@@ -13,8 +13,8 @@ bool keyboardUp = false;
 
 #define TEXTTYPE 1
 
-#if defined(VK_USE_PLATFORM_ANDROID_KHR)
 extern "C" {
+#if defined(VK_USE_PLATFORM_ANDROID_KHR)
 
 void showOrHideSoftKeyboard(bool show)
 {
@@ -96,7 +96,6 @@ void sprintExternalStorageDirectory(char* buf, int buflen, const char* format)
   androidApp->activity->vm->DetachCurrentThread();
 }
 
-}
 #else
 void showOrHideSoftKeyboard(bool show)
 {
@@ -113,6 +112,7 @@ void setAlarm(time_t when, char* uid)
   log_write("setAlarm %ld %s\n", when, uid);
 }
 #endif
+}
 
 extern bool evaluate_event(object* o, void* d);
 

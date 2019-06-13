@@ -1,7 +1,57 @@
 
+#include <imgui.h>
+extern void ImStrncpy(char* dst, const char* src, size_t count);
+#define IM_ARRAYSIZE(_ARR)  ((int)(sizeof(_ARR)/sizeof(*_ARR)))
+#include "im-gui.h"
+
+#pragma GCC diagnostic ignored "-Wformat-truncation"
+
+void draw_view();
+void draw_object_properties(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth);
+void draw_new_property_value_editor(char* path, char* propname, char* val, bool single, bool locallyEditable, int16_t width, int16_t height, int8_t depth);
+void draw_padding(char* path, int16_t width, int16_t height, int8_t depth);
+void draw_new_value_or_object_button(char* path, int16_t width, int j, int8_t depth, bool valueToo);
+
+object* create_new_object_like_others(char* path);
+object* create_new_object_for_property_name(char* path, char* name);
+object* create_new_event(struct tm* thisdate, char* title);
+int16_t calculate_scroller_height(char* path, int16_t height);
+void get_summary(char* path, char* summary);
+bool get_summary_from(char* path, char* summary, const char* key);
+int16_t calculate_key_width(char* path);
+void draw_object_header(char* path, bool locallyEditable, int16_t width, int8_t depth);
+void draw_object_footer(char* path, bool locallyEditable, int16_t width, int16_t keyWidth, int8_t depth);
+void draw_nested_object_properties_list(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth);
+void draw_key(char* path, char* key, int16_t width, int16_t height, int16_t keyWidth, int8_t depth);
+void draw_property_list(char* pathkey, char* key, bool locallyEditable, int16_t width, int16_t height, int16_t keyWidth, int8_t depth);
+void draw_calendar(char* path, int16_t width, int16_t height);
+void draw_day_cell(char* path, struct tm* thisdate, int day, int col, int16_t width);
+void get_cell_titles(char* titles, struct tm* thisdate, int col);
+void get_tag_icons(char* tagicons, int taglen, struct tm* thisdate, int cols);
+void get_cell_events_and_show_open(char* path, struct tm* thisdate, int col);
+void save_days(char* path);
+void save_day(char* path, int j, int col);
+void make_link();
+void best_prop_name(char* newpropname, int proplen, object* from, char* touid);
+void draw_link();
+void track_link(bool from, char* path, int width, int height);
+char* pop_last(char* path);
+void set_property_name(char* path , char* name);
+void set_property_name_and_object(char* path , char* name);
+void set_property_name_and_link(char* path , char* name);
+void set_new_value(char* path, char* valBuf, bool single);
+void set_new_tag(char* path, char* valBuf);
+void hide_keyboard();
+void show_keyboard(float multy);
+
+GUI* static_gui;
+
+VulkanBase *app;
+
 static ImGuiWindowFlags window_flags = 0;
-static unsigned char* fontData;
-static int texWidth, texHeight;
+
+unsigned char* fontData;
+int texWidth, texHeight;
 
 ImVec4 actionColour            (0.50f, 0.10f, 0.20f, 1.0f);
 ImVec4 actionBackground        (0.96f, 0.96f, 0.87f, 1.0f);
@@ -30,6 +80,33 @@ ImVec4 schemeGreen(160.0f/255, 175.0f/255, 110.0f/255, 1.0f);
 ImVec4 schemeLightPurple(0.8f, 0.7f, 0.9f, 1.0f);
 ImVec4 schemeDarkerPurple(0.73f, 0.63f, 0.83f, 1.0f);
 ImVec4 schemePlum(230.0f/255, 179.0f/255, 230.0f/255, 1.0f);
+
+#define DARKEN_DEPTH 3
+
+static uint16_t buttonHeight=70;
+static uint16_t paddingHeight=15;
+static uint16_t objectHeight=400;
+static uint16_t listHeight=1000;
+
+static uint16_t shorterValWidth=680;
+static uint16_t buttonWidth=190;
+static uint16_t smallButtonWidth=65;
+static uint16_t rhsPadding=20;
+
+static uint16_t workspace1Width;
+static uint16_t workspace1Height;
+static uint16_t workspace2Width;
+static uint16_t workspace2Height;
+
+uint16_t    yOffsetTarget=0;
+uint16_t    yOffset=0;
+uint16_t    yOffsetCounter=0;
+
+static bool rhsFullScreen=false;
+static bool calendarView=false;
+static bool tableView=false;
+#define MAX_OPEN 64
+static char* open[MAX_OPEN];
 
 void init_imgui(float width, float height)
 {
@@ -141,75 +218,36 @@ void get_font_info()
   io.Fonts->GetTexDataAsRGBA32(&fontData, &texWidth, &texHeight);
 }
 
-void draw_view();
-void draw_object_properties(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth);
-void draw_new_property_value_editor(char* path, char* propname, char* val, bool single, bool locallyEditable, int16_t width, int16_t height, int8_t depth);
-void draw_padding(char* path, int16_t width, int16_t height, int8_t depth);
-void draw_new_value_or_object_button(char* path, int16_t width, int j, int8_t depth, bool valueToo);
+static time_t todayseconds = 0;
+static struct tm todaydate;
 
-object* create_new_object_like_others(char* path);
-object* create_new_object_for_property_name(char* path, char* name);
-object* create_new_event(struct tm* thisdate, char* title);
-int16_t calculate_scroller_height(char* path, int16_t height);
-void get_summary(char* path, char* summary);
-bool get_summary_from(char* path, char* summary, const char* key);
-int16_t calculate_key_width(char* path);
-void draw_object_header(char* path, bool locallyEditable, int16_t width, int8_t depth);
-void draw_object_footer(char* path, bool locallyEditable, int16_t width, int16_t keyWidth, int8_t depth);
-void draw_nested_object_properties_list(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth);
-void draw_key(char* path, char* key, int16_t width, int16_t height, int16_t keyWidth, int8_t depth);
-void draw_property_list(char* pathkey, char* key, bool locallyEditable, int16_t width, int16_t height, int16_t keyWidth, int8_t depth);
-void draw_calendar(char* path, int16_t width, int16_t height);
-void draw_day_cell(char* path, struct tm* thisdate, int day, int col, int16_t width);
-void get_cell_titles(char* titles, struct tm* thisdate, int col);
-void get_tag_icons(char* tagicons, int taglen, struct tm* thisdate, int cols);
-void get_cell_events_and_show_open(char* path, struct tm* thisdate, int col);
-void save_days(char* path);
-void save_day(char* path, int j, int col);
-void make_link();
-void best_prop_name(char* newpropname, int proplen, object* from, char* touid);
-void draw_link();
-void track_link(bool from, char* path, int width, int height);
-char* pop_last(char* path);
-void set_property_name(char* path , char* name);
-void set_property_name_and_object(char* path , char* name);
-void set_property_name_and_link(char* path , char* name);
-void set_new_value(char* path, char* valBuf, bool single);
-void set_new_tag(char* path, char* valBuf);
-void hide_keyboard();
-void show_keyboard(float multy);
+void set_time_save_days()
+{
+  todayseconds=time(0);
+  todaydate = *localtime(&todayseconds);
+  save_days((char*)"viewing-r");
+}
 
-static GUI* static_gui;
+void set_scaling()
+{
+  float heightratio = ((float)app->height)/1350.0;
+  float widthratio = ((float)app->width)/2000.0;
 
-static object* user;
-static object* config;
+  buttonHeight=70*heightratio;
+  paddingHeight=15*heightratio;
+  objectHeight=400*heightratio;
+  listHeight=1000*heightratio;
 
-#define DARKEN_DEPTH 3
+  shorterValWidth=680*widthratio;
+  buttonWidth=190*widthratio;
+  smallButtonWidth=65*widthratio;
+  rhsPadding=20*widthratio;
 
-static uint16_t buttonHeight=70;
-static uint16_t paddingHeight=15;
-static uint16_t objectHeight=400;
-static uint16_t listHeight=1000;
-
-static uint16_t shorterValWidth=680;
-static uint16_t buttonWidth=190;
-static uint16_t smallButtonWidth=65;
-static uint16_t rhsPadding=20;
-
-static uint16_t workspace1Width;
-static uint16_t workspace1Height;
-static uint16_t workspace2Width;
-static uint16_t workspace2Height;
-
-uint16_t    yOffsetTarget=0;
-uint16_t    yOffset=0;
-uint16_t    yOffsetCounter=0;
-
-static bool rhsFullScreen=false;
-static bool calendarView=false;
-static bool tableView=false;
-#define MAX_OPEN 64
-static char* open[MAX_OPEN];
+  workspace1Width=((int)app->width)/2-10;
+  workspace1Height=(int)app->height-70;
+  workspace2Width=((int)app->width)/2-10;
+  workspace2Height=(int)app->height-70;
+}
 
 #define DRAG_THRESHOLD         30.0f
 #define START_DRIFT_THRESHOLD  10.0f
@@ -314,8 +352,6 @@ static void toggle_open(char* path)
   }
 }
 
-static time_t todayseconds = 0;
-static struct tm todaydate;
 
 
 static void close_all_starting(char* prefix)
@@ -667,9 +703,7 @@ void draw_view()
   draw_link();
 }
 
-VulkanBase *app;
-
-void drawGUI()
+void draw_gui()
 {
   ImGui::NewFrame();
 
@@ -711,10 +745,14 @@ void drawGUI()
 
 // ---------------------------------------------------------------------------------------------
 
-char*       propNameEditing=0;
-bool        keyboardCancelled=false;
+char* propNameEditing=0;
+bool  keyboardCancelled=false;
 
 #define xTEST_ANDROID_KEYBOARD
+
+extern "C" void showOrHideSoftKeyboard(bool show);
+extern "C" void showNotification(char* title, char* text);
+extern "C" void setAlarm(time_t when, char* uid);
 
 void show_keyboard(float multy){
 #if defined(__ANDROID__) || defined(TEST_ANDROID_KEYBOARD)
