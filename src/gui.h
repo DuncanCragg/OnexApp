@@ -46,7 +46,6 @@ extern "C" void setAlarm(time_t when, char* uid);
 
 class GUI {
 public:
-  ImGuiWindowFlags window_flags = 0;
   void drawGUI();
   void drawView();
   void drawObjectProperties(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth);
@@ -84,8 +83,6 @@ public:
   void setNewTag(char* path, char* valBuf);
   void hideKeyboard();
   void showKeyboard(float multy);
-  unsigned char* fontData;
-  int texWidth, texHeight;
   VkSampler sampler;
   vks::Buffer vertexBuffer;
   vks::Buffer indexBuffer;
@@ -113,10 +110,7 @@ public:
 
   void prepare();
 
-  void initImGUI(float width, float height);
-
   void setUpKeyMap();
-  void getFontInfo();
   void createFontImage();
   void setupImageBuffer(VkQueue copyQueue);
   void createSampler();

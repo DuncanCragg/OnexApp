@@ -13,33 +13,11 @@
 #include <time.h>
 #include "gui.h"
 
-static object* user;
-static object* config;
+extern void initImGUI(float width, float height);
 
-GUI::GUI(VulkanBase* a, object* u, object* c)
-{
-  app = a;
-  user = u;
-  config = c;
-};
-
-void GUI::prepare()
-{
-  device = app->vulkanDevice;
-  initImGUI((float)app->width, (float)app->height);
-  getFontInfo();
-  createFontImage();
-  setUpKeyMap();
-  setupImageBuffer(app->queue);
-  createSampler();
-  setupDescriptorPool();
-  setupDescriptorSetLayout();
-  setupDescriptorSets();
-  createPipelineCache();
-  createPipelines(app->renderPass);
-}
-
-// ---------------------------------------------------------------------------------------------
+static ImGuiWindowFlags window_flags = 0;
+static unsigned char* fontData;
+static int texWidth, texHeight;
 
 ImVec4 actionColour            (0.50f, 0.10f, 0.20f, 1.0f);
 ImVec4 actionBackground        (0.96f, 0.96f, 0.87f, 1.0f);
@@ -69,22 +47,7 @@ ImVec4 schemeLightPurple(0.8f, 0.7f, 0.9f, 1.0f);
 ImVec4 schemeDarkerPurple(0.73f, 0.63f, 0.83f, 1.0f);
 ImVec4 schemePlum(230.0f/255, 179.0f/255, 230.0f/255, 1.0f);
 
-static uint16_t buttonHeight=70;
-static uint16_t paddingHeight=15;
-static uint16_t objectHeight=400;
-static uint16_t listHeight=1000;
-
-static uint16_t shorterValWidth=680;
-static uint16_t buttonWidth=190;
-static uint16_t smallButtonWidth=65;
-static uint16_t rhsPadding=20;
-
-static uint16_t workspace1Width;
-static uint16_t workspace1Height;
-static uint16_t workspace2Width;
-static uint16_t workspace2Height;
-
-void GUI::initImGUI(float width, float height)
+void initImGUI(float width, float height)
 {
   ImGuiStyle& style = ImGui::GetStyle();
   style.Colors[ImGuiCol_Header] = ImVec4(0.8f, 0.7f, 0.9f, 1.0f);
@@ -152,27 +115,7 @@ void GUI::initImGUI(float width, float height)
 //  window_flags |= ImGuiWindowFlags_AlwaysUseWindowPadding;
 }
 
-#define DARKEN_DEPTH 3
-
-#if defined(__ANDROID__)
-#define ASSET_PATH ""
-#else
-#define ASSET_PATH "./../data/"
-#endif
-
-#if defined(__ANDROID__)
-static char* getFontData(const char* fontfile, size_t* length)
-{
-  AAsset* asset = AAssetManager_open(androidApp->activity->assetManager, fontfile, AASSET_MODE_STREAMING);
-  *length = AAsset_getLength(asset);
-  char* font_data = new char[*length]; // TODO free?
-  AAsset_read(asset, font_data, *length);
-  AAsset_close(asset);
-  return font_data;
-}
-#endif
-
-void GUI::getFontInfo()
+void getFontInfo()
 {
   ImGuiIO& io = ImGui::GetIO();
   const char* fontfilereg = ASSET_PATH "fonts/OpenSans-Regular.ttf";
@@ -193,6 +136,69 @@ void GUI::getFontInfo()
 #endif
   io.Fonts->GetTexDataAsRGBA32(&fontData, &texWidth, &texHeight);
 }
+
+static object* user;
+static object* config;
+
+GUI::GUI(VulkanBase* a, object* u, object* c)
+{
+  app = a;
+  user = u;
+  config = c;
+};
+
+void GUI::prepare()
+{
+  device = app->vulkanDevice;
+  initImGUI((float)app->width, (float)app->height);
+  getFontInfo();
+  createFontImage();
+  setUpKeyMap();
+  setupImageBuffer(app->queue);
+  createSampler();
+  setupDescriptorPool();
+  setupDescriptorSetLayout();
+  setupDescriptorSets();
+  createPipelineCache();
+  createPipelines(app->renderPass);
+}
+
+// ---------------------------------------------------------------------------------------------
+
+static uint16_t buttonHeight=70;
+static uint16_t paddingHeight=15;
+static uint16_t objectHeight=400;
+static uint16_t listHeight=1000;
+
+static uint16_t shorterValWidth=680;
+static uint16_t buttonWidth=190;
+static uint16_t smallButtonWidth=65;
+static uint16_t rhsPadding=20;
+
+static uint16_t workspace1Width;
+static uint16_t workspace1Height;
+static uint16_t workspace2Width;
+static uint16_t workspace2Height;
+
+#define DARKEN_DEPTH 3
+
+#if defined(__ANDROID__)
+#define ASSET_PATH ""
+#else
+#define ASSET_PATH "./../data/"
+#endif
+
+#if defined(__ANDROID__)
+static char* getFontData(const char* fontfile, size_t* length)
+{
+  AAsset* asset = AAssetManager_open(androidApp->activity->assetManager, fontfile, AASSET_MODE_STREAMING);
+  *length = AAsset_getLength(asset);
+  char* font_data = new char[*length]; // TODO free?
+  AAsset_read(asset, font_data, *length);
+  AAsset_close(asset);
+  return font_data;
+}
+#endif
 
 // ---------------------------------------------------------------------------------------------
 
