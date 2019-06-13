@@ -13,8 +13,6 @@
 #include <time.h>
 #include "gui.h"
 
-extern void initImGUI(float width, float height);
-
 static ImGuiWindowFlags window_flags = 0;
 static unsigned char* fontData;
 static int texWidth, texHeight;
@@ -47,7 +45,7 @@ ImVec4 schemeLightPurple(0.8f, 0.7f, 0.9f, 1.0f);
 ImVec4 schemeDarkerPurple(0.73f, 0.63f, 0.83f, 1.0f);
 ImVec4 schemePlum(230.0f/255, 179.0f/255, 230.0f/255, 1.0f);
 
-void initImGUI(float width, float height)
+void init_imgui(float width, float height)
 {
   ImGuiStyle& style = ImGui::GetStyle();
   style.Colors[ImGuiCol_Header] = ImVec4(0.8f, 0.7f, 0.9f, 1.0f);
@@ -115,7 +113,7 @@ void initImGUI(float width, float height)
 //  window_flags |= ImGuiWindowFlags_AlwaysUseWindowPadding;
 }
 
-void getFontInfo()
+void get_font_info()
 {
   ImGuiIO& io = ImGui::GetIO();
   const char* fontfilereg = ASSET_PATH "fonts/OpenSans-Regular.ttf";
@@ -137,42 +135,43 @@ void getFontInfo()
   io.Fonts->GetTexDataAsRGBA32(&fontData, &texWidth, &texHeight);
 }
 
-  void drawView();
-  void drawObjectProperties(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth);
-  void drawNewPropertyValueEditor(char* path, char* propname, char* val, bool single, bool locallyEditable, int16_t width, int16_t height, int8_t depth);
-  void drawPadding(char* path, int16_t width, int16_t height, int8_t depth);
-  void drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t depth, bool valueToo);
-  object* createNewObjectLikeOthers(char* path);
-  object* createNewObjectForPropertyName(char* path, char* name);
-  object* createNewEvent(struct tm* thisdate, char* title);
-  int16_t calculateScrollerHeight(char* path, int16_t height);
-  void getSummary(char* path, char* summary);
-  bool getSummaryFrom(char* path, char* summary, const char* key);
-  int16_t calculateKeyWidth(char* path);
-  void drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8_t depth);
-  void drawObjectFooter(char* path, bool locallyEditable, int16_t width, int16_t keyWidth, int8_t depth);
-  void drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth);
-  void drawKey(char* path, char* key, int16_t width, int16_t height, int16_t keyWidth, int8_t depth);
-  void drawPropertyList(char* pathkey, char* key, bool locallyEditable, int16_t width, int16_t height, int16_t keyWidth, int8_t depth);
-  void drawCalendar(char* path, int16_t width, int16_t height);
-  void drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t width);
-  void getCellTitles(char* titles, struct tm* thisdate, int col);
-  void getTagIcons(char* tagicons, int taglen, struct tm* thisdate, int cols);
-  void getCellEventsAndShowOpen(char* path, struct tm* thisdate, int col);
-  void saveDays(char* path);
-  void saveDay(char* path, int j, int col);
-  void makeLink();
-  void bestPropName(char* newpropname, int proplen, object* from, char* touid);
-  void drawLink();
-  void trackLink(bool from, char* path, int width, int height);
-  char* popLast(char* path);
-  void setPropertyName(char* path , char* name);
-  void setPropertyNameAndObject(char* path , char* name);
-  void setPropertyNameAndLink(char* path , char* name);
-  void setNewValue(char* path, char* valBuf, bool single);
-  void setNewTag(char* path, char* valBuf);
-  void hideKeyboard();
-  void showKeyboard(float multy);
+void draw_view();
+void draw_object_properties(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth);
+void draw_new_property_value_editor(char* path, char* propname, char* val, bool single, bool locallyEditable, int16_t width, int16_t height, int8_t depth);
+void draw_padding(char* path, int16_t width, int16_t height, int8_t depth);
+void draw_new_value_or_object_button(char* path, int16_t width, int j, int8_t depth, bool valueToo);
+
+object* create_new_object_like_others(char* path);
+object* create_new_object_for_property_name(char* path, char* name);
+object* create_new_event(struct tm* thisdate, char* title);
+int16_t calculate_scroller_height(char* path, int16_t height);
+void get_summary(char* path, char* summary);
+bool get_summary_from(char* path, char* summary, const char* key);
+int16_t calculate_key_width(char* path);
+void draw_object_header(char* path, bool locallyEditable, int16_t width, int8_t depth);
+void draw_object_footer(char* path, bool locallyEditable, int16_t width, int16_t keyWidth, int8_t depth);
+void draw_nested_object_properties_list(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth);
+void draw_key(char* path, char* key, int16_t width, int16_t height, int16_t keyWidth, int8_t depth);
+void draw_property_list(char* pathkey, char* key, bool locallyEditable, int16_t width, int16_t height, int16_t keyWidth, int8_t depth);
+void draw_calendar(char* path, int16_t width, int16_t height);
+void draw_day_cell(char* path, struct tm* thisdate, int day, int col, int16_t width);
+void get_cell_titles(char* titles, struct tm* thisdate, int col);
+void get_tag_icons(char* tagicons, int taglen, struct tm* thisdate, int cols);
+void get_cell_events_and_show_open(char* path, struct tm* thisdate, int col);
+void save_days(char* path);
+void save_day(char* path, int j, int col);
+void make_link();
+void best_prop_name(char* newpropname, int proplen, object* from, char* touid);
+void draw_link();
+void track_link(bool from, char* path, int width, int height);
+char* pop_last(char* path);
+void set_property_name(char* path , char* name);
+void set_property_name_and_object(char* path , char* name);
+void set_property_name_and_link(char* path , char* name);
+void set_new_value(char* path, char* valBuf, bool single);
+void set_new_tag(char* path, char* valBuf);
+void hide_keyboard();
+void show_keyboard(float multy);
 
 static GUI* static_gui;
 
@@ -220,7 +219,7 @@ static float drift_threshold = START_DRIFT_THRESHOLD;
 
 #define MOVING_DELTA(x,y,d) (((x)*(x)+(y)*(y)) >= (d))
 
-static void killDrag()
+static void kill_drag()
 {
   free(dragPathId);
   dragPathId=0;
@@ -234,7 +233,7 @@ static void killDrag()
 static void track_drag(char* pathId, bool twodimensions)
 {
   if(ImGui::IsItemActive() && !ImGui::IsMouseDragging() && dragPathId && strcmp(pathId, dragPathId)){
-    killDrag();
+    kill_drag();
   }
   else
   if(ImGui::IsItemActive() && ImGui::IsMouseDragging()){
@@ -264,7 +263,7 @@ static void track_drag(char* pathId, bool twodimensions)
   }
   else
   if(!ImGui::IsMouseDragging() && dragPathId && !strcmp(pathId, dragPathId)){
-    killDrag();
+    kill_drag();
   }
 }
 
@@ -291,7 +290,7 @@ static char* linkTo=0;
 static ImVec2 linkToPos=ImVec2(0,0);
 static ImVec2 linkFromPos=ImVec2(0,0);
 
-static bool isOpen(char* path)
+static bool is_open(char* path)
 {
   for(int i=0; i<MAX_OPEN; i++){
     if(open[i] && !strcmp(open[i], path)) return true;
@@ -299,7 +298,7 @@ static bool isOpen(char* path)
   return false;
 }
 
-static void toggleOpen(char* path)
+static void toggle_open(char* path)
 {
   for(int i=0; i<MAX_OPEN; i++){
     if(open[i] && !strcmp(open[i], path)){ free(open[i]); open[i]=0; return; }
@@ -313,14 +312,14 @@ static time_t todayseconds = 0;
 static struct tm todaydate;
 
 
-static void closeAllStarting(char* prefix)
+static void close_all_starting(char* prefix)
 {
   for(int i=0; i<MAX_OPEN; i++){
     if(open[i] && !strncmp(open[i], prefix, strlen(prefix))){ free(open[i]); open[i]=0; }
   }
 }
 
-static const char* getHexOfColour(char* colour)
+static const char* get_hex_of_colour(char* colour)
 {
   if(!colour) return "";
   if(!strcmp(colour, "red"    )) return "\033\xff\x01\x01\xff";
@@ -368,7 +367,7 @@ static const char* time_formats[] = { "%I:%M%p", "%I.%M%p", "%I%p", //  7:00pm 7
                                       "%H:%M", "%H.%M",             //  19:00
 };
 
-bool getDate(char* p, struct tm* parsed_date)
+bool get_date(char* p, struct tm* parsed_date)
 {
   for(int f=0; f<IM_ARRAYSIZE(date_formats); f++){
     memset(parsed_date, 0, sizeof(struct tm));
@@ -381,7 +380,7 @@ bool getDate(char* p, struct tm* parsed_date)
   return false;
 }
 
-bool getTime(char** p, struct tm* parsed_time)
+bool get_time(char** p, struct tm* parsed_time)
 {
   for(int f=0; f<IM_ARRAYSIZE(time_formats); f++){
     memset(parsed_time, 0, sizeof(struct tm));
@@ -391,15 +390,15 @@ bool getTime(char** p, struct tm* parsed_time)
   return false;
 }
 
-time_t getDateFromObject(object* o, char* path, struct tm* parsed_date)
+time_t get_date_from_object(object* o, char* path, struct tm* parsed_date)
 {
   char* p=object_property_values(o, path);
   if(!p) return -1;
-  if(!getDate(p, parsed_date)) return -1;
+  if(!get_date(p, parsed_date)) return -1;
   return mktime(parsed_date);
 }
 
-void saveDays(char* path)
+void save_days(char* path)
 {
   if(!calstamps) calstamps=properties_new(100);
   else           properties_clear(calstamps, true);
@@ -420,7 +419,7 @@ void saveDays(char* path)
         if(!is_uid(val)) continue;
         char ispath[128]; snprintf(ispath, 128, "%s:%d:is", listpath, k);
         if(!object_property_contains(user, ispath, (char*)"event")) continue;
-        saveDay(listpath, k, col);
+        save_day(listpath, k, col);
       }
       char titlepath[128]; snprintf(titlepath, 128, "%s:title", calpath);
       char* caltitle=object_property_values(user, titlepath);
@@ -437,18 +436,18 @@ void saveDays(char* path)
     char ispath[128]; snprintf(ispath, 128, "%s:is", calpath);
     if(!object_property_contains(user, ispath, (char*)"event")) continue;
     if(!object_property_contains(user, ispath, (char*)"list")){
-      saveDay(path, j, col);
+      save_day(path, j, col);
     }
   }
   if(!firstDate) firstDate=todayseconds;
   firstDateSet=true;
 }
 
-void saveDay(char* path, int j, int col)
+void save_day(char* path, int j, int col)
 {
   char stpath[128]; snprintf(stpath, 128, "%s:%d:date", path, j);
   struct tm start_date;
-  time_t t=getDateFromObject(user, stpath, &start_date);
+  time_t t=get_date_from_object(user, stpath, &start_date);
   if(t== -1) return;
   if(!firstDateSet){
     if(firstDate==0 || t<firstDate) firstDate=t;
@@ -467,10 +466,10 @@ void GUI::changed()
 {
   todayseconds=time(0);
   todaydate = *localtime(&todayseconds);
-  saveDays((char*)"viewing-r");
+  save_days((char*)"viewing-r");
 }
 
-void drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8_t depth)
+void draw_object_header(char* path, bool locallyEditable, int16_t width, int8_t depth)
 {
   bool nodarken=depth<DARKEN_DEPTH;
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));
@@ -488,7 +487,7 @@ void drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8_t de
         char* viewing = object_property(user, popPath);
         object_property_set(user, popPath, 0);
         object_property_set(user, (char*)"viewing-l", viewing);
-        closeAllStarting((char*)"viewing-l");
+        close_all_starting((char*)"viewing-l");
       }
     }
     track_drag(backId, true);
@@ -516,14 +515,14 @@ void drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8_t de
   int blankwidth = width-(depth==1? buttonWidth: (depth<DARKEN_DEPTH? smallButtonWidth: 0))-2*smallButtonWidth;
   if(blankwidth>10){
     char summary[128]="";
-    getSummary(path, summary);
+    get_summary(path, summary);
     char barId[256]; snprintf(barId, 256, "%s ## topbar %s", summary, path);
     if(ImGui::Button(barId, ImVec2(blankwidth, buttonHeight)) && !dragPathId){
-      toggleOpen(path);
+      toggle_open(path);
     }
     if(!linkTo) track_drag(barId, false);
     ImGui::SameLine();
-    trackLink(false, path, blankwidth, buttonHeight);
+    track_link(false, path, blankwidth, buttonHeight);
   }
 
   char maxId[256]; snprintf(maxId, 256, " ^## %s", path);
@@ -531,7 +530,7 @@ void drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8_t de
     char* viewing=object_property(user, path);
     object_property_add(user, (char*)"history", object_property(user, (char*)"viewing-l"));
     object_property_set(user, (char*)"viewing-l", viewing);
-    closeAllStarting((char*)"viewing-l");
+    close_all_starting((char*)"viewing-l");
   }
   track_drag(maxId, true);
 
@@ -548,12 +547,12 @@ void drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8_t de
   ImGui::PopStyleVar(1);
 }
 
-void drawObjectProperties(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth)
+void draw_object_properties(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth)
 {
-  drawObjectHeader(path, locallyEditable, width, depth);
-  if(strcmp(path, "viewing-l") && !isOpen(path)) return;
-  int16_t scrollerheight=calculateScrollerHeight(path, height);
-  int16_t keyWidth=calculateKeyWidth(path);
+  draw_object_header(path, locallyEditable, width, depth);
+  if(strcmp(path, "viewing-l") && !is_open(path)) return;
+  int16_t scrollerheight=calculate_scroller_height(path, height);
+  int16_t keyWidth=calculate_key_width(path);
   int8_t sz = object_property_size(user, path);
   if(sz>0) for(int i=1; i<=sz; i++){
     char* key=object_property_key(user, path, i);
@@ -569,17 +568,17 @@ void drawObjectProperties(char* path, bool locallyEditable, int16_t width, int16
     int hgt;
     if(wid >0) hgt=(wid/40+1)*buttonHeight;
     else       hgt=scrollerheight;
-    if(hgt>=buttonHeight) drawPropertyList(pathkey, key, locallyEditable, width, hgt, keyWidth, depth);
+    if(hgt>=buttonHeight) draw_property_list(pathkey, key, locallyEditable, width, hgt, keyWidth, depth);
     else{
       char blnId[256]; snprintf(blnId, 256, "##filler %d %d %s", width, hgt, pathkey);
       ImGui::Button(blnId, ImVec2(width, paddingHeight));
       track_drag(blnId, true);
     }
   }
-  drawObjectFooter(path, locallyEditable, width, keyWidth, depth);
+  draw_object_footer(path, locallyEditable, width, keyWidth, depth);
 }
 
-void drawView()
+void draw_view()
 {
   int msperframe = (int)(1000.0f/ImGui::GetIO().Framerate);
   if(yOffsetCounter > 0){
@@ -598,7 +597,7 @@ void drawView()
       char path[s]; memcpy(path, "viewing-l", s);
       char* uid=object_property(user, (char*)"viewing-l");
       bool locallyEditable = object_is_local(uid);
-      drawObjectProperties(path, locallyEditable, workspace1Width-rhsPadding, workspace1Height, 1);
+      draw_object_properties(path, locallyEditable, workspace1Width-rhsPadding, workspace1Height, 1);
     }
     ImGui::EndChild();
 
@@ -626,7 +625,7 @@ void drawView()
       calendarView=!calendarView;
       if(calendarView){
         tableView=false;
-        closeAllStarting((char*)"viewing-r");
+        close_all_starting((char*)"viewing-r");
       }
     }
     ImGui::PopStyleColor();
@@ -640,7 +639,7 @@ void drawView()
       tableView=!tableView;
       if(tableView){
         calendarView=false;
-        closeAllStarting((char*)"viewing-r");
+        close_all_starting((char*)"viewing-r");
       }
     }
     ImGui::PopStyleColor();
@@ -660,13 +659,13 @@ void drawView()
     ImGui::Separator();
 
     int8_t s=strlen("viewing-r")+1; char path[s]; memcpy(path, "viewing-r", s);
-    if(calendarView) drawCalendar(path, ws2width-rhsPadding, workspace2Height-100);
+    if(calendarView) draw_calendar(path, ws2width-rhsPadding, workspace2Height-100);
     else
     if(tableView);// drawTable(..);
-    else             drawNestedObjectPropertiesList(path, false, ws2width-rhsPadding, workspace2Height-100, 1);
+    else             draw_nested_object_properties_list(path, false, ws2width-rhsPadding, workspace2Height-100, 1);
   }
   ImGui::EndChild();
-  drawLink();
+  draw_link();
 }
 
 VulkanBase *app;
@@ -699,7 +698,7 @@ void drawGUI()
   style.ScrollbarSize = 0.0f;
 //style.TouchExtraPadding = ImVec2(10.0f,10.0f);
 
-  drawView();
+  draw_view();
 
   ImGui::PopStyleVar(svs);
 
@@ -722,8 +721,8 @@ GUI::GUI(VulkanBase* a, object* u, object* c)
 void GUI::prepare()
 {
   device = app->vulkanDevice;
-  initImGUI((float)app->width, (float)app->height);
-  getFontInfo();
+  init_imgui((float)app->width, (float)app->height);
+  get_font_info();
   createFontImage();
   setUpKeyMap();
   setupImageBuffer(app->queue);
@@ -762,7 +761,7 @@ bool        keyboardCancelled=false;
 
 #define xTEST_ANDROID_KEYBOARD
 
-void showKeyboard(float multy){
+void show_keyboard(float multy){
 #if defined(__ANDROID__) || defined(TEST_ANDROID_KEYBOARD)
   if(yOffsetTarget) return;
   yOffsetTarget=(multy!=0)? multy: (ImGui::GetCursorScreenPos().y-3*buttonHeight)*0.80;
@@ -771,7 +770,7 @@ void showKeyboard(float multy){
 #endif
 }
 
-void hideKeyboard(){
+void hide_keyboard(){
 #if defined(__ANDROID__) || defined(TEST_ANDROID_KEYBOARD)
   yOffsetTarget=0;
   yOffsetCounter=0;
@@ -780,7 +779,7 @@ void hideKeyboard(){
 #endif
 }
 
-void trackLink(bool from, char* path, int width, int height)
+void track_link(bool from, char* path, int width, int height)
 {
   if(ImGui::IsItemActive() && ImGui::IsMouseDragging() && !dragPathId){
     char*&  linkEnd   =from? linkFrom: linkTo;
@@ -795,7 +794,7 @@ void trackLink(bool from, char* path, int width, int height)
       if(dx>LINK_THRESHOLD && dy<LINK_THRESHOLD){
         linkEnd=strdup(path);
         linkDirection=from? LINK_FROM: LINK_TO;
-        killDrag();
+        kill_drag();
       }
     }
   }
@@ -814,11 +813,11 @@ void trackLink(bool from, char* path, int width, int height)
   }
   else
   if(!ImGui::IsMouseDown(0) && !dragPathId){
-    makeLink();
+    make_link();
   }
 }
 
-void makeLink()
+void make_link()
 {
   if(linkTo && linkFrom){
     char* lastcolon=strrchr(linkFrom,':');
@@ -840,7 +839,7 @@ void makeLink()
     char* touid=object_property(user, linkTo);
     if(objectEditing && touid){
       char newpropname[128];
-      if(!propname){ bestPropName(newpropname, IM_ARRAYSIZE(newpropname), objectEditing, touid); propname=newpropname; }
+      if(!propname){ best_prop_name(newpropname, IM_ARRAYSIZE(newpropname), objectEditing, touid); propname=newpropname; }
       if(object_property_is(objectEditing, propname, (char*)"--")){
         object_property_set(objectEditing, propname, touid);
       }
@@ -854,7 +853,7 @@ void makeLink()
   linkDirection=0;
 }
 
-void bestPropName(char* newpropname, int proplen, object* from, char* touid)
+void best_prop_name(char* newpropname, int proplen, object* from, char* touid)
 {
   if(object_property_contains(from, (char*)"is", (char*)"list")){
     ImStrncpy(newpropname, "list", proplen);
@@ -867,7 +866,7 @@ void bestPropName(char* newpropname, int proplen, object* from, char* touid)
   }
 }
 
-void drawLink()
+void draw_link()
 {
   if(linkTo || linkFrom){
     ImVec2 startpos(0,0);
@@ -906,7 +905,7 @@ void drawLink()
   }
 }
 
-void setNewTag(char* path, char* tag)
+void set_new_tag(char* path, char* tag)
 {
   char* lastcolon=strrchr(path,':'); *lastcolon=0;
   object* objectEditing = onex_get_from_cache(object_property(user, path));
@@ -929,7 +928,7 @@ void setNewTag(char* path, char* tag)
   *lastcolon=':';
 }
 
-void setNewValue(char* path, char* buf, bool single)
+void set_new_value(char* path, char* buf, bool single)
 {
   if(single){
     char* lastcolon=strrchr(path,':'); *lastcolon=0;
@@ -951,29 +950,29 @@ void setNewValue(char* path, char* buf, bool single)
   }
 }
 
-void setPropertyName(char* path , char* name)
+void set_property_name(char* path , char* name)
 {
   object* objectEditing = onex_get_from_cache(object_property(user, path));
   object_property_set(objectEditing, name, (char*)"--");
 }
 
-void setPropertyNameAndObject(char* path , char* name)
+void set_property_name_and_object(char* path , char* name)
 {
   object* objectEditing = onex_get_from_cache(object_property(user, path));
-  object* o = createNewObjectForPropertyName(path, name);
+  object* o = create_new_object_for_property_name(path, name);
   if(o) object_property_set(objectEditing, name, object_property(o, (char*)"UID"));
   else object_property_set(objectEditing, name, (char*)"--");
 }
 
-void setPropertyNameAndLink(char* path , char* name)
+void set_property_name_and_link(char* path , char* name)
 {
-  char* lastlink=popLast((char*)"viewing-r");
+  char* lastlink=pop_last((char*)"viewing-r");
   if(!lastlink) return;
   object* objectEditing = onex_get_from_cache(object_property(user, path));
   object_property_set(objectEditing, name, lastlink);
 }
 
-char* popLast(char* path)
+char* pop_last(char* path)
 {
   uint16_t len=object_property_length(user, path);
   char popPath[64]; snprintf(popPath, 64, "%s:%d", path, len);
@@ -1062,7 +1061,7 @@ static int filter_and_autocomplete_default(ImGuiTextEditCallbackData* data)
   return filter_and_autocomplete(data, 0, 0, 0);
 }
 
-void drawNewPropertyValueEditor(char* path, char* propname, char* val, bool single, bool locallyEditable, int16_t width, int16_t height, int8_t depth)
+void draw_new_property_value_editor(char* path, char* propname, char* val, bool single, bool locallyEditable, int16_t width, int16_t height, int8_t depth)
 {
   if(!val){ log_write("val==null: path=%s\n", path); return; }
   static int blurrer=0;
@@ -1072,7 +1071,7 @@ void drawNewPropertyValueEditor(char* path, char* propname, char* val, bool sing
   ImGuiIO& io = ImGui::GetIO();
   bool editing = propNameEditing && !strcmp(path, propNameEditing);
   if(editing && (!io.WantTextInput || keyboardCancelled)){
-    hideKeyboard();
+    hide_keyboard();
     free(propNameEditing); propNameEditing=0;
     *valBuf=0;
     editing=false;
@@ -1093,7 +1092,7 @@ void drawNewPropertyValueEditor(char* path, char* propname, char* val, bool sing
     if(ImGui::IsItemActive() && ImGui::IsMouseReleased(0) && !dragPathId){
       if(locallyEditable){
         propNameEditing = strdup(path);
-        showKeyboard(multy);
+        show_keyboard(multy);
       }
     }
     track_drag(valId, true);
@@ -1106,9 +1105,9 @@ void drawNewPropertyValueEditor(char* path, char* propname, char* val, bool sing
     if(height==buttonHeight) done=FilterAutoInputText(valId, valBuf, IM_ARRAYSIZE(valBuf), faa);
     else                     done=ImGui::InputTextMultiline(valId, valBuf, IM_ARRAYSIZE(valBuf), ImVec2(width, height), flags);
     if(done){
-      if(propname && !strcmp(propname, "tags")) setNewTag(path, valBuf);
-      else                                      setNewValue(path, valBuf, single);
-      hideKeyboard();
+      if(propname && !strcmp(propname, "tags")) set_new_tag(path, valBuf);
+      else                                      set_new_value(path, valBuf, single);
+      hide_keyboard();
       free(propNameEditing); propNameEditing=0;
       *valBuf=0;
     }
@@ -1142,7 +1141,7 @@ static int filter_and_autocomplete_property_names(ImGuiTextEditCallbackData* dat
   return filter_and_autocomplete(data, enforcePropertyName, (char**)propertyNameChoices, IM_ARRAYSIZE(propertyNameChoices));
 }
 
-void drawObjectFooter(char* path, bool locallyEditable, int16_t width, int16_t keyWidth, int8_t depth)
+void draw_object_footer(char* path, bool locallyEditable, int16_t width, int16_t keyWidth, int8_t depth)
 {
   if(depth>=3) return;
   if(!locallyEditable) return;
@@ -1151,7 +1150,7 @@ void drawObjectFooter(char* path, bool locallyEditable, int16_t width, int16_t k
   ImGuiIO& io = ImGui::GetIO();
   bool editing = propNameEditing && !strcmp(path, propNameEditing);
   if(editing && grabbedFocus && (!io.WantTextInput || keyboardCancelled)){
-    hideKeyboard();
+    hide_keyboard();
     free(propNameEditing); propNameEditing=0;
     *propNameBuf=0;
     grabbedFocus=false;
@@ -1165,7 +1164,7 @@ void drawObjectFooter(char* path, bool locallyEditable, int16_t width, int16_t k
     ImGui::PushStyleColor(ImGuiCol_Button, nodarken? propertyBackground: propertyBackgroundActive);
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, nodarken? propertyBackground: propertyBackgroundActive);
     if(ImGui::Button(prpId, ImVec2(keyWidth, buttonHeight)) && !dragPathId){
-      if(!propNameEditing){ propNameEditing = strdup(path); showKeyboard(0); }
+      if(!propNameEditing){ propNameEditing = strdup(path); show_keyboard(0); }
     }
     ImGui::PopStyleColor(3);
     track_drag(prpId, true);
@@ -1192,12 +1191,12 @@ void drawObjectFooter(char* path, bool locallyEditable, int16_t width, int16_t k
     ImGui::PushStyleColor(ImGuiCol_FrameBg, propertyBackground);
     if(FilterAutoInputText("## property name", propNameBuf, IM_ARRAYSIZE(propNameBuf), filter_and_autocomplete_property_names)){
       if(*propNameBuf){
-        if(!strcmp(propNameBuf, "Rules")) setPropertyNameAndObject(path, propNameBuf);
-        else if(!strcmp(propNameBuf, "Notifying")) setPropertyNameAndLink(path, propNameBuf);
-        else setPropertyName(path, propNameBuf);
+        if(!strcmp(propNameBuf, "Rules")) set_property_name_and_object(path, propNameBuf);
+        else if(!strcmp(propNameBuf, "Notifying")) set_property_name_and_link(path, propNameBuf);
+        else set_property_name(path, propNameBuf);
         *propNameBuf=0;
       }
-      hideKeyboard();
+      hide_keyboard();
       free(propNameEditing); propNameEditing=0;
       grabbedFocus=false;
     }
@@ -1209,7 +1208,7 @@ void drawObjectFooter(char* path, bool locallyEditable, int16_t width, int16_t k
   }
 }
 
-void drawPadding(char* path, int16_t width, int16_t height, int8_t depth)
+void draw_padding(char* path, int16_t width, int16_t height, int8_t depth)
 {
   bool nodarken=depth<DARKEN_DEPTH;
   ImGui::PushStyleColor(ImGuiCol_Button, nodarken? listBackground: listBackgroundDark);
@@ -1222,14 +1221,14 @@ void drawPadding(char* path, int16_t width, int16_t height, int8_t depth)
   ImGui::PopStyleColor(4);
 }
 
-void drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t depth, bool valueToo)
+void draw_new_value_or_object_button(char* path, int16_t width, int j, int8_t depth, bool valueToo)
 {
   bool nodarken=depth<DARKEN_DEPTH;
   char pathj[256]; snprintf(pathj, 256, "%s:%d", path, j);
   char* propname=strrchr(path, ':');
   if(propname) propname++;
   if(valueToo || (propname && !strcmp(propname, "tags"))){
-    drawNewPropertyValueEditor(path, propname, (char*)"", true, true, (width-smallButtonWidth)/2, buttonHeight, depth);
+    draw_new_property_value_editor(path, propname, (char*)"", true, true, (width-smallButtonWidth)/2, buttonHeight, depth);
     ImGui::SameLine();
   }
 
@@ -1244,7 +1243,7 @@ void drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t depth, 
     char* lastcolon=strrchr(path,':'); *lastcolon=0;
     object* objectEditing = onex_get_from_cache(object_property(user, path));
     *lastcolon=':';
-    object* o = createNewObjectLikeOthers(path);
+    object* o = create_new_object_like_others(path);
     if(o){
       if(object_property_is(objectEditing, lastcolon+1, (char*)"--")){
         object_property_set(objectEditing, lastcolon+1, object_property(o, (char*)"UID"));
@@ -1254,11 +1253,11 @@ void drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t depth, 
   }
   if(!linkFrom) track_drag(addObjId, false);
   ImGui::SameLine();
-  trackLink(true, path, 0, 0);
+  track_link(true, path, 0, 0);
 
   char addLnkId[256]; snprintf(addLnkId, 256, " <## %s", pathj);
   if(ImGui::Button(addLnkId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
-    char* lastlink=popLast((char*)"viewing-r");
+    char* lastlink=pop_last((char*)"viewing-r");
     if(lastlink){
       char* lastcolon=strrchr(path,':'); *lastcolon=0;
       object* objectEditing = onex_get_from_cache(object_property(user, path));
@@ -1271,12 +1270,12 @@ void drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t depth, 
   }
   if(!linkFrom) track_drag(addLnkId, false);
   ImGui::SameLine();
-  trackLink(true, path, w+smallButtonWidth, buttonHeight);
+  track_link(true, path, w+smallButtonWidth, buttonHeight);
 
   ImGui::PopStyleColor(4);
 }
 
-object* createNewObjectForPropertyName(char* path, char* name)
+object* create_new_object_for_property_name(char* path, char* name)
 {
   object* r=object_new(0, (char*)"default", 0, 4);
   char* is;
@@ -1286,7 +1285,7 @@ object* createNewObjectForPropertyName(char* path, char* name)
   return r;
 }
 
-object* createNewObjectLikeOthers(char* path)
+object* create_new_object_like_others(char* path)
 {
   object* r=object_new(0, (char*)"default", 0, 4);
   bool filled=false;
@@ -1315,19 +1314,19 @@ int date_compare(struct tm* d1, struct tm* d2)
   return 0;
 }
 
-void getSummary(char* path, char* summary)
+void get_summary(char* path, char* summary)
 {
   *summary=0;
-  if(getSummaryFrom(path, summary, "title")) return;
-  if(getSummaryFrom(path, summary, "name")) return;
-  if(getSummaryFrom(path, summary, "summary")) return;
-  if(getSummaryFrom(path, summary, "description")) return;
-  if(getSummaryFrom(path, summary, "text")) return;
-  if(getSummaryFrom(path, summary, "content")) return;
-  if(getSummaryFrom(path, summary, "is")) return;
+  if(get_summary_from(path, summary, "title")) return;
+  if(get_summary_from(path, summary, "name")) return;
+  if(get_summary_from(path, summary, "summary")) return;
+  if(get_summary_from(path, summary, "description")) return;
+  if(get_summary_from(path, summary, "text")) return;
+  if(get_summary_from(path, summary, "content")) return;
+  if(get_summary_from(path, summary, "is")) return;
 }
 
-bool getSummaryFrom(char* path, char* summary, const char* key)
+bool get_summary_from(char* path, char* summary, const char* key)
 {
   char pathkey[128]; size_t l = snprintf(pathkey, 128, "%s:%s", path, key);
   char* vals=object_property_values(user, pathkey);
@@ -1336,7 +1335,7 @@ bool getSummaryFrom(char* path, char* summary, const char* key)
   return true;
 }
 
-int16_t calculateKeyWidth(char* path)
+int16_t calculate_key_width(char* path)
 {
   int16_t w=0;
   int8_t sz = object_property_size(user, path);
@@ -1350,7 +1349,7 @@ int16_t calculateKeyWidth(char* path)
   return w>7? w*28: 196;
 }
 
-int16_t calculateScrollerHeight(char* path, int16_t height)
+int16_t calculate_scroller_height(char* path, int16_t height)
 {
   int16_t heightforscrollers=height-2.5*buttonHeight;
   int8_t  numberofscrollers=0;
@@ -1374,14 +1373,14 @@ int16_t calculateScrollerHeight(char* path, int16_t height)
 
 // ---------------
 
-void drawPropertyList(char* path, char* key, bool locallyEditable, int16_t width, int16_t height, int16_t keyWidth, int8_t depth)
+void draw_property_list(char* path, char* key, bool locallyEditable, int16_t width, int16_t height, int16_t keyWidth, int8_t depth)
 {
   if(width < 200) return;
-  drawKey(path, key, width, height, keyWidth, depth);
-  drawNestedObjectPropertiesList(path, locallyEditable, width-keyWidth, height, depth);
+  draw_key(path, key, width, height, keyWidth, depth);
+  draw_nested_object_properties_list(path, locallyEditable, width-keyWidth, height, depth);
 }
 
-void drawKey(char* path, char* key, int16_t width, int16_t height, int16_t keyWidth, int8_t depth)
+void draw_key(char* path, char* key, int16_t width, int16_t height, int16_t keyWidth, int8_t depth)
 {
   bool nodarken=depth<DARKEN_DEPTH;
   ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
@@ -1395,7 +1394,7 @@ void drawKey(char* path, char* key, int16_t width, int16_t height, int16_t keyWi
   ImGui::SameLine();
 }
 
-void drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth)
+void draw_nested_object_properties_list(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth)
 {
   bool oneline=(height==buttonHeight);
   bool multiln=false;
@@ -1436,11 +1435,11 @@ void drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16_t wi
   {
     if(oneline || multiln){
       if(n) textlines[n-1]=0;
-      drawNewPropertyValueEditor(path, 0, textlines, true, locallyEditable, width, height, depth);
+      draw_new_property_value_editor(path, 0, textlines, true, locallyEditable, width, height, depth);
     }
     else
     if(newline){
-      drawNewValueOrObjectButton(path, width, 1, depth, true);
+      draw_new_value_or_object_button(path, width, 1, depth, true);
     }
     else{
       uint16_t ln = object_property_length(user, path);
@@ -1449,15 +1448,15 @@ void drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16_t wi
         char* val=object_property_get_n(user, path, j);
         snprintf(path+l, 128-l, ":%d", j);
         if(!is_uid(val)){
-          drawNewPropertyValueEditor(path, 0, val, false, locallyEditable, width-rhsPadding, buttonHeight, depth);
+          draw_new_property_value_editor(path, 0, val, false, locallyEditable, width-rhsPadding, buttonHeight, depth);
         }else{
           bool locallyEditable = object_is_local(val);
-          drawObjectProperties(path, locallyEditable, width-rhsPadding, height, depth+1);
+          draw_object_properties(path, locallyEditable, width-rhsPadding, height, depth+1);
         }
-        drawPadding(path, width-rhsPadding, paddingHeight, depth);
+        draw_padding(path, width-rhsPadding, paddingHeight, depth);
         path[l] = 0;
       }
-      if(locallyEditable) drawNewValueOrObjectButton(path, width-rhsPadding, j, depth, false);
+      if(locallyEditable) draw_new_value_or_object_button(path, width-rhsPadding, j, depth, false);
     }
   }
   ImGui::EndChild();
@@ -1479,7 +1478,7 @@ static bool sameDay(struct tm* d1, struct tm* d2)
          (*d1).tm_year==(*d2).tm_year;
 }
 
-void drawCalendar(char* path, int16_t width, int16_t height)
+void draw_calendar(char* path, int16_t width, int16_t height)
 {
   static int firstdaydelta=0;
   static float scrollx=0;
@@ -1538,7 +1537,7 @@ void drawCalendar(char* path, int16_t width, int16_t height)
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, renderBackgroundActive);
       }
 
-      char tagicons[512]=""; getTagIcons(tagicons, 512, &thisdate, 4);
+      char tagicons[512]=""; get_tag_icons(tagicons, 512, &thisdate, 4);
       char dayId[256];
       snprintf(dayId, 256, "%s %d\n%s%s## %d %s:", daytable[thisdate.tm_wday], thisdate.tm_mday, (thisdate.tm_mday==1 || day==0)? monthtable[thisdate.tm_mon]: "", tagicons, day, path);
       ImGui::Button(dayId, ImVec2(COLUMN_WIDTH, buttonHeight*2));
@@ -1584,7 +1583,7 @@ void drawCalendar(char* path, int16_t width, int16_t height)
       }
       for(int col=1; col<=4; col++){
         if(col>1) ImGui::SameLine();
-        drawDayCell(path, &thisdate, day, col, width);
+        draw_day_cell(path, &thisdate, day, col, width);
       }
       if(thisdate.tm_wday==0 || thisdate.tm_wday==6) ImGui::PopStyleColor(4);
     }
@@ -1607,7 +1606,7 @@ void drawCalendar(char* path, int16_t width, int16_t height)
     scrolly+=UPPER_SCROLL_JUMP*buttonHeight*2;
     ImGui::SetScrollY(scrolly);
     firstdaydelta+=UPPER_SCROLL_JUMP;
-    killDrag();
+    kill_drag();
   }
   ImGui::EndChild();
 
@@ -1643,7 +1642,7 @@ bool evaluate_event(object* o, void* d)
     object_set_evaluator(o, (char*)"default");
     return true;
   }
-  struct tm date; time_t t=getDateFromObject(o, (char*)"date", &date);
+  struct tm date; time_t t=get_date_from_object(o, (char*)"date", &date);
   todayseconds=time(0); todaydate = *localtime(&todayseconds);
   if(t== -1) date=todaydate;
   if(date_compare(&date, &todaydate) < 0){    log_write("event for past date, ignored\n");
@@ -1653,7 +1652,7 @@ bool evaluate_event(object* o, void* d)
   log_write("event for today or future\n");
   char* ts=object_property_values(o, (char*)"time");
   struct tm time;
-  if(ts && getTime(&ts, &time)){
+  if(ts && get_time(&ts, &time)){
     date.tm_sec =time.tm_sec;
     date.tm_min =time.tm_min;
     date.tm_hour=time.tm_hour;
@@ -1679,7 +1678,7 @@ typedef struct {
   char* tags;
 } eventinit;
 
-object* createNewEvent(struct tm* thisdate, char* title)
+object* create_new_event(struct tm* thisdate, char* title)
 {
   object* r=object_new(0, (char*)"event", (char*)"event", 8);
   char ts[32]; strftime(ts, 32, "%Y-%m-%d", thisdate);
@@ -1691,7 +1690,7 @@ object* createNewEvent(struct tm* thisdate, char* title)
   for(;*p;p++){
     if(isdigit(*p)){
       struct tm parsed_time;
-      if(getTime(&p, &parsed_time)){
+      if(get_time(&p, &parsed_time)){
         char ts[32]; int n=strftime(ts, 32, "%I:%M%P", &parsed_time);
         char* tsd=strdup(ts);
         if(!time) time=tsd;
@@ -1716,7 +1715,7 @@ object* createNewEvent(struct tm* thisdate, char* title)
   return r;
 }
 
-void drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t width)
+void draw_day_cell(char* path, struct tm* thisdate, int day, int col, int16_t width)
 {
   static char dayBuf[256] = "";
   static char* editingCell=0;
@@ -1727,7 +1726,7 @@ void drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t widt
   bool editing = editingCell && !strcmp(addId, editingCell);
   ImGuiIO& io = ImGui::GetIO();
   if(editing && grabbedFocus && (!io.WantTextInput || keyboardCancelled)){
-    hideKeyboard();
+    hide_keyboard();
     free(editingCell); editingCell=0;
     *dayBuf=0;
     grabbedFocus=false;
@@ -1735,11 +1734,11 @@ void drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t widt
   }
   char titles[512]="";
   if(!editing){
-    getCellTitles(titles, thisdate, col);
+    get_cell_titles(titles, thisdate, col);
     if(*titles){
       char evtId[256]; snprintf(evtId, 256, "%s##%d %d %s:", titles, day, col, path);
       if(ImGui::Button(evtId, ImVec2(2*COLUMN_WIDTH-smallButtonWidth, buttonHeight*2)) && !dragPathId){
-        getCellEventsAndShowOpen(path, thisdate, col);
+        get_cell_events_and_show_open(path, thisdate, col);
         calendarView=false;
       }
       track_drag(evtId, true);
@@ -1755,7 +1754,7 @@ void drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t widt
     char valId[256]; snprintf(valId, 256, "## day cell %s:", path);
     if(ImGui::InputTextMultiline(valId, dayBuf, IM_ARRAYSIZE(dayBuf), ImVec2(2*COLUMN_WIDTH, buttonHeight*2), flags)){
       if(*dayBuf){
-        object* o=createNewEvent(thisdate, dayBuf);
+        object* o=create_new_event(thisdate, dayBuf);
         if(o){
           char* evtuid=object_property(o, (char*)"UID");
           char* caluid=calendarUIDs[col];
@@ -1768,7 +1767,7 @@ void drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t widt
             if(static_gui) static_gui->changed();
           }
         }
-        hideKeyboard();
+        hide_keyboard();
         free(editingCell); editingCell=0;
         *dayBuf=0;
         grabbedFocus=false;
@@ -1782,7 +1781,7 @@ void drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t widt
     ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0.5f,0.5f));
     if(ImGui::Button(addId, ImVec2(*titles? smallButtonWidth: 2*COLUMN_WIDTH, buttonHeight*2)) && canAdd && !editing && !dragPathId){
       editingCell=strdup(addId);
-      showKeyboard(0);
+      show_keyboard(0);
     }
     track_drag(addId, true);
     ImGui::PopStyleVar();
@@ -1790,7 +1789,7 @@ void drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t widt
   }
 }
 
-void getCellTitles(char* titles, struct tm* thisdate, int col)
+void get_cell_titles(char* titles, struct tm* thisdate, int col)
 {
   char ts[32]; int n=strftime(ts, 32, "%Y-%m-%d", thisdate);
   snprintf(ts+n, 32-n, "/%d", col);
@@ -1812,7 +1811,7 @@ void getCellTitles(char* titles, struct tm* thisdate, int col)
   }
 }
 
-void getTagIcons(char* tagicons, int taglen, struct tm* thisdate, int cols)
+void get_tag_icons(char* tagicons, int taglen, struct tm* thisdate, int cols)
 {
   int ti=0;
   static properties* uidseen=properties_new(100);
@@ -1838,14 +1837,14 @@ void getTagIcons(char* tagicons, int taglen, struct tm* thisdate, int cols)
           snprintf(tagpath+l, 128-l, ":%d:colour", i);
           char* colour=object_property_values(user, tagpath);
           tagpath[l] = 0;
-          if(icon) ti+=snprintf(tagicons+ti, taglen-ti, "%s%s ", getHexOfColour(colour), icon);
+          if(icon) ti+=snprintf(tagicons+ti, taglen-ti, "%s%s ", get_hex_of_colour(colour), icon);
         }
       }
     }
   }
 }
 
-void getCellEventsAndShowOpen(char* path, struct tm* thisdate, int col)
+void get_cell_events_and_show_open(char* path, struct tm* thisdate, int col)
 {
   char ts[32]; int n=strftime(ts, 32, "%Y-%m-%d", thisdate);
   snprintf(ts+n, 32-n, "/%d", col);
@@ -1861,7 +1860,7 @@ void getCellEventsAndShowOpen(char* path, struct tm* thisdate, int col)
       }
       if(i==ln+1) object_property_add(user, path, openuid);
       char openPath[256]; snprintf(openPath, 256, "%s:%d", path, i);
-      if(!isOpen(openPath)) toggleOpen(openPath);
+      if(!is_open(openPath)) toggle_open(openPath);
     }
   }
 }
