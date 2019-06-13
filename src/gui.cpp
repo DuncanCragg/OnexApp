@@ -137,33 +137,49 @@ void getFontInfo()
   io.Fonts->GetTexDataAsRGBA32(&fontData, &texWidth, &texHeight);
 }
 
+  void drawView();
+  void drawObjectProperties(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth);
+  void drawNewPropertyValueEditor(char* path, char* propname, char* val, bool single, bool locallyEditable, int16_t width, int16_t height, int8_t depth);
+  void drawPadding(char* path, int16_t width, int16_t height, int8_t depth);
+  void drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t depth, bool valueToo);
+  object* createNewObjectLikeOthers(char* path);
+  object* createNewObjectForPropertyName(char* path, char* name);
+  object* createNewEvent(struct tm* thisdate, char* title);
+  int16_t calculateScrollerHeight(char* path, int16_t height);
+  void getSummary(char* path, char* summary);
+  bool getSummaryFrom(char* path, char* summary, const char* key);
+  int16_t calculateKeyWidth(char* path);
+  void drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8_t depth);
+  void drawObjectFooter(char* path, bool locallyEditable, int16_t width, int16_t keyWidth, int8_t depth);
+  void drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth);
+  void drawKey(char* path, char* key, int16_t width, int16_t height, int16_t keyWidth, int8_t depth);
+  void drawPropertyList(char* pathkey, char* key, bool locallyEditable, int16_t width, int16_t height, int16_t keyWidth, int8_t depth);
+  void drawCalendar(char* path, int16_t width, int16_t height);
+  void drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t width);
+  void getCellTitles(char* titles, struct tm* thisdate, int col);
+  void getTagIcons(char* tagicons, int taglen, struct tm* thisdate, int cols);
+  void getCellEventsAndShowOpen(char* path, struct tm* thisdate, int col);
+  void saveDays(char* path);
+  void saveDay(char* path, int j, int col);
+  void makeLink();
+  void bestPropName(char* newpropname, int proplen, object* from, char* touid);
+  void drawLink();
+  void trackLink(bool from, char* path, int width, int height);
+  char* popLast(char* path);
+  void setPropertyName(char* path , char* name);
+  void setPropertyNameAndObject(char* path , char* name);
+  void setPropertyNameAndLink(char* path , char* name);
+  void setNewValue(char* path, char* valBuf, bool single);
+  void setNewTag(char* path, char* valBuf);
+  void hideKeyboard();
+  void showKeyboard(float multy);
+
+static GUI* static_gui;
+
 static object* user;
 static object* config;
 
-GUI::GUI(VulkanBase* a, object* u, object* c)
-{
-  app = a;
-  user = u;
-  config = c;
-};
-
-void GUI::prepare()
-{
-  device = app->vulkanDevice;
-  initImGUI((float)app->width, (float)app->height);
-  getFontInfo();
-  createFontImage();
-  setUpKeyMap();
-  setupImageBuffer(app->queue);
-  createSampler();
-  setupDescriptorPool();
-  setupDescriptorSetLayout();
-  setupDescriptorSets();
-  createPipelineCache();
-  createPipelines(app->renderPass);
-}
-
-// ---------------------------------------------------------------------------------------------
+#define DARKEN_DEPTH 3
 
 static uint16_t buttonHeight=70;
 static uint16_t paddingHeight=15;
@@ -180,96 +196,100 @@ static uint16_t workspace1Height;
 static uint16_t workspace2Width;
 static uint16_t workspace2Height;
 
-#define DARKEN_DEPTH 3
-
-#if defined(__ANDROID__)
-#define ASSET_PATH ""
-#else
-#define ASSET_PATH "./../data/"
-#endif
-
-#if defined(__ANDROID__)
-static char* getFontData(const char* fontfile, size_t* length)
-{
-  AAsset* asset = AAssetManager_open(androidApp->activity->assetManager, fontfile, AASSET_MODE_STREAMING);
-  *length = AAsset_getLength(asset);
-  char* font_data = new char[*length]; // TODO free?
-  AAsset_read(asset, font_data, *length);
-  AAsset_close(asset);
-  return font_data;
-}
-#endif
-
-// ---------------------------------------------------------------------------------------------
-
-void GUI::drawGUI()
-{
-  ImGui::NewFrame();
-
-  ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiSetCond_FirstUseEver);
-  ImGui::SetNextWindowSize(ImVec2((float)app->width, (float)app->height), ImGuiSetCond_FirstUseEver);
-
-  if(!ImGui::Begin("Onex", NULL, window_flags)){
-      ImGui::End();
-      ImGui::Render();
-      return;
-  }
-
-// Use ImGui::ShowStyleEditor() to look them up.
-
-  int svs = 7;
-  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10,5));
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0,0));
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0,0));
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10,10));
-  ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0.0f,0));
-  ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
-
-  ImGuiStyle& style = ImGui::GetStyle();
-  style.ScrollbarSize = 0.0f;
-//style.TouchExtraPadding = ImVec2(10.0f,10.0f);
-
-  drawView();
-
-  ImGui::PopStyleVar(svs);
-
-  ImGui::End();
-
-  ImGui::SetNextWindowPos(ImVec2(650, 650), ImGuiSetCond_FirstUseEver);
-//ImGui::ShowTestWindow();
-
-  ImGui::Render();
-}
-
-char*       propNameEditing=0;
 uint16_t    yOffsetTarget=0;
 uint16_t    yOffset=0;
 uint16_t    yOffsetCounter=0;
-bool        keyboardCancelled=false;
 
-#define xTEST_ANDROID_KEYBOARD
-
-void GUI::showKeyboard(float multy){
-#if defined(__ANDROID__) || defined(TEST_ANDROID_KEYBOARD)
-  if(yOffsetTarget) return;
-  yOffsetTarget=(multy!=0)? multy: (ImGui::GetCursorScreenPos().y-3*buttonHeight)*0.80;
-  yOffsetCounter=100;
-  showOrHideSoftKeyboard(true);
-#endif
-}
-
-void GUI::hideKeyboard(){
-#if defined(__ANDROID__) || defined(TEST_ANDROID_KEYBOARD)
-  yOffsetTarget=0;
-  yOffsetCounter=0;
-  yOffset=0;
-  showOrHideSoftKeyboard(false);
-#endif
-}
-
+static bool rhsFullScreen=false;
+static bool calendarView=false;
+static bool tableView=false;
 #define MAX_OPEN 64
 static char* open[MAX_OPEN];
+
+#define DRAG_THRESHOLD         30.0f
+#define START_DRIFT_THRESHOLD  10.0f
+#define END_DRIFT_THRESHOLD     0.01f
+#define DRIFT_DAMPING           0.5f
+
+static ImVec2 startpoint(0,0);
+static char* dragPathId=0;
+static float delta_x=0.0f;
+static float delta_y=0.0f;
+static bool  drag_handled = true;
+static float drift_threshold = START_DRIFT_THRESHOLD;
+
+#define MOVING_DELTA(x,y,d) (((x)*(x)+(y)*(y)) >= (d))
+
+static void killDrag()
+{
+  free(dragPathId);
+  dragPathId=0;
+  delta_x = 0.0f;
+  delta_y = 0.0f;
+  drag_handled=true;
+  drift_threshold = START_DRIFT_THRESHOLD;
+  startpoint=ImVec2(0,0);
+}
+
+static void track_drag(char* pathId, bool twodimensions)
+{
+  if(ImGui::IsItemActive() && !ImGui::IsMouseDragging() && dragPathId && strcmp(pathId, dragPathId)){
+    killDrag();
+  }
+  else
+  if(ImGui::IsItemActive() && ImGui::IsMouseDragging()){
+    if(!dragPathId){
+      if(!startpoint.x && !startpoint.y) startpoint=ImGui::GetIO().MousePos;
+      ImVec2 mp=ImGui::GetIO().MousePos;
+      float dx=mp.x-startpoint.x;
+      float dy=mp.y-startpoint.y;
+      if(!twodimensions){ dx=0; dy*=0.5; }
+      float distancemoved=sqrtf(dx*dx+dy*dy);
+      if(distancemoved > DRAG_THRESHOLD) dragPathId=strdup(pathId);
+    }
+    else{
+      ImVec2 mouse_delta = ImGui::GetIO().MouseDelta;
+      delta_x=mouse_delta.x;
+      delta_y=mouse_delta.y;
+      drag_handled=false;
+    }
+  }
+  else
+  if(!ImGui::IsMouseDown(0) && MOVING_DELTA(delta_x, delta_y, drift_threshold) && dragPathId && !strcmp(pathId, dragPathId)){
+    int msperframe = (int)(1000.0f/ImGui::GetIO().Framerate);
+    delta_x *= (1.0f-(DRIFT_DAMPING*msperframe)/100);
+    delta_y *= (1.0f-(DRIFT_DAMPING*msperframe)/100);
+    drag_handled=false;
+    drift_threshold = END_DRIFT_THRESHOLD;
+  }
+  else
+  if(!ImGui::IsMouseDragging() && dragPathId && !strcmp(pathId, dragPathId)){
+    killDrag();
+  }
+}
+
+static void set_drag_scroll(char* path)
+{
+  if(!dragPathId) return;
+  char* dragPathPath=strstr(dragPathId, "viewing-l");
+  if(!dragPathPath) dragPathPath=strstr(dragPathId, "viewing-r");
+  if(!dragPathPath) return;
+  if(!strncmp(dragPathPath, path, strlen(path)) && strcmp(dragPathPath, path) && !drag_handled && MOVING_DELTA(delta_x,delta_y,0.1f)){
+    ImGui::SetScrollX(ImGui::GetScrollX() - delta_x);
+    ImGui::SetScrollY(ImGui::GetScrollY() - delta_y);
+    drag_handled=true;
+  }
+}
+
+#define LINK_THRESHOLD 20.0f
+#define LINK_FROM 1
+#define LINK_TO   2
+
+static int   linkDirection=0;
+static char* linkFrom=0;
+static char* linkTo=0;
+static ImVec2 linkToPos=ImVec2(0,0);
+static ImVec2 linkFromPos=ImVec2(0,0);
 
 static bool isOpen(char* path)
 {
@@ -289,6 +309,10 @@ static void toggleOpen(char* path)
   }
 }
 
+static time_t todayseconds = 0;
+static struct tm todaydate;
+
+
 static void closeAllStarting(char* prefix)
 {
   for(int i=0; i<MAX_OPEN; i++){
@@ -296,12 +320,148 @@ static void closeAllStarting(char* prefix)
   }
 }
 
-static bool rhsFullScreen=false;
-static bool calendarView=false;
-static bool tableView=false;
+static const char* getHexOfColour(char* colour)
+{
+  if(!colour) return "";
+  if(!strcmp(colour, "red"    )) return "\033\xff\x01\x01\xff";
+  if(!strcmp(colour, "yellow" )) return "\033\xff\xff\x01\xff";
+  if(!strcmp(colour, "green"  )) return "\033\x01\xdf\x01\xff";
+  if(!strcmp(colour, "cyan"   )) return "\033\x01\xff\xff\xff";
+  if(!strcmp(colour, "blue"   )) return "\033\x01\x01\xff\xff";
+  if(!strcmp(colour, "magenta")) return "\033\xff\x01\xff\xff";
+  return "";
+}
 
-static time_t todayseconds = 0;
-static struct tm todaydate;
+static bool firstDateSet=false;
+
+static const char* daytable[] = {"Sun", "Mon", "Tues", "Wed", "Thu", "Fri", "Sat"};
+static const char* monthtable[] = {"January","February","March","April","May","June","July","August","September","October","November","December"};
+
+static properties* calstamps=0;
+static time_t firstDate=0;
+static time_t lastDate=0;
+static char* calendarTitles[16];
+static char* calendarUIDs[16];
+
+#define UPPER_SCROLL_JUMP 20
+#define COLUMN_WIDTH 225
+
+static const char* date_formats[] = {    "%d %b %I%p",  "%d %b %I%p",           //     23 Feb 7pm
+                                         "%b %d %I%p",  "%b %d %I%p",           //     Feb 23 7pm
+                                         "%d %b %I:%M%p",  "%d %b %I.%M%p",     //     23 Feb 7:15pm
+                                         "%b %d %I:%M%p",  "%b %d %I.%M%p",     //     Feb 23 7:15pm
+                                         "%d %b %H:%M",    "%d %b %H.%M",       //     23 Feb 19:00
+                                         "%b %d %H:%M",    "%b %d %H.%M",       //     Feb 23 19:00
+                                         "%d %b %Y",       "%d %b",             //     23 Feb (2019)
+                                         "%b %d %Y",       "%b %d",             //     Feb 23 (2019)
+                                      "%a %d %b %H:%M", "%a %d %b %H.%M",       // Mon 23 Feb 19:00
+                                      "%a %b %d %H:%M", "%a %b %d %H.%M",       // Mon Feb 23 19:00
+                                      "%a %d %b %Y",    "%a %d %b",             // Mon 23 Feb (2019)
+                                      "%a %b %d %Y",    "%a %b %d",             // Mon Feb 23 (2019)
+                                      "%Y-%m-%d", "%Y/%m/%d",                   //  2019-02-23 2019/02/23
+                                      "%I:%M%p", "%I.%M%p", "%I%p",             //  7:00pm 7pm
+                                      "%H:%M", "%H.%M",                         //  19:00
+                                      "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S"  //  2019-2-23T19:00:11, 2019-02-23 19:00:11
+};
+
+static const char* time_formats[] = { "%I:%M%p", "%I.%M%p", "%I%p", //  7:00pm 7pm
+                                      "%H:%M", "%H.%M",             //  19:00
+};
+
+bool getDate(char* p, struct tm* parsed_date)
+{
+  for(int f=0; f<IM_ARRAYSIZE(date_formats); f++){
+    memset(parsed_date, 0, sizeof(struct tm));
+    (*parsed_date).tm_mday=todaydate.tm_mday;
+    (*parsed_date).tm_mon =todaydate.tm_mon;
+    (*parsed_date).tm_year=todaydate.tm_year;
+    char* q=strptime(p, date_formats[f], parsed_date);
+    if(q) return true;
+  }
+  return false;
+}
+
+bool getTime(char** p, struct tm* parsed_time)
+{
+  for(int f=0; f<IM_ARRAYSIZE(time_formats); f++){
+    memset(parsed_time, 0, sizeof(struct tm));
+    char* q=strptime(*p, time_formats[f], parsed_time);
+    if(q){ *p=q; return true; }
+  }
+  return false;
+}
+
+time_t getDateFromObject(object* o, char* path, struct tm* parsed_date)
+{
+  char* p=object_property_values(o, path);
+  if(!p) return -1;
+  if(!getDate(p, parsed_date)) return -1;
+  return mktime(parsed_date);
+}
+
+void saveDays(char* path)
+{
+  if(!calstamps) calstamps=properties_new(100);
+  else           properties_clear(calstamps, true);
+  uint16_t ln = object_property_length(user, path);
+  int col=1;
+  for(int c=1; c<16; c++){ calendarTitles[c]=0; calendarUIDs[c]=0; }
+  int j; for(j=1; j<=ln; j++){
+    char* val=object_property_get_n(user, path, j);
+    if(!is_uid(val)) continue;
+    char calpath[128]; snprintf(calpath, 128, "%s:%d", path, j);
+    char ispath[128]; snprintf(ispath, 128, "%s:is", calpath);
+    if(!object_property_contains(user, ispath, (char*)"event")) continue;
+    if(object_property_contains(user, ispath, (char*)"list")){
+      char listpath[128]; snprintf(listpath, 128, "%s:list", calpath);
+      uint16_t ln2 = object_property_length(user, listpath);
+      int k; for(k=1; k<=ln2; k++){
+        char* val=object_property_get_n(user, listpath, k);
+        if(!is_uid(val)) continue;
+        char ispath[128]; snprintf(ispath, 128, "%s:%d:is", listpath, k);
+        if(!object_property_contains(user, ispath, (char*)"event")) continue;
+        saveDay(listpath, k, col);
+      }
+      char titlepath[128]; snprintf(titlepath, 128, "%s:title", calpath);
+      char* caltitle=object_property_values(user, titlepath);
+      calendarTitles[col]=caltitle;
+      char* caluid=object_property(user, calpath);
+      calendarUIDs[col]=caluid;
+      col++;
+    }
+  }
+  if(col==1) for(j=1; j<=ln; j++){
+    char* val=object_property_get_n(user, path, j);
+    if(!is_uid(val)) continue;
+    char calpath[128]; snprintf(calpath, 128, "%s:%d", path, j);
+    char ispath[128]; snprintf(ispath, 128, "%s:is", calpath);
+    if(!object_property_contains(user, ispath, (char*)"event")) continue;
+    if(!object_property_contains(user, ispath, (char*)"list")){
+      saveDay(path, j, col);
+    }
+  }
+  if(!firstDate) firstDate=todayseconds;
+  firstDateSet=true;
+}
+
+void saveDay(char* path, int j, int col)
+{
+  char stpath[128]; snprintf(stpath, 128, "%s:%d:date", path, j);
+  struct tm start_date;
+  time_t t=getDateFromObject(user, stpath, &start_date);
+  if(t== -1) return;
+  if(!firstDateSet){
+    if(firstDate==0 || t<firstDate) firstDate=t;
+    if(lastDate==0  || t>lastDate)  lastDate=t;
+  }
+  char ts[32]; int n=strftime(ts, 32, "%Y-%m-%d", &start_date);
+  snprintf(ts+n, 32-n, "/%d", col);
+  char eventpath[128]; snprintf(eventpath, 128, "%s:%d", path, j);
+  list* l=(list*)properties_get(calstamps, value_new(ts));
+  if(!l) l=list_new(32);
+  list_add(l, value_new(eventpath));
+  properties_set(calstamps, value_new(ts), l);
+}
 
 void GUI::changed()
 {
@@ -310,7 +470,116 @@ void GUI::changed()
   saveDays((char*)"viewing-r");
 }
 
-void GUI::drawView()
+void drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8_t depth)
+{
+  bool nodarken=depth<DARKEN_DEPTH;
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));
+  ImGui::PushStyleColor(ImGuiCol_Text, actionColour);
+  ImGui::PushStyleColor(ImGuiCol_Button, nodarken? actionBackground: actionBackgroundActive);
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, nodarken? actionBackground: actionBackgroundActive);
+  ImGui::PushStyleColor(ImGuiCol_ButtonActive, actionBackgroundActive);
+
+  if(depth==1){
+    char backId[256]; snprintf(backId, 256, " Back## %s", path);
+    if(ImGui::Button(backId, ImVec2(buttonWidth, buttonHeight))){
+      uint16_t histlen=object_property_length(user, (char*)"history");
+      if(histlen){
+        char popPath[64]; snprintf(popPath, 64, "history:%d", histlen);
+        char* viewing = object_property(user, popPath);
+        object_property_set(user, popPath, 0);
+        object_property_set(user, (char*)"viewing-l", viewing);
+        closeAllStarting((char*)"viewing-l");
+      }
+    }
+    track_drag(backId, true);
+    ImGui::SameLine();
+  }
+  else if(depth<DARKEN_DEPTH){
+    char dropId[256]; snprintf(dropId, 256, " X## %s", path);
+    if(ImGui::Button(dropId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
+      if(!strncmp(path, "viewing-l", strlen("viewing-l"))){
+        char* lastcolon=strrchr(path,':'); *lastcolon=0;
+        char* secondlastcolon=strrchr(path, ':'); *secondlastcolon=0;
+        object* objectEditing = onex_get_from_cache(object_property(user, path));
+        *lastcolon=':'; *secondlastcolon=':';
+        object_property_set(objectEditing, secondlastcolon+1, (char*)"");
+      }
+      else{
+        object_property_set(user, path, (char*)"");
+        if(static_gui) static_gui->changed();
+      }
+    }
+    track_drag(dropId, true);
+    ImGui::SameLine();
+  }
+
+  int blankwidth = width-(depth==1? buttonWidth: (depth<DARKEN_DEPTH? smallButtonWidth: 0))-2*smallButtonWidth;
+  if(blankwidth>10){
+    char summary[128]="";
+    getSummary(path, summary);
+    char barId[256]; snprintf(barId, 256, "%s ## topbar %s", summary, path);
+    if(ImGui::Button(barId, ImVec2(blankwidth, buttonHeight)) && !dragPathId){
+      toggleOpen(path);
+    }
+    if(!linkTo) track_drag(barId, false);
+    ImGui::SameLine();
+    trackLink(false, path, blankwidth, buttonHeight);
+  }
+
+  char maxId[256]; snprintf(maxId, 256, " ^## %s", path);
+  if(ImGui::Button(maxId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
+    char* viewing=object_property(user, path);
+    object_property_add(user, (char*)"history", object_property(user, (char*)"viewing-l"));
+    object_property_set(user, (char*)"viewing-l", viewing);
+    closeAllStarting((char*)"viewing-l");
+  }
+  track_drag(maxId, true);
+
+  ImGui::SameLine();
+
+  char pikId[256]; snprintf(pikId, 256, " >## %s", path);
+  if(ImGui::Button(pikId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
+    object_property_add(user, (char*)"viewing-r", object_property(user, path));
+    if(static_gui) static_gui->changed();
+  }
+  track_drag(pikId, true);
+
+  ImGui::PopStyleColor(4);
+  ImGui::PopStyleVar(1);
+}
+
+void drawObjectProperties(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth)
+{
+  drawObjectHeader(path, locallyEditable, width, depth);
+  if(strcmp(path, "viewing-l") && !isOpen(path)) return;
+  int16_t scrollerheight=calculateScrollerHeight(path, height);
+  int16_t keyWidth=calculateKeyWidth(path);
+  int8_t sz = object_property_size(user, path);
+  if(sz>0) for(int i=1; i<=sz; i++){
+    char* key=object_property_key(user, path, i);
+    char pathkey[128]; size_t l = snprintf(pathkey, 128, "%s:%s", path, key);
+    if(!key) log_write("key=null: path=%s pathkey=%s i=%d sz=%d values: %s value: %s\n", path, pathkey, i, sz, object_property(user, pathkey), object_property_val(user, path, i));
+    uint16_t ln = object_property_length(user, pathkey);
+    uint32_t wid=0;
+    for(int j=1; j<=ln; j++){
+      char* val=object_property_get_n(user, pathkey, j);
+      if(is_uid(val)){ wid=0; break; }
+      wid += strlen(val)+1;
+    }
+    int hgt;
+    if(wid >0) hgt=(wid/40+1)*buttonHeight;
+    else       hgt=scrollerheight;
+    if(hgt>=buttonHeight) drawPropertyList(pathkey, key, locallyEditable, width, hgt, keyWidth, depth);
+    else{
+      char blnId[256]; snprintf(blnId, 256, "##filler %d %d %s", width, hgt, pathkey);
+      ImGui::Button(blnId, ImVec2(width, paddingHeight));
+      track_drag(blnId, true);
+    }
+  }
+  drawObjectFooter(path, locallyEditable, width, keyWidth, depth);
+}
+
+void drawView()
 {
   int msperframe = (int)(1000.0f/ImGui::GetIO().Framerate);
   if(yOffsetCounter > 0){
@@ -400,92 +669,118 @@ void GUI::drawView()
   drawLink();
 }
 
-#define DRAG_THRESHOLD         30.0f
-#define START_DRIFT_THRESHOLD  10.0f
-#define END_DRIFT_THRESHOLD     0.01f
-#define DRIFT_DAMPING           0.5f
+VulkanBase *app;
 
-static ImVec2 startpoint(0,0);
-static char* dragPathId=0;
-static float delta_x=0.0f;
-static float delta_y=0.0f;
-static bool  drag_handled = true;
-static float drift_threshold = START_DRIFT_THRESHOLD;
-
-#define MOVING_DELTA(x,y,d) (((x)*(x)+(y)*(y)) >= (d))
-
-static void killDrag()
+void drawGUI()
 {
-  free(dragPathId);
-  dragPathId=0;
-  delta_x = 0.0f;
-  delta_y = 0.0f;
-  drag_handled=true;
-  drift_threshold = START_DRIFT_THRESHOLD;
-  startpoint=ImVec2(0,0);
+  ImGui::NewFrame();
+
+  ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiSetCond_FirstUseEver);
+  ImGui::SetNextWindowSize(ImVec2((float)app->width, (float)app->height), ImGuiSetCond_FirstUseEver);
+
+  if(!ImGui::Begin("Onex", NULL, window_flags)){
+      ImGui::End();
+      ImGui::Render();
+      return;
+  }
+
+// Use ImGui::ShowStyleEditor() to look them up.
+
+  int svs = 7;
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10,5));
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0,0));
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0,0));
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10,10));
+  ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0.0f,0));
+  ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
+
+  ImGuiStyle& style = ImGui::GetStyle();
+  style.ScrollbarSize = 0.0f;
+//style.TouchExtraPadding = ImVec2(10.0f,10.0f);
+
+  drawView();
+
+  ImGui::PopStyleVar(svs);
+
+  ImGui::End();
+
+  ImGui::SetNextWindowPos(ImVec2(650, 650), ImGuiSetCond_FirstUseEver);
+//ImGui::ShowTestWindow();
+
+  ImGui::Render();
 }
 
-static void track_drag(char* pathId, bool twodimensions)
+GUI::GUI(VulkanBase* a, object* u, object* c)
 {
-  if(ImGui::IsItemActive() && !ImGui::IsMouseDragging() && dragPathId && strcmp(pathId, dragPathId)){
-    killDrag();
-  }
-  else
-  if(ImGui::IsItemActive() && ImGui::IsMouseDragging()){
-    if(!dragPathId){
-      if(!startpoint.x && !startpoint.y) startpoint=ImGui::GetIO().MousePos;
-      ImVec2 mp=ImGui::GetIO().MousePos;
-      float dx=mp.x-startpoint.x;
-      float dy=mp.y-startpoint.y;
-      if(!twodimensions){ dx=0; dy*=0.5; }
-      float distancemoved=sqrtf(dx*dx+dy*dy);
-      if(distancemoved > DRAG_THRESHOLD) dragPathId=strdup(pathId);
-    }
-    else{
-      ImVec2 mouse_delta = ImGui::GetIO().MouseDelta;
-      delta_x=mouse_delta.x;
-      delta_y=mouse_delta.y;
-      drag_handled=false;
-    }
-  }
-  else
-  if(!ImGui::IsMouseDown(0) && MOVING_DELTA(delta_x, delta_y, drift_threshold) && dragPathId && !strcmp(pathId, dragPathId)){
-    int msperframe = (int)(1000.0f/ImGui::GetIO().Framerate);
-    delta_x *= (1.0f-(DRIFT_DAMPING*msperframe)/100);
-    delta_y *= (1.0f-(DRIFT_DAMPING*msperframe)/100);
-    drag_handled=false;
-    drift_threshold = END_DRIFT_THRESHOLD;
-  }
-  else
-  if(!ImGui::IsMouseDragging() && dragPathId && !strcmp(pathId, dragPathId)){
-    killDrag();
-  }
+  static_gui = this;
+  app = a;
+  user = u;
+  config = c;
+};
+
+void GUI::prepare()
+{
+  device = app->vulkanDevice;
+  initImGUI((float)app->width, (float)app->height);
+  getFontInfo();
+  createFontImage();
+  setUpKeyMap();
+  setupImageBuffer(app->queue);
+  createSampler();
+  setupDescriptorPool();
+  setupDescriptorSetLayout();
+  setupDescriptorSets();
+  createPipelineCache();
+  createPipelines(app->renderPass);
 }
 
-static void set_drag_scroll(char* path)
+// ---------------------------------------------------------------------------------------------
+
+#if defined(__ANDROID__)
+#define ASSET_PATH ""
+#else
+#define ASSET_PATH "./../data/"
+#endif
+
+#if defined(__ANDROID__)
+static char* getFontData(const char* fontfile, size_t* length)
 {
-  if(!dragPathId) return;
-  char* dragPathPath=strstr(dragPathId, "viewing-l");
-  if(!dragPathPath) dragPathPath=strstr(dragPathId, "viewing-r");
-  if(!dragPathPath) return;
-  if(!strncmp(dragPathPath, path, strlen(path)) && strcmp(dragPathPath, path) && !drag_handled && MOVING_DELTA(delta_x,delta_y,0.1f)){
-    ImGui::SetScrollX(ImGui::GetScrollX() - delta_x);
-    ImGui::SetScrollY(ImGui::GetScrollY() - delta_y);
-    drag_handled=true;
-  }
+  AAsset* asset = AAssetManager_open(androidApp->activity->assetManager, fontfile, AASSET_MODE_STREAMING);
+  *length = AAsset_getLength(asset);
+  char* font_data = new char[*length]; // TODO free?
+  AAsset_read(asset, font_data, *length);
+  AAsset_close(asset);
+  return font_data;
+}
+#endif
+
+// ---------------------------------------------------------------------------------------------
+
+char*       propNameEditing=0;
+bool        keyboardCancelled=false;
+
+#define xTEST_ANDROID_KEYBOARD
+
+void showKeyboard(float multy){
+#if defined(__ANDROID__) || defined(TEST_ANDROID_KEYBOARD)
+  if(yOffsetTarget) return;
+  yOffsetTarget=(multy!=0)? multy: (ImGui::GetCursorScreenPos().y-3*buttonHeight)*0.80;
+  yOffsetCounter=100;
+  showOrHideSoftKeyboard(true);
+#endif
 }
 
-#define LINK_THRESHOLD 20.0f
-#define LINK_FROM 1
-#define LINK_TO   2
+void hideKeyboard(){
+#if defined(__ANDROID__) || defined(TEST_ANDROID_KEYBOARD)
+  yOffsetTarget=0;
+  yOffsetCounter=0;
+  yOffset=0;
+  showOrHideSoftKeyboard(false);
+#endif
+}
 
-static int   linkDirection=0;
-static char* linkFrom=0;
-static char* linkTo=0;
-static ImVec2 linkToPos=ImVec2(0,0);
-static ImVec2 linkFromPos=ImVec2(0,0);
-
-void GUI::trackLink(bool from, char* path, int width, int height)
+void trackLink(bool from, char* path, int width, int height)
 {
   if(ImGui::IsItemActive() && ImGui::IsMouseDragging() && !dragPathId){
     char*&  linkEnd   =from? linkFrom: linkTo;
@@ -523,7 +818,7 @@ void GUI::trackLink(bool from, char* path, int width, int height)
   }
 }
 
-void GUI::makeLink()
+void makeLink()
 {
   if(linkTo && linkFrom){
     char* lastcolon=strrchr(linkFrom,':');
@@ -559,7 +854,7 @@ void GUI::makeLink()
   linkDirection=0;
 }
 
-void GUI::bestPropName(char* newpropname, int proplen, object* from, char* touid)
+void bestPropName(char* newpropname, int proplen, object* from, char* touid)
 {
   if(object_property_contains(from, (char*)"is", (char*)"list")){
     ImStrncpy(newpropname, "list", proplen);
@@ -572,7 +867,7 @@ void GUI::bestPropName(char* newpropname, int proplen, object* from, char* touid
   }
 }
 
-void GUI::drawLink()
+void drawLink()
 {
   if(linkTo || linkFrom){
     ImVec2 startpos(0,0);
@@ -611,7 +906,7 @@ void GUI::drawLink()
   }
 }
 
-void GUI::setNewTag(char* path, char* tag)
+void setNewTag(char* path, char* tag)
 {
   char* lastcolon=strrchr(path,':'); *lastcolon=0;
   object* objectEditing = onex_get_from_cache(object_property(user, path));
@@ -634,7 +929,7 @@ void GUI::setNewTag(char* path, char* tag)
   *lastcolon=':';
 }
 
-void GUI::setNewValue(char* path, char* buf, bool single)
+void setNewValue(char* path, char* buf, bool single)
 {
   if(single){
     char* lastcolon=strrchr(path,':'); *lastcolon=0;
@@ -656,13 +951,13 @@ void GUI::setNewValue(char* path, char* buf, bool single)
   }
 }
 
-void GUI::setPropertyName(char* path , char* name)
+void setPropertyName(char* path , char* name)
 {
   object* objectEditing = onex_get_from_cache(object_property(user, path));
   object_property_set(objectEditing, name, (char*)"--");
 }
 
-void GUI::setPropertyNameAndObject(char* path , char* name)
+void setPropertyNameAndObject(char* path , char* name)
 {
   object* objectEditing = onex_get_from_cache(object_property(user, path));
   object* o = createNewObjectForPropertyName(path, name);
@@ -670,7 +965,7 @@ void GUI::setPropertyNameAndObject(char* path , char* name)
   else object_property_set(objectEditing, name, (char*)"--");
 }
 
-void GUI::setPropertyNameAndLink(char* path , char* name)
+void setPropertyNameAndLink(char* path , char* name)
 {
   char* lastlink=popLast((char*)"viewing-r");
   if(!lastlink) return;
@@ -678,7 +973,7 @@ void GUI::setPropertyNameAndLink(char* path , char* name)
   object_property_set(objectEditing, name, lastlink);
 }
 
-char* GUI::popLast(char* path)
+char* popLast(char* path)
 {
   uint16_t len=object_property_length(user, path);
   char popPath[64]; snprintf(popPath, 64, "%s:%d", path, len);
@@ -767,7 +1062,7 @@ static int filter_and_autocomplete_default(ImGuiTextEditCallbackData* data)
   return filter_and_autocomplete(data, 0, 0, 0);
 }
 
-void GUI::drawNewPropertyValueEditor(char* path, char* propname, char* val, bool single, bool locallyEditable, int16_t width, int16_t height, int8_t depth)
+void drawNewPropertyValueEditor(char* path, char* propname, char* val, bool single, bool locallyEditable, int16_t width, int16_t height, int8_t depth)
 {
   if(!val){ log_write("val==null: path=%s\n", path); return; }
   static int blurrer=0;
@@ -847,7 +1142,7 @@ static int filter_and_autocomplete_property_names(ImGuiTextEditCallbackData* dat
   return filter_and_autocomplete(data, enforcePropertyName, (char**)propertyNameChoices, IM_ARRAYSIZE(propertyNameChoices));
 }
 
-void GUI::drawObjectFooter(char* path, bool locallyEditable, int16_t width, int16_t keyWidth, int8_t depth)
+void drawObjectFooter(char* path, bool locallyEditable, int16_t width, int16_t keyWidth, int8_t depth)
 {
   if(depth>=3) return;
   if(!locallyEditable) return;
@@ -914,7 +1209,7 @@ void GUI::drawObjectFooter(char* path, bool locallyEditable, int16_t width, int1
   }
 }
 
-void GUI::drawPadding(char* path, int16_t width, int16_t height, int8_t depth)
+void drawPadding(char* path, int16_t width, int16_t height, int8_t depth)
 {
   bool nodarken=depth<DARKEN_DEPTH;
   ImGui::PushStyleColor(ImGuiCol_Button, nodarken? listBackground: listBackgroundDark);
@@ -927,7 +1222,7 @@ void GUI::drawPadding(char* path, int16_t width, int16_t height, int8_t depth)
   ImGui::PopStyleColor(4);
 }
 
-void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t depth, bool valueToo)
+void drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t depth, bool valueToo)
 {
   bool nodarken=depth<DARKEN_DEPTH;
   char pathj[256]; snprintf(pathj, 256, "%s:%d", path, j);
@@ -981,7 +1276,7 @@ void GUI::drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t de
   ImGui::PopStyleColor(4);
 }
 
-object* GUI::createNewObjectForPropertyName(char* path, char* name)
+object* createNewObjectForPropertyName(char* path, char* name)
 {
   object* r=object_new(0, (char*)"default", 0, 4);
   char* is;
@@ -991,7 +1286,7 @@ object* GUI::createNewObjectForPropertyName(char* path, char* name)
   return r;
 }
 
-object* GUI::createNewObjectLikeOthers(char* path)
+object* createNewObjectLikeOthers(char* path)
 {
   object* r=object_new(0, (char*)"default", 0, 4);
   bool filled=false;
@@ -1020,138 +1315,7 @@ int date_compare(struct tm* d1, struct tm* d2)
   return 0;
 }
 
-static const char* date_formats[] = {    "%d %b %I%p",  "%d %b %I%p",           //     23 Feb 7pm
-                                         "%b %d %I%p",  "%b %d %I%p",           //     Feb 23 7pm
-                                         "%d %b %I:%M%p",  "%d %b %I.%M%p",     //     23 Feb 7:15pm
-                                         "%b %d %I:%M%p",  "%b %d %I.%M%p",     //     Feb 23 7:15pm
-                                         "%d %b %H:%M",    "%d %b %H.%M",       //     23 Feb 19:00
-                                         "%b %d %H:%M",    "%b %d %H.%M",       //     Feb 23 19:00
-                                         "%d %b %Y",       "%d %b",             //     23 Feb (2019)
-                                         "%b %d %Y",       "%b %d",             //     Feb 23 (2019)
-                                      "%a %d %b %H:%M", "%a %d %b %H.%M",       // Mon 23 Feb 19:00
-                                      "%a %b %d %H:%M", "%a %b %d %H.%M",       // Mon Feb 23 19:00
-                                      "%a %d %b %Y",    "%a %d %b",             // Mon 23 Feb (2019)
-                                      "%a %b %d %Y",    "%a %b %d",             // Mon Feb 23 (2019)
-                                      "%Y-%m-%d", "%Y/%m/%d",                   //  2019-02-23 2019/02/23
-                                      "%I:%M%p", "%I.%M%p", "%I%p",             //  7:00pm 7pm
-                                      "%H:%M", "%H.%M",                         //  19:00
-                                      "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S"  //  2019-2-23T19:00:11, 2019-02-23 19:00:11
-};
-
-static const char* time_formats[] = { "%I:%M%p", "%I.%M%p", "%I%p", //  7:00pm 7pm
-                                      "%H:%M", "%H.%M",             //  19:00
-};
-
-bool getDate(char* p, struct tm* parsed_date)
-{
-  for(int f=0; f<IM_ARRAYSIZE(date_formats); f++){
-    memset(parsed_date, 0, sizeof(struct tm));
-    (*parsed_date).tm_mday=todaydate.tm_mday;
-    (*parsed_date).tm_mon =todaydate.tm_mon;
-    (*parsed_date).tm_year=todaydate.tm_year;
-    char* q=strptime(p, date_formats[f], parsed_date);
-    if(q) return true;
-  }
-  return false;
-}
-
-time_t getDateFromObject(object* o, char* path, struct tm* parsed_date)
-{
-  char* p=object_property_values(o, path);
-  if(!p) return -1;
-  if(!getDate(p, parsed_date)) return -1;
-  return mktime(parsed_date);
-}
-
-bool getTime(char** p, struct tm* parsed_time)
-{
-  for(int f=0; f<IM_ARRAYSIZE(time_formats); f++){
-    memset(parsed_time, 0, sizeof(struct tm));
-    char* q=strptime(*p, time_formats[f], parsed_time);
-    if(q){ *p=q; return true; }
-  }
-  return false;
-}
-
-void GUI::drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8_t depth)
-{
-  bool nodarken=depth<DARKEN_DEPTH;
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));
-  ImGui::PushStyleColor(ImGuiCol_Text, actionColour);
-  ImGui::PushStyleColor(ImGuiCol_Button, nodarken? actionBackground: actionBackgroundActive);
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, nodarken? actionBackground: actionBackgroundActive);
-  ImGui::PushStyleColor(ImGuiCol_ButtonActive, actionBackgroundActive);
-
-  if(depth==1){
-    char backId[256]; snprintf(backId, 256, " Back## %s", path);
-    if(ImGui::Button(backId, ImVec2(buttonWidth, buttonHeight))){
-      uint16_t histlen=object_property_length(user, (char*)"history");
-      if(histlen){
-        char popPath[64]; snprintf(popPath, 64, "history:%d", histlen);
-        char* viewing = object_property(user, popPath);
-        object_property_set(user, popPath, 0);
-        object_property_set(user, (char*)"viewing-l", viewing);
-        closeAllStarting((char*)"viewing-l");
-      }
-    }
-    track_drag(backId, true);
-    ImGui::SameLine();
-  }
-  else if(depth<DARKEN_DEPTH){
-    char dropId[256]; snprintf(dropId, 256, " X## %s", path);
-    if(ImGui::Button(dropId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
-      if(!strncmp(path, "viewing-l", strlen("viewing-l"))){
-        char* lastcolon=strrchr(path,':'); *lastcolon=0;
-        char* secondlastcolon=strrchr(path, ':'); *secondlastcolon=0;
-        object* objectEditing = onex_get_from_cache(object_property(user, path));
-        *lastcolon=':'; *secondlastcolon=':';
-        object_property_set(objectEditing, secondlastcolon+1, (char*)"");
-      }
-      else{
-        object_property_set(user, path, (char*)"");
-        changed();
-      }
-    }
-    track_drag(dropId, true);
-    ImGui::SameLine();
-  }
-
-  int blankwidth = width-(depth==1? buttonWidth: (depth<DARKEN_DEPTH? smallButtonWidth: 0))-2*smallButtonWidth;
-  if(blankwidth>10){
-    char summary[128]="";
-    getSummary(path, summary);
-    char barId[256]; snprintf(barId, 256, "%s ## topbar %s", summary, path);
-    if(ImGui::Button(barId, ImVec2(blankwidth, buttonHeight)) && !dragPathId){
-      toggleOpen(path);
-    }
-    if(!linkTo) track_drag(barId, false);
-    ImGui::SameLine();
-    trackLink(false, path, blankwidth, buttonHeight);
-  }
-
-  char maxId[256]; snprintf(maxId, 256, " ^## %s", path);
-  if(ImGui::Button(maxId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
-    char* viewing=object_property(user, path);
-    object_property_add(user, (char*)"history", object_property(user, (char*)"viewing-l"));
-    object_property_set(user, (char*)"viewing-l", viewing);
-    closeAllStarting((char*)"viewing-l");
-  }
-  track_drag(maxId, true);
-
-  ImGui::SameLine();
-
-  char pikId[256]; snprintf(pikId, 256, " >## %s", path);
-  if(ImGui::Button(pikId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
-    object_property_add(user, (char*)"viewing-r", object_property(user, path));
-    changed();
-  }
-  track_drag(pikId, true);
-
-  ImGui::PopStyleColor(4);
-  ImGui::PopStyleVar(1);
-}
-
-void GUI::getSummary(char* path, char* summary)
+void getSummary(char* path, char* summary)
 {
   *summary=0;
   if(getSummaryFrom(path, summary, "title")) return;
@@ -1163,7 +1327,7 @@ void GUI::getSummary(char* path, char* summary)
   if(getSummaryFrom(path, summary, "is")) return;
 }
 
-bool GUI::getSummaryFrom(char* path, char* summary, const char* key)
+bool getSummaryFrom(char* path, char* summary, const char* key)
 {
   char pathkey[128]; size_t l = snprintf(pathkey, 128, "%s:%s", path, key);
   char* vals=object_property_values(user, pathkey);
@@ -1172,7 +1336,7 @@ bool GUI::getSummaryFrom(char* path, char* summary, const char* key)
   return true;
 }
 
-int16_t GUI::calculateKeyWidth(char* path)
+int16_t calculateKeyWidth(char* path)
 {
   int16_t w=0;
   int8_t sz = object_property_size(user, path);
@@ -1186,7 +1350,7 @@ int16_t GUI::calculateKeyWidth(char* path)
   return w>7? w*28: 196;
 }
 
-int16_t GUI::calculateScrollerHeight(char* path, int16_t height)
+int16_t calculateScrollerHeight(char* path, int16_t height)
 {
   int16_t heightforscrollers=height-2.5*buttonHeight;
   int8_t  numberofscrollers=0;
@@ -1210,45 +1374,14 @@ int16_t GUI::calculateScrollerHeight(char* path, int16_t height)
 
 // ---------------
 
-void GUI::drawObjectProperties(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth)
-{
-  drawObjectHeader(path, locallyEditable, width, depth);
-  if(strcmp(path, "viewing-l") && !isOpen(path)) return;
-  int16_t scrollerheight=calculateScrollerHeight(path, height);
-  int16_t keyWidth=calculateKeyWidth(path);
-  int8_t sz = object_property_size(user, path);
-  if(sz>0) for(int i=1; i<=sz; i++){
-    char* key=object_property_key(user, path, i);
-    char pathkey[128]; size_t l = snprintf(pathkey, 128, "%s:%s", path, key);
-    if(!key) log_write("key=null: path=%s pathkey=%s i=%d sz=%d values: %s value: %s\n", path, pathkey, i, sz, object_property(user, pathkey), object_property_val(user, path, i));
-    uint16_t ln = object_property_length(user, pathkey);
-    uint32_t wid=0;
-    for(int j=1; j<=ln; j++){
-      char* val=object_property_get_n(user, pathkey, j);
-      if(is_uid(val)){ wid=0; break; }
-      wid += strlen(val)+1;
-    }
-    int hgt;
-    if(wid >0) hgt=(wid/40+1)*buttonHeight;
-    else       hgt=scrollerheight;
-    if(hgt>=buttonHeight) drawPropertyList(pathkey, key, locallyEditable, width, hgt, keyWidth, depth);
-    else{
-      char blnId[256]; snprintf(blnId, 256, "##filler %d %d %s", width, hgt, pathkey);
-      ImGui::Button(blnId, ImVec2(width, paddingHeight));
-      track_drag(blnId, true);
-    }
-  }
-  drawObjectFooter(path, locallyEditable, width, keyWidth, depth);
-}
-
-void GUI::drawPropertyList(char* path, char* key, bool locallyEditable, int16_t width, int16_t height, int16_t keyWidth, int8_t depth)
+void drawPropertyList(char* path, char* key, bool locallyEditable, int16_t width, int16_t height, int16_t keyWidth, int8_t depth)
 {
   if(width < 200) return;
   drawKey(path, key, width, height, keyWidth, depth);
   drawNestedObjectPropertiesList(path, locallyEditable, width-keyWidth, height, depth);
 }
 
-void GUI::drawKey(char* path, char* key, int16_t width, int16_t height, int16_t keyWidth, int8_t depth)
+void drawKey(char* path, char* key, int16_t width, int16_t height, int16_t keyWidth, int8_t depth)
 {
   bool nodarken=depth<DARKEN_DEPTH;
   ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
@@ -1262,7 +1395,7 @@ void GUI::drawKey(char* path, char* key, int16_t width, int16_t height, int16_t 
   ImGui::SameLine();
 }
 
-void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth)
+void drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth)
 {
   bool oneline=(height==buttonHeight);
   bool multiln=false;
@@ -1339,18 +1472,6 @@ void GUI::drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16
   }
 }
 
-static const char* daytable[] = {"Sun", "Mon", "Tues", "Wed", "Thu", "Fri", "Sat"};
-static const char* monthtable[] = {"January","February","March","April","May","June","July","August","September","October","November","December"};
-
-static properties* calstamps=0;
-static time_t firstDate=0;
-static time_t lastDate=0;
-static char* calendarTitles[16];
-static char* calendarUIDs[16];
-
-#define UPPER_SCROLL_JUMP 20
-#define COLUMN_WIDTH 225
-
 static bool sameDay(struct tm* d1, struct tm* d2)
 {
   return (*d1).tm_mday==(*d2).tm_mday &&
@@ -1358,7 +1479,7 @@ static bool sameDay(struct tm* d1, struct tm* d2)
          (*d1).tm_year==(*d2).tm_year;
 }
 
-void GUI::drawCalendar(char* path, int16_t width, int16_t height)
+void drawCalendar(char* path, int16_t width, int16_t height)
 {
   static int firstdaydelta=0;
   static float scrollx=0;
@@ -1558,7 +1679,7 @@ typedef struct {
   char* tags;
 } eventinit;
 
-object* GUI::createNewEvent(struct tm* thisdate, char* title)
+object* createNewEvent(struct tm* thisdate, char* title)
 {
   object* r=object_new(0, (char*)"event", (char*)"event", 8);
   char ts[32]; strftime(ts, 32, "%Y-%m-%d", thisdate);
@@ -1595,73 +1716,7 @@ object* GUI::createNewEvent(struct tm* thisdate, char* title)
   return r;
 }
 
-static bool firstDateSet=false;
-
-void GUI::saveDays(char* path)
-{
-  if(!calstamps) calstamps=properties_new(100);
-  else           properties_clear(calstamps, true);
-  uint16_t ln = object_property_length(user, path);
-  int col=1;
-  for(int c=1; c<16; c++){ calendarTitles[c]=0; calendarUIDs[c]=0; }
-  int j; for(j=1; j<=ln; j++){
-    char* val=object_property_get_n(user, path, j);
-    if(!is_uid(val)) continue;
-    char calpath[128]; snprintf(calpath, 128, "%s:%d", path, j);
-    char ispath[128]; snprintf(ispath, 128, "%s:is", calpath);
-    if(!object_property_contains(user, ispath, (char*)"event")) continue;
-    if(object_property_contains(user, ispath, (char*)"list")){
-      char listpath[128]; snprintf(listpath, 128, "%s:list", calpath);
-      uint16_t ln2 = object_property_length(user, listpath);
-      int k; for(k=1; k<=ln2; k++){
-        char* val=object_property_get_n(user, listpath, k);
-        if(!is_uid(val)) continue;
-        char ispath[128]; snprintf(ispath, 128, "%s:%d:is", listpath, k);
-        if(!object_property_contains(user, ispath, (char*)"event")) continue;
-        saveDay(listpath, k, col);
-      }
-      char titlepath[128]; snprintf(titlepath, 128, "%s:title", calpath);
-      char* caltitle=object_property_values(user, titlepath);
-      calendarTitles[col]=caltitle;
-      char* caluid=object_property(user, calpath);
-      calendarUIDs[col]=caluid;
-      col++;
-    }
-  }
-  if(col==1) for(j=1; j<=ln; j++){
-    char* val=object_property_get_n(user, path, j);
-    if(!is_uid(val)) continue;
-    char calpath[128]; snprintf(calpath, 128, "%s:%d", path, j);
-    char ispath[128]; snprintf(ispath, 128, "%s:is", calpath);
-    if(!object_property_contains(user, ispath, (char*)"event")) continue;
-    if(!object_property_contains(user, ispath, (char*)"list")){
-      saveDay(path, j, col);
-    }
-  }
-  if(!firstDate) firstDate=todayseconds;
-  firstDateSet=true;
-}
-
-void GUI::saveDay(char* path, int j, int col)
-{
-  char stpath[128]; snprintf(stpath, 128, "%s:%d:date", path, j);
-  struct tm start_date;
-  time_t t=getDateFromObject(user, stpath, &start_date);
-  if(t== -1) return;
-  if(!firstDateSet){
-    if(firstDate==0 || t<firstDate) firstDate=t;
-    if(lastDate==0  || t>lastDate)  lastDate=t;
-  }
-  char ts[32]; int n=strftime(ts, 32, "%Y-%m-%d", &start_date);
-  snprintf(ts+n, 32-n, "/%d", col);
-  char eventpath[128]; snprintf(eventpath, 128, "%s:%d", path, j);
-  list* l=(list*)properties_get(calstamps, value_new(ts));
-  if(!l) l=list_new(32);
-  list_add(l, value_new(eventpath));
-  properties_set(calstamps, value_new(ts), l);
-}
-
-void GUI::drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t width)
+void drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t width)
 {
   static char dayBuf[256] = "";
   static char* editingCell=0;
@@ -1710,7 +1765,7 @@ void GUI::drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t
           }
           else{
             object_property_add(user, path, evtuid);
-            changed();
+            if(static_gui) static_gui->changed();
           }
         }
         hideKeyboard();
@@ -1735,7 +1790,7 @@ void GUI::drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t
   }
 }
 
-void GUI::getCellTitles(char* titles, struct tm* thisdate, int col)
+void getCellTitles(char* titles, struct tm* thisdate, int col)
 {
   char ts[32]; int n=strftime(ts, 32, "%Y-%m-%d", thisdate);
   snprintf(ts+n, 32-n, "/%d", col);
@@ -1757,19 +1812,7 @@ void GUI::getCellTitles(char* titles, struct tm* thisdate, int col)
   }
 }
 
-static const char* getHexOfColour(char* colour)
-{
-  if(!colour) return "";
-  if(!strcmp(colour, "red"    )) return "\033\xff\x01\x01\xff";
-  if(!strcmp(colour, "yellow" )) return "\033\xff\xff\x01\xff";
-  if(!strcmp(colour, "green"  )) return "\033\x01\xdf\x01\xff";
-  if(!strcmp(colour, "cyan"   )) return "\033\x01\xff\xff\xff";
-  if(!strcmp(colour, "blue"   )) return "\033\x01\x01\xff\xff";
-  if(!strcmp(colour, "magenta")) return "\033\xff\x01\xff\xff";
-  return "";
-}
-
-void GUI::getTagIcons(char* tagicons, int taglen, struct tm* thisdate, int cols)
+void getTagIcons(char* tagicons, int taglen, struct tm* thisdate, int cols)
 {
   int ti=0;
   static properties* uidseen=properties_new(100);
@@ -1802,7 +1845,7 @@ void GUI::getTagIcons(char* tagicons, int taglen, struct tm* thisdate, int cols)
   }
 }
 
-void GUI::getCellEventsAndShowOpen(char* path, struct tm* thisdate, int col)
+void getCellEventsAndShowOpen(char* path, struct tm* thisdate, int col)
 {
   char ts[32]; int n=strftime(ts, 32, "%Y-%m-%d", thisdate);
   snprintf(ts+n, 32-n, "/%d", col);

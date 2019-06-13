@@ -46,43 +46,6 @@ extern "C" void setAlarm(time_t when, char* uid);
 
 class GUI {
 public:
-  void drawGUI();
-  void drawView();
-  void drawObjectProperties(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth);
-  void drawNewPropertyValueEditor(char* path, char* propname, char* val, bool single, bool locallyEditable, int16_t width, int16_t height, int8_t depth);
-  void drawPadding(char* path, int16_t width, int16_t height, int8_t depth);
-  void drawNewValueOrObjectButton(char* path, int16_t width, int j, int8_t depth, bool valueToo);
-  object* createNewObjectLikeOthers(char* path);
-  object* createNewObjectForPropertyName(char* path, char* name);
-  object* createNewEvent(struct tm* thisdate, char* title);
-  int16_t calculateScrollerHeight(char* path, int16_t height);
-  void getSummary(char* path, char* summary);
-  bool getSummaryFrom(char* path, char* summary, const char* key);
-  int16_t calculateKeyWidth(char* path);
-  void drawObjectHeader(char* path, bool locallyEditable, int16_t width, int8_t depth);
-  void drawObjectFooter(char* path, bool locallyEditable, int16_t width, int16_t keyWidth, int8_t depth);
-  void drawNestedObjectPropertiesList(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth);
-  void drawKey(char* path, char* key, int16_t width, int16_t height, int16_t keyWidth, int8_t depth);
-  void drawPropertyList(char* pathkey, char* key, bool locallyEditable, int16_t width, int16_t height, int16_t keyWidth, int8_t depth);
-  void drawCalendar(char* path, int16_t width, int16_t height);
-  void drawDayCell(char* path, struct tm* thisdate, int day, int col, int16_t width);
-  void getCellTitles(char* titles, struct tm* thisdate, int col);
-  void getTagIcons(char* tagicons, int taglen, struct tm* thisdate, int cols);
-  void getCellEventsAndShowOpen(char* path, struct tm* thisdate, int col);
-  void saveDays(char* path);
-  void saveDay(char* path, int j, int col);
-  void makeLink();
-  void bestPropName(char* newpropname, int proplen, object* from, char* touid);
-  void drawLink();
-  void trackLink(bool from, char* path, int width, int height);
-  char* popLast(char* path);
-  void setPropertyName(char* path , char* name);
-  void setPropertyNameAndObject(char* path , char* name);
-  void setPropertyNameAndLink(char* path , char* name);
-  void setNewValue(char* path, char* valBuf, bool single);
-  void setNewTag(char* path, char* valBuf);
-  void hideKeyboard();
-  void showKeyboard(float multy);
   VkSampler sampler;
   vks::Buffer vertexBuffer;
   vks::Buffer indexBuffer;
@@ -98,8 +61,6 @@ public:
   VkDescriptorSetLayout descriptorSetLayout;
   VkDescriptorSet descriptorSet;
   vks::VulkanDevice *device;
-
-  VulkanBase *app;
 
   struct PushConstBlock {
     glm::vec2 scale;
