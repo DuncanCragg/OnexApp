@@ -27,6 +27,7 @@ extern uint16_t workspace2Width;
 extern uint16_t workspace2Height;
 
 extern bool calendarView;
+extern bool tableView;
 
 extern ImVec4 actionColour;
 extern ImVec4 actionBackground;

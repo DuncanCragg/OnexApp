@@ -2,47 +2,33 @@
 #include <imgui.h>
 extern void ImStrncpy(char* dst, const char* src, size_t count);
 #define IM_ARRAYSIZE(_ARR)  ((int)(sizeof(_ARR)/sizeof(*_ARR)))
+
 #include "im-gui.h"
 #include "calendar.h"
 
 #pragma GCC diagnostic ignored "-Wformat-truncation"
 
-void draw_view();
-void draw_object_properties(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth);
-void draw_new_property_value_editor(char* path, char* propname, char* val, bool single, bool locallyEditable, int16_t width, int16_t height, int8_t depth);
-void draw_padding(char* path, int16_t width, int16_t height, int8_t depth);
-void draw_new_value_or_object_button(char* path, int16_t width, int j, int8_t depth, bool valueToo);
-void draw_object_header(char* path, bool locallyEditable, int16_t width, int8_t depth);
-void draw_object_footer(char* path, bool locallyEditable, int16_t width, int16_t keyWidth, int8_t depth);
-void draw_nested_object_properties_list(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth);
-void draw_key(char* path, char* key, int16_t width, int16_t height, int16_t keyWidth, int8_t depth);
-void draw_property_list(char* pathkey, char* key, bool locallyEditable, int16_t width, int16_t height, int16_t keyWidth, int8_t depth);
 
-object* create_new_object_like_others(char* path);
-object* create_new_object_for_property_name(char* path, char* name);
-object* create_new_event(struct tm* thisdate, char* title);
+static void draw_object_footer(char* path, bool locallyEditable, int16_t width, int16_t keyWidth, int8_t depth);
+static void draw_nested_object_properties_list(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth);
+static void draw_property_list(char* pathkey, char* key, bool locallyEditable, int16_t width, int16_t height, int16_t keyWidth, int8_t depth);
 
-int16_t calculate_scroller_height(char* path, int16_t height);
+static object* create_new_object_like_others(char* path);
+static object* create_new_object_for_property_name(char* path, char* name);
+static object* create_new_event(struct tm* thisdate, char* title);
 
-void get_summary(char* path, char* summary);
-bool get_summary_from(char* path, char* summary, const char* key);
-int16_t calculate_key_width(char* path);
+static int16_t calculate_scroller_height(char* path, int16_t height);
 
-void make_link();
-void best_prop_name(char* newpropname, int proplen, object* from, char* touid);
-void draw_link();
-void track_link(bool from, char* path, int width, int height);
-char* pop_last(char* path);
+static void get_summary(char* path, char* summary);
+static bool get_summary_from(char* path, char* summary, const char* key);
+static int16_t calculate_key_width(char* path);
 
-void set_property_name(char* path , char* name);
-void set_property_name_and_object(char* path , char* name);
-void set_property_name_and_link(char* path , char* name);
+static void make_link();
+static void best_prop_name(char* newpropname, int proplen, object* from, char* touid);
+static void draw_link();
+static void track_link(bool from, char* path, int width, int height);
+static char* pop_last(char* path);
 
-void set_new_value(char* path, char* valBuf, bool single);
-void set_new_tag(char* path, char* valBuf);
-
-void hide_keyboard();
-void show_keyboard(float multy);
 
 GUI* static_gui;
 
@@ -52,6 +38,7 @@ static ImGuiWindowFlags window_flags = 0;
 
 unsigned char* fontData;
 int texWidth, texHeight;
+
 
 ImVec4 actionColour            (0.50f, 0.10f, 0.20f, 1.0f);
 ImVec4 actionBackground        (0.96f, 0.96f, 0.87f, 1.0f);
@@ -81,6 +68,7 @@ ImVec4 schemeLightPurple(0.8f, 0.7f, 0.9f, 1.0f);
 ImVec4 schemeDarkerPurple(0.73f, 0.63f, 0.83f, 1.0f);
 ImVec4 schemePlum(230.0f/255, 179.0f/255, 230.0f/255, 1.0f);
 
+
 #define DARKEN_DEPTH 3
 
 uint16_t buttonHeight=70;
@@ -98,15 +86,20 @@ uint16_t workspace1Height;
 uint16_t workspace2Width;
 uint16_t workspace2Height;
 
-uint16_t    yOffsetTarget=0;
-uint16_t    yOffset=0;
-uint16_t    yOffsetCounter=0;
+uint16_t yOffsetTarget=0;
+uint16_t yOffset=0;
+uint16_t yOffsetCounter=0;
+
 
 static bool rhsFullScreen=false;
+
 bool calendarView=false;
-static bool tableView=false;
+bool tableView=false;
+
 #define MAX_OPEN 64
 static char* open[MAX_OPEN];
+
+
 
 void init_imgui(float width, float height)
 {
@@ -176,7 +169,6 @@ void init_imgui(float width, float height)
 //  window_flags |= ImGuiWindowFlags_AlwaysUseWindowPadding;
 }
 
-// ---------------------------------------------------------------------------------------------
 
 #if defined(__ANDROID__)
 #define ASSET_PATH ""
@@ -1203,13 +1195,6 @@ int16_t calculate_scroller_height(char* path, int16_t height)
 
 // ---------------
 
-void draw_property_list(char* path, char* key, bool locallyEditable, int16_t width, int16_t height, int16_t keyWidth, int8_t depth)
-{
-  if(width < 200) return;
-  draw_key(path, key, width, height, keyWidth, depth);
-  draw_nested_object_properties_list(path, locallyEditable, width-keyWidth, height, depth);
-}
-
 void draw_key(char* path, char* key, int16_t width, int16_t height, int16_t keyWidth, int8_t depth)
 {
   bool nodarken=depth<DARKEN_DEPTH;
@@ -1222,6 +1207,13 @@ void draw_key(char* path, char* key, int16_t width, int16_t height, int16_t keyW
   track_drag(keyId, true);
   ImGui::PopStyleColor(4);
   ImGui::SameLine();
+}
+
+void draw_property_list(char* path, char* key, bool locallyEditable, int16_t width, int16_t height, int16_t keyWidth, int8_t depth)
+{
+  if(width < 200) return;
+  draw_key(path, key, width, height, keyWidth, depth);
+  draw_nested_object_properties_list(path, locallyEditable, width-keyWidth, height, depth);
 }
 
 void draw_nested_object_properties_list(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth)
