@@ -9,10 +9,6 @@ extern void ImStrncpy(char* dst, const char* src, size_t count);
 #pragma GCC diagnostic ignored "-Wformat-truncation"
 
 
-static void draw_object_footer(char* path, bool locallyEditable, int16_t width, int16_t keyWidth, int8_t depth);
-static void draw_nested_object_properties_list(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth);
-static void draw_property_list(char* pathkey, char* key, bool locallyEditable, int16_t width, int16_t height, int16_t keyWidth, int8_t depth);
-
 static object* create_new_object_like_others(char* path);
 static object* create_new_object_for_property_name(char* path, char* name);
 static object* create_new_event(struct tm* thisdate, char* title);
@@ -23,9 +19,6 @@ static void get_summary(char* path, char* summary);
 static bool get_summary_from(char* path, char* summary, const char* key);
 static int16_t calculate_key_width(char* path);
 
-static void make_link();
-static void best_prop_name(char* newpropname, int proplen, object* from, char* touid);
-static void draw_link();
 static void track_link(bool from, char* path, int width, int height);
 static char* pop_last(char* path);
 
@@ -232,6 +225,9 @@ void set_scaling()
   workspace2Height=(int)app->height-70;
 }
 
+
+
+
 #define DRAG_THRESHOLD         30.0f
 #define START_DRIFT_THRESHOLD  10.0f
 #define END_DRIFT_THRESHOLD     0.01f
@@ -307,6 +303,9 @@ void set_drag_scroll(char* path)
   }
 }
 
+
+
+
 #define LINK_THRESHOLD 20.0f
 #define LINK_FROM 1
 #define LINK_TO   2
@@ -317,297 +316,53 @@ static char* linkTo=0;
 static ImVec2 linkToPos=ImVec2(0,0);
 static ImVec2 linkFromPos=ImVec2(0,0);
 
-bool is_open(char* path)
+void best_prop_name(char* newpropname, int proplen, object* from, char* touid)
 {
-  for(int i=0; i<MAX_OPEN; i++){
-    if(open[i] && !strcmp(open[i], path)) return true;
+  if(object_property_contains(from, (char*)"is", (char*)"list")){
+    ImStrncpy(newpropname, "list", proplen);
   }
-  return false;
-}
-
-void toggle_open(char* path)
-{
-  for(int i=0; i<MAX_OPEN; i++){
-    if(open[i] && !strcmp(open[i], path)){ free(open[i]); open[i]=0; return; }
-  }
-  for(int i=0; i<MAX_OPEN; i++){
-    if(!open[i]){ open[i]=strdup(path); return; }
+  else{
+    object* to=onex_get_from_cache(touid);
+    char* is=object_property_values(to, (char*)"is");
+    ImStrncpy(newpropname, is, proplen);
+    for(char* p=newpropname; *p; p++) if(*p==' ') *p='-';
   }
 }
 
-static void close_all_starting(char* prefix)
+void make_link()
 {
-  for(int i=0; i<MAX_OPEN; i++){
-    if(open[i] && !strncmp(open[i], prefix, strlen(prefix))){ free(open[i]); open[i]=0; }
-  }
-}
-
-void draw_object_header(char* path, bool locallyEditable, int16_t width, int8_t depth)
-{
-  bool nodarken=depth<DARKEN_DEPTH;
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));
-  ImGui::PushStyleColor(ImGuiCol_Text, actionColour);
-  ImGui::PushStyleColor(ImGuiCol_Button, nodarken? actionBackground: actionBackgroundActive);
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, nodarken? actionBackground: actionBackgroundActive);
-  ImGui::PushStyleColor(ImGuiCol_ButtonActive, actionBackgroundActive);
-
-  if(depth==1){
-    char backId[256]; snprintf(backId, 256, " Back## %s", path);
-    if(ImGui::Button(backId, ImVec2(buttonWidth, buttonHeight))){
-      uint16_t histlen=object_property_length(user, (char*)"history");
-      if(histlen){
-        char popPath[64]; snprintf(popPath, 64, "history:%d", histlen);
-        char* viewing = object_property(user, popPath);
-        object_property_set(user, popPath, 0);
-        object_property_set(user, (char*)"viewing-l", viewing);
-        close_all_starting((char*)"viewing-l");
+  if(linkTo && linkFrom){
+    char* lastcolon=strrchr(linkFrom,':');
+    char* fromuid=0;
+    char* propname;
+    if(lastcolon){
+      propname=lastcolon+1;
+      int n; if(!sscanf(propname, "%u", &n)){
+        *lastcolon=0;
+        fromuid=object_property(user, linkFrom);
+        *lastcolon=':';
       }
     }
-    track_drag(backId, true);
-    ImGui::SameLine();
-  }
-  else if(depth<DARKEN_DEPTH){
-    char dropId[256]; snprintf(dropId, 256, " X## %s", path);
-    if(ImGui::Button(dropId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
-      if(!strncmp(path, "viewing-l", strlen("viewing-l"))){
-        char* lastcolon=strrchr(path,':'); *lastcolon=0;
-        char* secondlastcolon=strrchr(path, ':'); *secondlastcolon=0;
-        object* objectEditing = onex_get_from_cache(object_property(user, path));
-        *lastcolon=':'; *secondlastcolon=':';
-        object_property_set(objectEditing, secondlastcolon+1, (char*)"");
+    if(!fromuid){
+      fromuid=object_property(user, linkFrom);
+      propname=0;
+    }
+    object* objectEditing = onex_get_from_cache(fromuid);
+    char* touid=object_property(user, linkTo);
+    if(objectEditing && touid){
+      char newpropname[128];
+      if(!propname){ best_prop_name(newpropname, IM_ARRAYSIZE(newpropname), objectEditing, touid); propname=newpropname; }
+      if(object_property_is(objectEditing, propname, (char*)"--")){
+        object_property_set(objectEditing, propname, touid);
       }
-      else{
-        object_property_set(user, path, (char*)"");
-        if(static_gui) static_gui->changed();
-      }
-    }
-    track_drag(dropId, true);
-    ImGui::SameLine();
-  }
-
-  int blankwidth = width-(depth==1? buttonWidth: (depth<DARKEN_DEPTH? smallButtonWidth: 0))-2*smallButtonWidth;
-  if(blankwidth>10){
-    char summary[128]="";
-    get_summary(path, summary);
-    char barId[256]; snprintf(barId, 256, "%s ## topbar %s", summary, path);
-    if(ImGui::Button(barId, ImVec2(blankwidth, buttonHeight)) && !dragPathId){
-      toggle_open(path);
-    }
-    if(!linkTo) track_drag(barId, false);
-    ImGui::SameLine();
-    track_link(false, path, blankwidth, buttonHeight);
-  }
-
-  char maxId[256]; snprintf(maxId, 256, " ^## %s", path);
-  if(ImGui::Button(maxId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
-    char* viewing=object_property(user, path);
-    object_property_add(user, (char*)"history", object_property(user, (char*)"viewing-l"));
-    object_property_set(user, (char*)"viewing-l", viewing);
-    close_all_starting((char*)"viewing-l");
-  }
-  track_drag(maxId, true);
-
-  ImGui::SameLine();
-
-  char pikId[256]; snprintf(pikId, 256, " >## %s", path);
-  if(ImGui::Button(pikId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
-    object_property_add(user, (char*)"viewing-r", object_property(user, path));
-    if(static_gui) static_gui->changed();
-  }
-  track_drag(pikId, true);
-
-  ImGui::PopStyleColor(4);
-  ImGui::PopStyleVar(1);
-}
-
-void draw_object_properties(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth)
-{
-  draw_object_header(path, locallyEditable, width, depth);
-  if(strcmp(path, "viewing-l") && !is_open(path)) return;
-  int16_t scrollerheight=calculate_scroller_height(path, height);
-  int16_t keyWidth=calculate_key_width(path);
-  int8_t sz = object_property_size(user, path);
-  if(sz>0) for(int i=1; i<=sz; i++){
-    char* key=object_property_key(user, path, i);
-    char pathkey[128]; size_t l = snprintf(pathkey, 128, "%s:%s", path, key);
-    if(!key) log_write("key=null: path=%s pathkey=%s i=%d sz=%d values: %s value: %s\n", path, pathkey, i, sz, object_property(user, pathkey), object_property_val(user, path, i));
-    uint16_t ln = object_property_length(user, pathkey);
-    uint32_t wid=0;
-    for(int j=1; j<=ln; j++){
-      char* val=object_property_get_n(user, pathkey, j);
-      if(is_uid(val)){ wid=0; break; }
-      wid += strlen(val)+1;
-    }
-    int hgt;
-    if(wid >0) hgt=(wid/40+1)*buttonHeight;
-    else       hgt=scrollerheight;
-    if(hgt>=buttonHeight) draw_property_list(pathkey, key, locallyEditable, width, hgt, keyWidth, depth);
-    else{
-      char blnId[256]; snprintf(blnId, 256, "##filler %d %d %s", width, hgt, pathkey);
-      ImGui::Button(blnId, ImVec2(width, paddingHeight));
-      track_drag(blnId, true);
+      else object_property_add(objectEditing, propname, touid);
     }
   }
-  draw_object_footer(path, locallyEditable, width, keyWidth, depth);
-}
-
-void draw_view()
-{
-  int msperframe = (int)(1000.0f/ImGui::GetIO().Framerate);
-  if(yOffsetCounter > 0){
-    yOffset=yOffsetTarget*(100-yOffsetCounter)/100;
-    yOffsetCounter-=msperframe >10? 10 : 5;
-  }
-  if(!rhsFullScreen){
-    ImGui::BeginChild("Workspace1", ImVec2(workspace1Width,workspace1Height), true);
-    {
-#if defined(__ANDROID__) || defined(TEST_ANDROID_KEYBOARD)
-      ImVec2 startingpoint = ImGui::GetCursorScreenPos();
-      ImVec2 startpos(startingpoint.x, startingpoint.y - yOffset);
-      ImGui::SetCursorScreenPos(startpos);
-#endif
-      int8_t s=strlen("viewing-l")+1;
-      char path[s]; memcpy(path, "viewing-l", s);
-      char* uid=object_property(user, (char*)"viewing-l");
-      bool locallyEditable = object_is_local(uid);
-      draw_object_properties(path, locallyEditable, workspace1Width-rhsPadding, workspace1Height, 1);
-    }
-    ImGui::EndChild();
-
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(-1,0));
-    ImGui::SameLine();
-    ImGui::PopStyleVar();
-  }
-  uint16_t ws2width=rhsFullScreen? workspace1Width+workspace2Width: workspace2Width;
-  ImGui::BeginChild("Workspace2", ImVec2(ws2width,workspace2Height), true);
-  {
-#if defined(__ANDROID__) || defined(TEST_ANDROID_KEYBOARD)
-    ImVec2 startingpoint = ImGui::GetCursorScreenPos();
-    ImVec2 startpos(startingpoint.x, startingpoint.y - yOffset);
-    ImGui::SetCursorScreenPos(startpos);
-#endif
-    ImGui::PushStyleColor(ImGuiCol_Text, actionColour);
-    ImGui::PushStyleColor(ImGuiCol_Button, actionBackground);
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, actionBackground);
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, actionBackground);
-
-    if(calendarView) ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
-    else             ImGui::PushStyleColor(ImGuiCol_Text, actionColour);
-    if(ImGui::Button(" calendar", ImVec2(buttonWidth+smallButtonWidth, buttonHeight)))
-    {
-      calendarView=!calendarView;
-      if(calendarView){
-        tableView=false;
-        close_all_starting((char*)"viewing-r");
-      }
-    }
-    ImGui::PopStyleColor();
-
-    ImGui::SameLine();
-
-    if(tableView) ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
-    else          ImGui::PushStyleColor(ImGuiCol_Text, actionColour);
-    if(ImGui::Button(" table", ImVec2(buttonWidth, buttonHeight)))
-    {
-      tableView=!tableView;
-      if(tableView){
-        calendarView=false;
-        close_all_starting((char*)"viewing-r");
-      }
-    }
-    ImGui::PopStyleColor();
-
-    ImGui::SameLine();
-
-    ImGui::Button("##paddingbutton", ImVec2(ws2width-2*buttonWidth-2.5*smallButtonWidth-rhsPadding, buttonHeight));
-
-    ImGui::SameLine();
-
-    if(ImGui::Button(rhsFullScreen? " >>" : " <<", ImVec2(smallButtonWidth*1.5, buttonHeight)))
-    {
-      rhsFullScreen=!rhsFullScreen;
-    }
-    ImGui::PopStyleColor(4);
-
-    ImGui::Separator();
-
-    int8_t s=strlen("viewing-r")+1; char path[s]; memcpy(path, "viewing-r", s);
-    if(calendarView) draw_calendar(path, ws2width-rhsPadding, workspace2Height-100);
-    else
-    if(tableView);// drawTable(..);
-    else             draw_nested_object_properties_list(path, false, ws2width-rhsPadding, workspace2Height-100, 1);
-  }
-  ImGui::EndChild();
-  draw_link();
-}
-
-void draw_gui()
-{
-  ImGui::NewFrame();
-
-  ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiSetCond_FirstUseEver);
-  ImGui::SetNextWindowSize(ImVec2((float)app->width, (float)app->height), ImGuiSetCond_FirstUseEver);
-
-  if(!ImGui::Begin("Onex", NULL, window_flags)){
-      ImGui::End();
-      ImGui::Render();
-      return;
-  }
-
-// Use ImGui::ShowStyleEditor() to look them up.
-
-  int svs = 7;
-  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10,5));
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0,0));
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0,0));
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10,10));
-  ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0.0f,0));
-  ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
-
-  ImGuiStyle& style = ImGui::GetStyle();
-  style.ScrollbarSize = 0.0f;
-//style.TouchExtraPadding = ImVec2(10.0f,10.0f);
-
-  draw_view();
-
-  ImGui::PopStyleVar(svs);
-
-  ImGui::End();
-
-  ImGui::SetNextWindowPos(ImVec2(650, 650), ImGuiSetCond_FirstUseEver);
-//ImGui::ShowTestWindow();
-
-  ImGui::Render();
-}
-
-// ---------------------------------------------------------------------------------------------
-
-char* propNameEditing=0;
-bool  keyboardCancelled=false;
-
-#define xTEST_ANDROID_KEYBOARD
-
-extern "C" void showOrHideSoftKeyboard(bool show);
-
-void show_keyboard(float multy)
-{
-#if defined(__ANDROID__) || defined(TEST_ANDROID_KEYBOARD)
-  if(yOffsetTarget) return;
-  yOffsetTarget=(multy!=0)? multy: (ImGui::GetCursorScreenPos().y-3*buttonHeight)*0.80;
-  yOffsetCounter=100;
-  showOrHideSoftKeyboard(true);
-#endif
-}
-
-void hide_keyboard()
-{
-#if defined(__ANDROID__) || defined(TEST_ANDROID_KEYBOARD)
-  yOffsetTarget=0;
-  yOffsetCounter=0;
-  yOffset=0;
-  showOrHideSoftKeyboard(false);
-#endif
+  if(linkFrom) free(linkFrom); linkFrom=0;
+  if(linkTo) free(linkTo); linkTo=0;
+  linkToPos=ImVec2(0,0);
+  linkFromPos=ImVec2(0,0);
+  linkDirection=0;
 }
 
 void track_link(bool from, char* path, int width, int height)
@@ -648,55 +403,6 @@ void track_link(bool from, char* path, int width, int height)
   }
 }
 
-void make_link()
-{
-  if(linkTo && linkFrom){
-    char* lastcolon=strrchr(linkFrom,':');
-    char* fromuid=0;
-    char* propname;
-    if(lastcolon){
-      propname=lastcolon+1;
-      int n; if(!sscanf(propname, "%u", &n)){
-        *lastcolon=0;
-        fromuid=object_property(user, linkFrom);
-        *lastcolon=':';
-      }
-    }
-    if(!fromuid){
-      fromuid=object_property(user, linkFrom);
-      propname=0;
-    }
-    object* objectEditing = onex_get_from_cache(fromuid);
-    char* touid=object_property(user, linkTo);
-    if(objectEditing && touid){
-      char newpropname[128];
-      if(!propname){ best_prop_name(newpropname, IM_ARRAYSIZE(newpropname), objectEditing, touid); propname=newpropname; }
-      if(object_property_is(objectEditing, propname, (char*)"--")){
-        object_property_set(objectEditing, propname, touid);
-      }
-      else object_property_add(objectEditing, propname, touid);
-    }
-  }
-  if(linkFrom) free(linkFrom); linkFrom=0;
-  if(linkTo) free(linkTo); linkTo=0;
-  linkToPos=ImVec2(0,0);
-  linkFromPos=ImVec2(0,0);
-  linkDirection=0;
-}
-
-void best_prop_name(char* newpropname, int proplen, object* from, char* touid)
-{
-  if(object_property_contains(from, (char*)"is", (char*)"list")){
-    ImStrncpy(newpropname, "list", proplen);
-  }
-  else{
-    object* to=onex_get_from_cache(touid);
-    char* is=object_property_values(to, (char*)"is");
-    ImStrncpy(newpropname, is, proplen);
-    for(char* p=newpropname; *p; p++) if(*p==' ') *p='-';
-  }
-}
-
 void draw_link()
 {
   if(linkTo || linkFrom){
@@ -734,6 +440,65 @@ void draw_link()
     ImGui::EndChild();
     ImGui::PopStyleColor();
   }
+}
+
+
+
+
+bool is_open(char* path)
+{
+  for(int i=0; i<MAX_OPEN; i++){
+    if(open[i] && !strcmp(open[i], path)) return true;
+  }
+  return false;
+}
+
+void toggle_open(char* path)
+{
+  for(int i=0; i<MAX_OPEN; i++){
+    if(open[i] && !strcmp(open[i], path)){ free(open[i]); open[i]=0; return; }
+  }
+  for(int i=0; i<MAX_OPEN; i++){
+    if(!open[i]){ open[i]=strdup(path); return; }
+  }
+}
+
+static void close_all_starting(char* prefix)
+{
+  for(int i=0; i<MAX_OPEN; i++){
+    if(open[i] && !strncmp(open[i], prefix, strlen(prefix))){ free(open[i]); open[i]=0; }
+  }
+}
+
+
+
+// ---------------------------------------------------------------------------------------------
+
+char* propNameEditing=0;
+bool  keyboardCancelled=false;
+
+#define xTEST_ANDROID_KEYBOARD
+
+extern "C" void showOrHideSoftKeyboard(bool show);
+
+void show_keyboard(float multy)
+{
+#if defined(__ANDROID__) || defined(TEST_ANDROID_KEYBOARD)
+  if(yOffsetTarget) return;
+  yOffsetTarget=(multy!=0)? multy: (ImGui::GetCursorScreenPos().y-3*buttonHeight)*0.80;
+  yOffsetCounter=100;
+  showOrHideSoftKeyboard(true);
+#endif
+}
+
+void hide_keyboard()
+{
+#if defined(__ANDROID__) || defined(TEST_ANDROID_KEYBOARD)
+  yOffsetTarget=0;
+  yOffsetCounter=0;
+  yOffset=0;
+  showOrHideSoftKeyboard(false);
+#endif
 }
 
 void set_new_tag(char* path, char* tag)
@@ -891,6 +656,199 @@ static int filter_and_autocomplete_default(ImGuiTextEditCallbackData* data)
   return filter_and_autocomplete(data, 0, 0, 0);
 }
 
+static const char* propertyNameChoices[] = {
+  "is",
+  "title",
+  "description",
+  "text",
+  "name",
+  "list",
+  "date",
+  "time",
+  "end-time",
+  "end-date",
+  "every",
+  "tags",
+  "cost",
+  "total",
+  "Rules",
+  "Timer",
+  "Notifying"
+};
+
+static int filter_and_autocomplete_property_names(ImGuiTextEditCallbackData* data)
+{
+  return filter_and_autocomplete(data, enforcePropertyName, (char**)propertyNameChoices, IM_ARRAYSIZE(propertyNameChoices));
+}
+
+object* create_new_object_for_property_name(char* path, char* name)
+{
+  object* r=object_new(0, (char*)"default", 0, 4);
+  char* is;
+  if(!strcmp(name,"Rules")) is=(char*)"Rule";
+  else is=name;
+  object_property_set(r, (char*)"is", is);
+  return r;
+}
+
+object* create_new_object_like_others(char* path)
+{
+  object* r=object_new(0, (char*)"default", 0, 4);
+  bool filled=false;
+  int16_t ln = object_property_length(user, path);
+  for(int i=1; i<=ln; i++){
+    size_t l=strlen(path);
+    snprintf(path+l, 128-l, ":%d", i);
+    int8_t sz=object_property_size(user, path);
+    if(sz>0) for(int j=1; j<=sz; j++){
+      char* key=object_property_key(user, path, j);
+      char* is=0; if(key && !strcmp(key,"is")) is=object_property_val(user, path, j);
+      object_property_set(r, key, is? is: (char*)"--");
+      filled=true;
+    }
+    path[l] = 0;
+  }
+  if(!filled) object_property_set(r, (char*)"is", (char*)"editable");
+  return r;
+}
+
+void get_summary(char* path, char* summary)
+{
+  *summary=0;
+  if(get_summary_from(path, summary, "title")) return;
+  if(get_summary_from(path, summary, "name")) return;
+  if(get_summary_from(path, summary, "summary")) return;
+  if(get_summary_from(path, summary, "description")) return;
+  if(get_summary_from(path, summary, "text")) return;
+  if(get_summary_from(path, summary, "content")) return;
+  if(get_summary_from(path, summary, "is")) return;
+}
+
+bool get_summary_from(char* path, char* summary, const char* key)
+{
+  char pathkey[128]; size_t l = snprintf(pathkey, 128, "%s:%s", path, key);
+  char* vals=object_property_values(user, pathkey);
+  if(!vals) return false;
+  snprintf(summary, 128, "%s ", vals);
+  return true;
+}
+
+int16_t calculate_key_width(char* path)
+{
+  int16_t w=0;
+  int8_t sz = object_property_size(user, path);
+  if(sz>0) for(int i=1; i<=sz; i++){
+    char* key=object_property_key(user, path, i);
+    if(key){
+      int16_t l=strlen(key);
+      if(l > w) w=l;
+    }
+  }
+  return w>7? w*28: 196;
+}
+
+int16_t calculate_scroller_height(char* path, int16_t height)
+{
+  int16_t heightforscrollers=height-2.5*buttonHeight;
+  int8_t  numberofscrollers=0;
+  int8_t sz = object_property_size(user, path);
+  if(sz>0) for(int i=1; i<=sz; i++){
+    char* key=object_property_key(user, path, i);
+    char pathkey[128]; size_t l = snprintf(pathkey, 128, "%s:%s", path, key);
+    uint16_t ln = object_property_length(user, pathkey);
+    uint32_t wid=0;
+    for(int j=1; j<=ln; j++){
+      char* val=object_property_get_n(user, pathkey, j);
+      if(is_uid(val)){ wid=0; break; }
+      wid += strlen(val)+1;
+    }
+    int hgt;
+    if(wid >0){ hgt=(wid/40+1)*buttonHeight; heightforscrollers-=hgt; }
+    else        numberofscrollers++;
+  }
+  return (heightforscrollers >=0 && numberofscrollers) ? heightforscrollers/numberofscrollers: 0;
+}
+
+// ---------------
+
+void draw_object_header(char* path, bool locallyEditable, int16_t width, int8_t depth)
+{
+  bool nodarken=depth<DARKEN_DEPTH;
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));
+  ImGui::PushStyleColor(ImGuiCol_Text, actionColour);
+  ImGui::PushStyleColor(ImGuiCol_Button, nodarken? actionBackground: actionBackgroundActive);
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, nodarken? actionBackground: actionBackgroundActive);
+  ImGui::PushStyleColor(ImGuiCol_ButtonActive, actionBackgroundActive);
+
+  if(depth==1){
+    char backId[256]; snprintf(backId, 256, " Back## %s", path);
+    if(ImGui::Button(backId, ImVec2(buttonWidth, buttonHeight))){
+      uint16_t histlen=object_property_length(user, (char*)"history");
+      if(histlen){
+        char popPath[64]; snprintf(popPath, 64, "history:%d", histlen);
+        char* viewing = object_property(user, popPath);
+        object_property_set(user, popPath, 0);
+        object_property_set(user, (char*)"viewing-l", viewing);
+        close_all_starting((char*)"viewing-l");
+      }
+    }
+    track_drag(backId, true);
+    ImGui::SameLine();
+  }
+  else if(depth<DARKEN_DEPTH){
+    char dropId[256]; snprintf(dropId, 256, " X## %s", path);
+    if(ImGui::Button(dropId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
+      if(!strncmp(path, "viewing-l", strlen("viewing-l"))){
+        char* lastcolon=strrchr(path,':'); *lastcolon=0;
+        char* secondlastcolon=strrchr(path, ':'); *secondlastcolon=0;
+        object* objectEditing = onex_get_from_cache(object_property(user, path));
+        *lastcolon=':'; *secondlastcolon=':';
+        object_property_set(objectEditing, secondlastcolon+1, (char*)"");
+      }
+      else{
+        object_property_set(user, path, (char*)"");
+        if(static_gui) static_gui->changed();
+      }
+    }
+    track_drag(dropId, true);
+    ImGui::SameLine();
+  }
+
+  int blankwidth = width-(depth==1? buttonWidth: (depth<DARKEN_DEPTH? smallButtonWidth: 0))-2*smallButtonWidth;
+  if(blankwidth>10){
+    char summary[128]="";
+    get_summary(path, summary);
+    char barId[256]; snprintf(barId, 256, "%s ## topbar %s", summary, path);
+    if(ImGui::Button(barId, ImVec2(blankwidth, buttonHeight)) && !dragPathId){
+      toggle_open(path);
+    }
+    if(!linkTo) track_drag(barId, false);
+    ImGui::SameLine();
+    track_link(false, path, blankwidth, buttonHeight);
+  }
+
+  char maxId[256]; snprintf(maxId, 256, " ^## %s", path);
+  if(ImGui::Button(maxId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
+    char* viewing=object_property(user, path);
+    object_property_add(user, (char*)"history", object_property(user, (char*)"viewing-l"));
+    object_property_set(user, (char*)"viewing-l", viewing);
+    close_all_starting((char*)"viewing-l");
+  }
+  track_drag(maxId, true);
+
+  ImGui::SameLine();
+
+  char pikId[256]; snprintf(pikId, 256, " >## %s", path);
+  if(ImGui::Button(pikId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
+    object_property_add(user, (char*)"viewing-r", object_property(user, path));
+    if(static_gui) static_gui->changed();
+  }
+  track_drag(pikId, true);
+
+  ImGui::PopStyleColor(4);
+  ImGui::PopStyleVar(1);
+}
+
 void draw_new_property_value_editor(char* path, char* propname, char* val, bool single, bool locallyEditable, int16_t width, int16_t height, int8_t depth)
 {
   if(!val){ log_write("val==null: path=%s\n", path); return; }
@@ -944,31 +902,6 @@ void draw_new_property_value_editor(char* path, char* propname, char* val, bool 
   }
   if(depth) ImGui::PopStyleColor(2);
   ImGui::PopItemWidth();
-}
-
-static const char* propertyNameChoices[] = {
-  "is",
-  "title",
-  "description",
-  "text",
-  "name",
-  "list",
-  "date",
-  "time",
-  "end-time",
-  "end-date",
-  "every",
-  "tags",
-  "cost",
-  "total",
-  "Rules",
-  "Timer",
-  "Notifying"
-};
-
-static int filter_and_autocomplete_property_names(ImGuiTextEditCallbackData* data)
-{
-  return filter_and_autocomplete(data, enforcePropertyName, (char**)propertyNameChoices, IM_ARRAYSIZE(propertyNameChoices));
 }
 
 void draw_object_footer(char* path, bool locallyEditable, int16_t width, int16_t keyWidth, int8_t depth)
@@ -1105,96 +1038,6 @@ void draw_new_value_or_object_button(char* path, int16_t width, int j, int8_t de
   ImGui::PopStyleColor(4);
 }
 
-object* create_new_object_for_property_name(char* path, char* name)
-{
-  object* r=object_new(0, (char*)"default", 0, 4);
-  char* is;
-  if(!strcmp(name,"Rules")) is=(char*)"Rule";
-  else is=name;
-  object_property_set(r, (char*)"is", is);
-  return r;
-}
-
-object* create_new_object_like_others(char* path)
-{
-  object* r=object_new(0, (char*)"default", 0, 4);
-  bool filled=false;
-  int16_t ln = object_property_length(user, path);
-  for(int i=1; i<=ln; i++){
-    size_t l=strlen(path);
-    snprintf(path+l, 128-l, ":%d", i);
-    int8_t sz=object_property_size(user, path);
-    if(sz>0) for(int j=1; j<=sz; j++){
-      char* key=object_property_key(user, path, j);
-      char* is=0; if(key && !strcmp(key,"is")) is=object_property_val(user, path, j);
-      object_property_set(r, key, is? is: (char*)"--");
-      filled=true;
-    }
-    path[l] = 0;
-  }
-  if(!filled) object_property_set(r, (char*)"is", (char*)"editable");
-  return r;
-}
-
-void get_summary(char* path, char* summary)
-{
-  *summary=0;
-  if(get_summary_from(path, summary, "title")) return;
-  if(get_summary_from(path, summary, "name")) return;
-  if(get_summary_from(path, summary, "summary")) return;
-  if(get_summary_from(path, summary, "description")) return;
-  if(get_summary_from(path, summary, "text")) return;
-  if(get_summary_from(path, summary, "content")) return;
-  if(get_summary_from(path, summary, "is")) return;
-}
-
-bool get_summary_from(char* path, char* summary, const char* key)
-{
-  char pathkey[128]; size_t l = snprintf(pathkey, 128, "%s:%s", path, key);
-  char* vals=object_property_values(user, pathkey);
-  if(!vals) return false;
-  snprintf(summary, 128, "%s ", vals);
-  return true;
-}
-
-int16_t calculate_key_width(char* path)
-{
-  int16_t w=0;
-  int8_t sz = object_property_size(user, path);
-  if(sz>0) for(int i=1; i<=sz; i++){
-    char* key=object_property_key(user, path, i);
-    if(key){
-      int16_t l=strlen(key);
-      if(l > w) w=l;
-    }
-  }
-  return w>7? w*28: 196;
-}
-
-int16_t calculate_scroller_height(char* path, int16_t height)
-{
-  int16_t heightforscrollers=height-2.5*buttonHeight;
-  int8_t  numberofscrollers=0;
-  int8_t sz = object_property_size(user, path);
-  if(sz>0) for(int i=1; i<=sz; i++){
-    char* key=object_property_key(user, path, i);
-    char pathkey[128]; size_t l = snprintf(pathkey, 128, "%s:%s", path, key);
-    uint16_t ln = object_property_length(user, pathkey);
-    uint32_t wid=0;
-    for(int j=1; j<=ln; j++){
-      char* val=object_property_get_n(user, pathkey, j);
-      if(is_uid(val)){ wid=0; break; }
-      wid += strlen(val)+1;
-    }
-    int hgt;
-    if(wid >0){ hgt=(wid/40+1)*buttonHeight; heightforscrollers-=hgt; }
-    else        numberofscrollers++;
-  }
-  return (heightforscrollers >=0 && numberofscrollers) ? heightforscrollers/numberofscrollers: 0;
-}
-
-// ---------------
-
 void draw_key(char* path, char* key, int16_t width, int16_t height, int16_t keyWidth, int8_t depth)
 {
   bool nodarken=depth<DARKEN_DEPTH;
@@ -1209,11 +1052,44 @@ void draw_key(char* path, char* key, int16_t width, int16_t height, int16_t keyW
   ImGui::SameLine();
 }
 
+static void draw_nested_object_properties_list(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth);
+
 void draw_property_list(char* path, char* key, bool locallyEditable, int16_t width, int16_t height, int16_t keyWidth, int8_t depth)
 {
   if(width < 200) return;
   draw_key(path, key, width, height, keyWidth, depth);
   draw_nested_object_properties_list(path, locallyEditable, width-keyWidth, height, depth);
+}
+
+void draw_object_properties(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth)
+{
+  draw_object_header(path, locallyEditable, width, depth);
+  if(strcmp(path, "viewing-l") && !is_open(path)) return;
+  int16_t scrollerheight=calculate_scroller_height(path, height);
+  int16_t keyWidth=calculate_key_width(path);
+  int8_t sz = object_property_size(user, path);
+  if(sz>0) for(int i=1; i<=sz; i++){
+    char* key=object_property_key(user, path, i);
+    char pathkey[128]; size_t l = snprintf(pathkey, 128, "%s:%s", path, key);
+    if(!key) log_write("key=null: path=%s pathkey=%s i=%d sz=%d values: %s value: %s\n", path, pathkey, i, sz, object_property(user, pathkey), object_property_val(user, path, i));
+    uint16_t ln = object_property_length(user, pathkey);
+    uint32_t wid=0;
+    for(int j=1; j<=ln; j++){
+      char* val=object_property_get_n(user, pathkey, j);
+      if(is_uid(val)){ wid=0; break; }
+      wid += strlen(val)+1;
+    }
+    int hgt;
+    if(wid >0) hgt=(wid/40+1)*buttonHeight;
+    else       hgt=scrollerheight;
+    if(hgt>=buttonHeight) draw_property_list(pathkey, key, locallyEditable, width, hgt, keyWidth, depth);
+    else{
+      char blnId[256]; snprintf(blnId, 256, "##filler %d %d %s", width, hgt, pathkey);
+      ImGui::Button(blnId, ImVec2(width, paddingHeight));
+      track_drag(blnId, true);
+    }
+  }
+  draw_object_footer(path, locallyEditable, width, keyWidth, depth);
 }
 
 void draw_nested_object_properties_list(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth)
@@ -1291,4 +1167,134 @@ void draw_nested_object_properties_list(char* path, bool locallyEditable, int16_
     set_drag_scroll(path);
     ImGui::EndChild();
   }
+}
+
+void draw_view()
+{
+  int msperframe = (int)(1000.0f/ImGui::GetIO().Framerate);
+  if(yOffsetCounter > 0){
+    yOffset=yOffsetTarget*(100-yOffsetCounter)/100;
+    yOffsetCounter-=msperframe >10? 10 : 5;
+  }
+  if(!rhsFullScreen){
+    ImGui::BeginChild("Workspace1", ImVec2(workspace1Width,workspace1Height), true);
+    {
+#if defined(__ANDROID__) || defined(TEST_ANDROID_KEYBOARD)
+      ImVec2 startingpoint = ImGui::GetCursorScreenPos();
+      ImVec2 startpos(startingpoint.x, startingpoint.y - yOffset);
+      ImGui::SetCursorScreenPos(startpos);
+#endif
+      int8_t s=strlen("viewing-l")+1;
+      char path[s]; memcpy(path, "viewing-l", s);
+      char* uid=object_property(user, (char*)"viewing-l");
+      bool locallyEditable = object_is_local(uid);
+      draw_object_properties(path, locallyEditable, workspace1Width-rhsPadding, workspace1Height, 1);
+    }
+    ImGui::EndChild();
+
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(-1,0));
+    ImGui::SameLine();
+    ImGui::PopStyleVar();
+  }
+  uint16_t ws2width=rhsFullScreen? workspace1Width+workspace2Width: workspace2Width;
+  ImGui::BeginChild("Workspace2", ImVec2(ws2width,workspace2Height), true);
+  {
+#if defined(__ANDROID__) || defined(TEST_ANDROID_KEYBOARD)
+    ImVec2 startingpoint = ImGui::GetCursorScreenPos();
+    ImVec2 startpos(startingpoint.x, startingpoint.y - yOffset);
+    ImGui::SetCursorScreenPos(startpos);
+#endif
+    ImGui::PushStyleColor(ImGuiCol_Text, actionColour);
+    ImGui::PushStyleColor(ImGuiCol_Button, actionBackground);
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, actionBackground);
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, actionBackground);
+
+    if(calendarView) ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
+    else             ImGui::PushStyleColor(ImGuiCol_Text, actionColour);
+    if(ImGui::Button(" calendar", ImVec2(buttonWidth+smallButtonWidth, buttonHeight)))
+    {
+      calendarView=!calendarView;
+      if(calendarView){
+        tableView=false;
+        close_all_starting((char*)"viewing-r");
+      }
+    }
+    ImGui::PopStyleColor();
+
+    ImGui::SameLine();
+
+    if(tableView) ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
+    else          ImGui::PushStyleColor(ImGuiCol_Text, actionColour);
+    if(ImGui::Button(" table", ImVec2(buttonWidth, buttonHeight)))
+    {
+      tableView=!tableView;
+      if(tableView){
+        calendarView=false;
+        close_all_starting((char*)"viewing-r");
+      }
+    }
+    ImGui::PopStyleColor();
+
+    ImGui::SameLine();
+
+    ImGui::Button("##paddingbutton", ImVec2(ws2width-2*buttonWidth-2.5*smallButtonWidth-rhsPadding, buttonHeight));
+
+    ImGui::SameLine();
+
+    if(ImGui::Button(rhsFullScreen? " >>" : " <<", ImVec2(smallButtonWidth*1.5, buttonHeight)))
+    {
+      rhsFullScreen=!rhsFullScreen;
+    }
+    ImGui::PopStyleColor(4);
+
+    ImGui::Separator();
+
+    int8_t s=strlen("viewing-r")+1; char path[s]; memcpy(path, "viewing-r", s);
+    if(calendarView) draw_calendar(path, ws2width-rhsPadding, workspace2Height-100);
+    else
+    if(tableView);// drawTable(..);
+    else             draw_nested_object_properties_list(path, false, ws2width-rhsPadding, workspace2Height-100, 1);
+  }
+  ImGui::EndChild();
+  draw_link();
+}
+
+void draw_gui()
+{
+  ImGui::NewFrame();
+
+  ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiSetCond_FirstUseEver);
+  ImGui::SetNextWindowSize(ImVec2((float)app->width, (float)app->height), ImGuiSetCond_FirstUseEver);
+
+  if(!ImGui::Begin("Onex", NULL, window_flags)){
+      ImGui::End();
+      ImGui::Render();
+      return;
+  }
+
+// Use ImGui::ShowStyleEditor() to look them up.
+
+  int svs = 7;
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10,5));
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0,0));
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0,0));
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10,10));
+  ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0.0f,0));
+  ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
+
+  ImGuiStyle& style = ImGui::GetStyle();
+  style.ScrollbarSize = 0.0f;
+//style.TouchExtraPadding = ImVec2(10.0f,10.0f);
+
+  draw_view();
+
+  ImGui::PopStyleVar(svs);
+
+  ImGui::End();
+
+  ImGui::SetNextWindowPos(ImVec2(650, 650), ImGuiSetCond_FirstUseEver);
+//ImGui::ShowTestWindow();
+
+  ImGui::Render();
 }
