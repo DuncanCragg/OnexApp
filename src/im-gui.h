@@ -6,9 +6,6 @@ extern VulkanBase* app;
 extern object* user;
 extern object* config;
 
-extern time_t todayseconds;
-extern struct tm todaydate;
-
 extern unsigned char* fontData;
 extern int texWidth, texHeight;
 
@@ -65,8 +62,6 @@ void init_imgui(float width, float height);
 void get_font_info();
 void set_scaling();
 
-void set_time_save_days();
-
 void draw_gui();
 
 void toggle_open(char* path);
@@ -76,3 +71,4 @@ void track_drag(char* pathId, bool twodimensions);
 void kill_drag();
 void show_keyboard(float multy);
 void hide_keyboard();
+

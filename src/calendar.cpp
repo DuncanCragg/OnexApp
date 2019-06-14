@@ -28,6 +28,7 @@ static void get_cell_events_and_show_open(char* path, struct tm* thisdate, int c
 static void get_cell_titles(char* titles, struct tm* thisdate, int col);
 static void get_tag_icons(char* tagicons, int taglen, struct tm* thisdate, int cols);
 static void draw_day_cell(char* path, struct tm* thisdate, int day, int col, int16_t width);
+static void save_days(char* path);
 
 extern "C" void showNotification(char* title, char* text);
 extern "C" void setAlarm(time_t when, char* uid);
@@ -36,6 +37,16 @@ const char* daytable[] = {"Sun", "Mon", "Tues", "Wed", "Thu", "Fri", "Sat"};
 const char* monthtable[] = {"January","February","March","April","May","June","July","August","September","October","November","December"};
 
 char* calendarTitles[16];
+
+time_t todayseconds = 0;
+struct tm todaydate;
+
+void set_time_save_days()
+{
+  todayseconds=time(0);
+  todaydate = *localtime(&todayseconds);
+  save_days((char*)"viewing-r");
+}
 
 int date_compare(struct tm* d1, struct tm* d2)
 {

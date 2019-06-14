@@ -218,15 +218,6 @@ void get_font_info()
   io.Fonts->GetTexDataAsRGBA32(&fontData, &texWidth, &texHeight);
 }
 
-time_t todayseconds = 0;
-struct tm todaydate;
-
-void set_time_save_days()
-{
-  todayseconds=time(0);
-  todaydate = *localtime(&todayseconds);
-  save_days((char*)"viewing-r");
-}
 
 void set_scaling()
 {
