@@ -11,27 +11,10 @@ extern void ImStrncpy(char* dst, const char* src, size_t count);
 #pragma GCC diagnostic ignored "-Wformat-truncation"
 
 
-static object* create_new_object_like_others(char* path);
-static object* create_new_object_for_property_name(char* path, char* name);
-static object* create_new_event(struct tm* thisdate, char* title);
-
-static int16_t calculate_scroller_height(char* path, int16_t height);
-
-static void get_summary(char* path, char* summary);
-static bool get_summary_from(char* path, char* summary, const char* key);
-static int16_t calculate_key_width(char* path);
-
-static char* pop_last(char* path);
-
 
 GUI* static_gui;
 
 VulkanBase *app;
-
-static ImGuiWindowFlags window_flags = 0;
-
-unsigned char* fontData;
-int texWidth, texHeight;
 
 
 ImVec4 actionColour            (0.50f, 0.10f, 0.20f, 1.0f);
@@ -93,6 +76,12 @@ bool tableView=false;
 char* propNameEditing=0;
 bool  keyboardCancelled=false;
 
+
+
+static ImGuiWindowFlags window_flags = 0;
+
+unsigned char* fontData;
+int texWidth, texHeight;
 
 
 void init_imgui(float width, float height)
@@ -204,7 +193,6 @@ void get_font_info()
   io.Fonts->GetTexDataAsRGBA32(&fontData, &texWidth, &texHeight);
 }
 
-
 void set_scaling()
 {
   float heightratio = ((float)app->height)/1350.0;
@@ -226,8 +214,7 @@ void set_scaling()
   workspace2Height=(int)app->height-70;
 }
 
-
-
+// ---------------
 
 void set_new_tag(char* path, char* tag)
 {
@@ -274,11 +261,15 @@ void set_new_value(char* path, char* buf, bool single)
   }
 }
 
+// ---------------
+
 void set_property_name(char* path , char* name)
 {
   object* objectEditing = onex_get_from_cache(object_property(user, path));
   object_property_set(objectEditing, name, (char*)"--");
 }
+
+static object* create_new_object_for_property_name(char* path, char* name);
 
 void set_property_name_and_object(char* path , char* name)
 {
@@ -286,14 +277,6 @@ void set_property_name_and_object(char* path , char* name)
   object* o = create_new_object_for_property_name(path, name);
   if(o) object_property_set(objectEditing, name, object_property(o, (char*)"UID"));
   else object_property_set(objectEditing, name, (char*)"--");
-}
-
-void set_property_name_and_link(char* path , char* name)
-{
-  char* lastlink=pop_last((char*)"viewing-r");
-  if(!lastlink) return;
-  object* objectEditing = onex_get_from_cache(object_property(user, path));
-  object_property_set(objectEditing, name, lastlink);
 }
 
 char* pop_last(char* path)
@@ -305,109 +288,15 @@ char* pop_last(char* path)
   return last;
 }
 
-// -------------
-
-static int ss= -1;
-static int se= -1;
-
-static int filter_and_autocomplete(ImGuiTextEditCallbackData* data, bool (*enforcer)(ImGuiTextEditCallbackData* data), char** autoCompleteChoices, int autoCompleteChoicesSize)
+void set_property_name_and_link(char* path , char* name)
 {
-  static bool autocompletenext=false;
-  if(data->EventFlag==ImGuiInputTextFlags_CallbackCharFilter){
-    autocompletenext=true;
-    return enforcer ? (enforcer(data)? 0: 1) : 0;
-  }
-  if(data->EventFlag==ImGuiInputTextFlags_CallbackAlways && autocompletenext){
-    autocompletenext=false;
-    int p=data->BufTextLen;
-    if(p){
-      int i;
-      for(i=0; i<autoCompleteChoicesSize; i++){
-        if(!strncasecmp(data->Buf, autoCompleteChoices[i], p)){
-          data->DeleteChars(0, p);
-          data->InsertChars(0, autoCompleteChoices[i]);
-          ss=p;
-          se=strlen(autoCompleteChoices[i]);
-          data->BufDirty=true;
-          break;
-        }
-      }
-      if(i==autoCompleteChoicesSize){
-        ss=-1;
-        se=-1;
-      }
-    }
-  }
-  if(data->EventFlag==ImGuiInputTextFlags_CallbackAlways){
-    if(ss!=-1) data->CursorPos=ss;
-    if(ss!=-1) data->SelectionStart=ss;
-    if(se!=-1) data->SelectionEnd=se;
-    return 0;
-  }
-  return 0;
-}
-
-static bool FilterAutoInputText(const char* id, char* buf, int buflen, ImGuiTextEditCallback fafn)
-{
-  int flags=ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_CallbackAlways|ImGuiInputTextFlags_EnterReturnsTrue;
-  bool done=ImGui::InputText(id, buf, buflen, flags, fafn, buf);
-  if(done){ ss= -1; se= -1; }
-  return done;
+  char* lastlink=pop_last((char*)"viewing-r");
+  if(!lastlink) return;
+  object* objectEditing = onex_get_from_cache(object_property(user, path));
+  object_property_set(objectEditing, name, lastlink);
 }
 
 // -------------
-
-static bool enforcePropertyName(ImGuiTextEditCallbackData* data)
-{
-  ImWchar ch = data->EventChar;
-  if(ch >=256) return false;
-  if(!strlen((char*)(data->UserData)) && !isalpha(ch)) return false;
-  if(ch == ' '){ data->EventChar = '-'; return true; }
-  if(ch == '-') return true;
-  if(!isalnum(ch)) return false;
-  data->EventChar = tolower(ch);
-  return true;
-}
-
-static int filter_and_autocomplete_calendar_tags(ImGuiTextEditCallbackData* data)
-{
-  int tls=object_property_size(config, (char*)"taglookup");
-  char* calendarTags[tls-1];
-  for(int t=2; t<=tls; t++){
-    calendarTags[t-2]=object_property_key(config, (char*)"taglookup", t);
-  }
-  return filter_and_autocomplete(data, enforcePropertyName, calendarTags, tls-1);
-}
-
-static int filter_and_autocomplete_default(ImGuiTextEditCallbackData* data)
-{
-  return filter_and_autocomplete(data, 0, 0, 0);
-}
-
-static const char* propertyNameChoices[] = {
-  "is",
-  "title",
-  "description",
-  "text",
-  "name",
-  "list",
-  "date",
-  "time",
-  "end-time",
-  "end-date",
-  "every",
-  "tags",
-  "cost",
-  "total",
-  "Rules",
-  "Timer",
-  "Notifying"
-};
-
-static int filter_and_autocomplete_property_names(ImGuiTextEditCallbackData* data)
-{
-  return filter_and_autocomplete(data, enforcePropertyName, (char**)propertyNameChoices, IM_ARRAYSIZE(propertyNameChoices));
-}
 
 object* create_new_object_for_property_name(char* path, char* name)
 {
@@ -440,6 +329,17 @@ object* create_new_object_like_others(char* path)
   return r;
 }
 
+// ---------------
+
+bool get_summary_from(char* path, char* summary, const char* key)
+{
+  char pathkey[128]; size_t l = snprintf(pathkey, 128, "%s:%s", path, key);
+  char* vals=object_property_values(user, pathkey);
+  if(!vals) return false;
+  snprintf(summary, 128, "%s ", vals);
+  return true;
+}
+
 void get_summary(char* path, char* summary)
 {
   *summary=0;
@@ -452,14 +352,7 @@ void get_summary(char* path, char* summary)
   if(get_summary_from(path, summary, "is")) return;
 }
 
-bool get_summary_from(char* path, char* summary, const char* key)
-{
-  char pathkey[128]; size_t l = snprintf(pathkey, 128, "%s:%s", path, key);
-  char* vals=object_property_values(user, pathkey);
-  if(!vals) return false;
-  snprintf(summary, 128, "%s ", vals);
-  return true;
-}
+// ---------------
 
 int16_t calculate_key_width(char* path)
 {
@@ -618,7 +511,7 @@ void draw_new_property_value_editor(char* path, char* propname, char* val, bool 
     bool done=false;
     ImGuiTextEditCallback faa=filter_and_autocomplete_default;
     if(propname && !strcmp(propname, "tags")) faa=filter_and_autocomplete_calendar_tags;
-    if(height==buttonHeight) done=FilterAutoInputText(valId, valBuf, IM_ARRAYSIZE(valBuf), faa);
+    if(height==buttonHeight) done=filter_auto_input_text(valId, valBuf, IM_ARRAYSIZE(valBuf), faa);
     else                     done=ImGui::InputTextMultiline(valId, valBuf, IM_ARRAYSIZE(valBuf), ImVec2(width, height), flags);
     if(done){
       if(propname && !strcmp(propname, "tags")) set_new_tag(path, valBuf);
@@ -680,7 +573,7 @@ void draw_object_footer(char* path, bool locallyEditable, int16_t width, int16_t
     ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
     ImGui::PushStyleColor(ImGuiCol_PopupBg, propertyBackground);
     ImGui::PushStyleColor(ImGuiCol_FrameBg, propertyBackground);
-    if(FilterAutoInputText("## property name", propNameBuf, IM_ARRAYSIZE(propNameBuf), filter_and_autocomplete_property_names)){
+    if(filter_auto_input_text("## property name", propNameBuf, IM_ARRAYSIZE(propNameBuf), filter_and_autocomplete_property_names)){
       if(*propNameBuf){
         if(!strcmp(propNameBuf, "Rules")) set_property_name_and_object(path, propNameBuf);
         else if(!strcmp(propNameBuf, "Notifying")) set_property_name_and_link(path, propNameBuf);

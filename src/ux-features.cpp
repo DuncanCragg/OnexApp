@@ -282,3 +282,103 @@ void hide_keyboard()
 #endif
 }
 
+
+static int ss= -1;
+static int se= -1;
+
+static int filter_and_autocomplete(ImGuiTextEditCallbackData* data, bool (*enforcer)(ImGuiTextEditCallbackData* data), char** autoCompleteChoices, int autoCompleteChoicesSize)
+{
+  static bool autocompletenext=false;
+  if(data->EventFlag==ImGuiInputTextFlags_CallbackCharFilter){
+    autocompletenext=true;
+    return enforcer ? (enforcer(data)? 0: 1) : 0;
+  }
+  if(data->EventFlag==ImGuiInputTextFlags_CallbackAlways && autocompletenext){
+    autocompletenext=false;
+    int p=data->BufTextLen;
+    if(p){
+      int i;
+      for(i=0; i<autoCompleteChoicesSize; i++){
+        if(!strncasecmp(data->Buf, autoCompleteChoices[i], p)){
+          data->DeleteChars(0, p);
+          data->InsertChars(0, autoCompleteChoices[i]);
+          ss=p;
+          se=strlen(autoCompleteChoices[i]);
+          data->BufDirty=true;
+          break;
+        }
+      }
+      if(i==autoCompleteChoicesSize){
+        ss=-1;
+        se=-1;
+      }
+    }
+  }
+  if(data->EventFlag==ImGuiInputTextFlags_CallbackAlways){
+    if(ss!=-1) data->CursorPos=ss;
+    if(ss!=-1) data->SelectionStart=ss;
+    if(se!=-1) data->SelectionEnd=se;
+    return 0;
+  }
+  return 0;
+}
+
+bool filter_auto_input_text(const char* id, char* buf, int buflen, ImGuiTextEditCallback fafn)
+{
+  int flags=ImGuiInputTextFlags_CallbackCharFilter|ImGuiInputTextFlags_CallbackAlways|ImGuiInputTextFlags_EnterReturnsTrue;
+  bool done=ImGui::InputText(id, buf, buflen, flags, fafn, buf);
+  if(done){ ss= -1; se= -1; }
+  return done;
+}
+
+static bool enforcePropertyName(ImGuiTextEditCallbackData* data)
+{
+  ImWchar ch = data->EventChar;
+  if(ch >=256) return false;
+  if(!strlen((char*)(data->UserData)) && !isalpha(ch)) return false;
+  if(ch == ' '){ data->EventChar = '-'; return true; }
+  if(ch == '-') return true;
+  if(!isalnum(ch)) return false;
+  data->EventChar = tolower(ch);
+  return true;
+}
+
+int filter_and_autocomplete_calendar_tags(ImGuiTextEditCallbackData* data)
+{
+  int tls=object_property_size(config, (char*)"taglookup");
+  char* calendarTags[tls-1];
+  for(int t=2; t<=tls; t++){
+    calendarTags[t-2]=object_property_key(config, (char*)"taglookup", t);
+  }
+  return filter_and_autocomplete(data, enforcePropertyName, calendarTags, tls-1);
+}
+
+int filter_and_autocomplete_default(ImGuiTextEditCallbackData* data)
+{
+  return filter_and_autocomplete(data, 0, 0, 0);
+}
+
+static const char* propertyNameChoices[] = {
+  "is",
+  "title",
+  "description",
+  "text",
+  "name",
+  "list",
+  "date",
+  "time",
+  "end-time",
+  "end-date",
+  "every",
+  "tags",
+  "cost",
+  "total",
+  "Rules",
+  "Timer",
+  "Notifying"
+};
+
+int filter_and_autocomplete_property_names(ImGuiTextEditCallbackData* data)
+{
+  return filter_and_autocomplete(data, enforcePropertyName, (char**)propertyNameChoices, IM_ARRAYSIZE(propertyNameChoices));
+}

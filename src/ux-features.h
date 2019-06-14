@@ -23,3 +23,7 @@ void close_all_starting(char* prefix);
 void show_keyboard(float multy);
 void hide_keyboard();
 
+bool filter_auto_input_text(const char* id, char* buf, int buflen, ImGuiTextEditCallback fafn);
+int filter_and_autocomplete_calendar_tags(ImGuiTextEditCallbackData* data);
+int filter_and_autocomplete_default(ImGuiTextEditCallbackData* data);
+int filter_and_autocomplete_property_names(ImGuiTextEditCallbackData* data);
