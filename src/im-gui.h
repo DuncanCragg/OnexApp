@@ -57,19 +57,9 @@ extern ImVec4 schemeLightPurple;
 extern ImVec4 schemeDarkerPurple;
 extern ImVec4 schemePlum;
 
-extern char* dragPathId;
-
 void init_imgui(float width, float height);
 void get_font_info();
 void set_scaling();
 
 void draw_gui();
-
-void toggle_open(char* path);
-bool is_open(char* path);
-void set_drag_scroll(char* path);
-void track_drag(char* pathId, bool twodimensions);
-void kill_drag();
-void show_keyboard(float multy);
-void hide_keyboard();
 

@@ -8,6 +8,7 @@ extern void ImStrncpy(char* dst, const char* src, size_t count);
 #define IM_ARRAYSIZE(_ARR)  ((int)(sizeof(_ARR)/sizeof(*_ARR)))
 
 #include "im-gui.h"
+#include "ux-features.h"
 #include "calendar.h"
 
 #pragma GCC diagnostic ignored "-Wformat-truncation"
