@@ -26,6 +26,12 @@ extern uint16_t workspace1Height;
 extern uint16_t workspace2Width;
 extern uint16_t workspace2Height;
 
+#if defined(__ANDROID__) || defined(TEST_ANDROID_KEYBOARD)
+extern uint16_t yOffsetTarget;
+extern uint16_t yOffset;
+extern uint16_t yOffsetCounter;
+#endif
+
 extern bool calendarView;
 extern bool tableView;
 

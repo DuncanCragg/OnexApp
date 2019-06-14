@@ -63,9 +63,11 @@ uint16_t workspace1Height;
 uint16_t workspace2Width;
 uint16_t workspace2Height;
 
+#if defined(__ANDROID__) || defined(TEST_ANDROID_KEYBOARD)
 uint16_t yOffsetTarget=0;
 uint16_t yOffset=0;
 uint16_t yOffsetCounter=0;
+#endif
 
 
 static bool rhsFullScreen=false;
@@ -793,10 +795,12 @@ void draw_nested_object_properties_list(char* path, bool locallyEditable, int16_
 void draw_view()
 {
   int msperframe = (int)(1000.0f/ImGui::GetIO().Framerate);
+#if defined(__ANDROID__) || defined(TEST_ANDROID_KEYBOARD)
   if(yOffsetCounter > 0){
     yOffset=yOffsetTarget*(100-yOffsetCounter)/100;
     yOffsetCounter-=msperframe >10? 10 : 5;
   }
+#endif
   if(!rhsFullScreen){
     ImGui::BeginChild("Workspace1", ImVec2(workspace1Width,workspace1Height), true);
     {
