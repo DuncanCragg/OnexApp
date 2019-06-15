@@ -5,10 +5,6 @@
 
 static GUI* static_gui;
 
-object* config;
-object* user;
-char*   userUID;
-
 bool keyboardUp = false;
 
 #define TEXTTYPE 1
@@ -18,7 +14,6 @@ extern "C" {
 
 void showOrHideSoftKeyboard(bool show)
 {
-  onex_run_evaluators(userUID, 0); // ?
   if(keyboardUp == show) return;
   JNIEnv* env;
   androidApp->activity->vm->AttachCurrentThread(&env, 0);
@@ -99,7 +94,6 @@ void sprintExternalStorageDirectory(char* buf, int buflen, const char* format)
 #else
 void showOrHideSoftKeyboard(bool show)
 {
-  onex_run_evaluators(userUID, 0); // ?
 }
 
 void showNotification(char* title, char* text)
@@ -113,34 +107,6 @@ void setAlarm(time_t when, char* uid)
 }
 #endif
 }
-
-extern bool evaluate_event(object* o, void* d);
-
-static bool evaluate_default(object* o, void* d)
-{
-  log_write("evaluate_default data=%p\n", d); object_log(o);
-  return true;
-}
-
-static bool evaluate_user(object* o, void* d)
-{
-  if(static_gui) static_gui->changed();
-  return true;
-}
-
-static bool evaluate_object_input(object* o, void* kv){
-  if(!kv) return true;
-  char* key=((keyval*)kv)->key;
-  char* val=((keyval*)kv)->val;
-  object_property_set(o, key, val);
-  if(!strcmp(key, (char*)"is") && !strcmp(val, (char*)"event")){
-    object_set_evaluator(o, (char*)"event");
-  }
-  if(!strcmp(key, (char*)"is") && !strcmp(val, (char*)"light")){
-    object_set_evaluator(o, (char*)"light");
-  }
-  return true;
-};
 
 static char* pendingAlarmUID=0;
 
@@ -161,61 +127,14 @@ public:
     camera.setRotation(glm::vec3(5.0f, 90.0f, 0.0f));
     camera.setPerspective(60.0f, (float)width / (float)height, 0.1f, 256.0f);
 
-    onex_set_evaluators((char*)"default", evaluate_object_input, evaluate_default, 0);
-    onex_set_evaluators((char*)"user",    evaluate_user, 0);
-    onex_set_evaluators((char*)"event",   evaluate_object_input, evaluate_event, 0);
-    onex_set_evaluators((char*)"light",   evaluate_object_input, evaluate_light_logic, 0);
-
-#if defined(VK_USE_PLATFORM_ANDROID_KHR)
-    char dbpath[128];
-    sprintExternalStorageDirectory(dbpath, 128, "%s/Onex/onex.ondb");
-    onex_init(dbpath);
-#else
-    onex_init((char*)"Onex/onex.ondb");
-#endif
-
-    config=onex_get_from_cache((char*)"uid-0");
-
-    if(!config){
-      // UTF-8 hex:  "\xF0\x9F\x98\x83  \xF0\x9F\x93\xA6"
-
-      object* tagbirth=object_new_from((char*)"is: tag  title: birthday  icon: 📦  colour: red", 5);
-      object* tagparty=object_new_from((char*)"is: tag  title: party     icon: 🎉  colour: yellow", 5);
-      object* tagtrain=object_new_from((char*)"is: tag  title: train     icon: 🚆  colour: blue", 5);
-      object* tagceleb=object_new_from((char*)"is: tag  title: celebrate icon: 🎉  colour: red", 5);
-      object* taglove =object_new_from((char*)"is: tag  title: love      icon: 😍  colour: red", 5);
-
-      object* taglookup=object_new_from((char*)"is: tag lookup", 100);
-      object_property_set(taglookup, (char*)"birthday",  object_property(tagbirth, (char*)"UID"));
-      object_property_set(taglookup, (char*)"party",     object_property(tagparty, (char*)"UID"));
-      object_property_set(taglookup, (char*)"train",     object_property(tagtrain, (char*)"UID"));
-      object_property_set(taglookup, (char*)"celebrate", object_property(tagceleb, (char*)"UID"));
-      object_property_set(taglookup, (char*)"love",      object_property(taglove,  (char*)"UID"));
-
-      object* links=object_new(0, 0, (char*)"links list", 4);
-      object_property_set(links, (char*)"list", object_property(taglookup, (char*)"UID"));
-
-      user=object_new(0, (char*)"user", (char*)"user", 8);
-      userUID=object_property(user, (char*)"UID");
-      object_property_set(user, (char*)"viewing-l", object_property(links, (char*)"UID"));
-
-      config=object_new((char*)"uid-0", 0, (char*)"config", 10);
-      object_property_set(config, (char*)"user", userUID);
-      object_property_set(config, (char*)"taglookup", object_property(taglookup, (char*)"UID"));
-    }
-    else{
-      userUID=object_property(config, (char*)"user");
-      user=onex_get_from_cache(userUID);
-    }
-    gui = new GUI(this, user, config);
+    gui = new GUI(this);
     static_gui = gui;
-    onex_run_evaluators(userUID, 0); // !
   }
 
   virtual void startup()
   {
     VulkanBase::startup();
-    if(!gui) gui = new GUI(this, user, config);
+    if(!gui) gui = new GUI(this);
     static_gui = gui;
   }
 

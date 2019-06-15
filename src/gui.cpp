@@ -14,12 +14,10 @@
 #include "im-gui.h"
 #include "calendar.h"
 
-GUI::GUI(VulkanBase* a, object* u, object* c)
+GUI::GUI(VulkanBase* a)
 {
   static_gui = this;
   app = a;
-  user = u;
-  config = c;
 };
 
 void GUI::changed()
@@ -31,6 +29,7 @@ void GUI::prepare()
 {
   device = app->vulkanDevice;
   init_imgui((float)app->width, (float)app->height);
+  init_onex();
   get_font_info();
   createFontImage();
   setUpKeyMap();

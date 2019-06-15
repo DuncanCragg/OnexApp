@@ -24,13 +24,6 @@ extern "C" {
 #include <items.h>
 }
 
-typedef struct {
-  char* key;
-  char* val;
-} keyval;
-
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -62,7 +55,7 @@ public:
     glm::vec2 translate;
   } pushConstBlock;
 
-  GUI(VulkanBase *app, object* user, object* config);
+  GUI(VulkanBase *app);
 
   void prepare();
 

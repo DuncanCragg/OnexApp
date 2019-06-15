@@ -5,6 +5,8 @@ extern GUI* static_gui;
 extern VulkanBase* app;
 extern object* user;
 extern object* config;
+extern char*   userUID;
+
 
 extern unsigned char* fontData;
 extern int texWidth, texHeight;
@@ -63,6 +65,7 @@ extern ImVec4 schemeLightPurple;
 extern ImVec4 schemeDarkerPurple;
 extern ImVec4 schemePlum;
 
+void init_onex();
 void init_imgui(float width, float height);
 void get_font_info();
 void set_scaling();
