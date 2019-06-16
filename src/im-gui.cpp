@@ -99,7 +99,7 @@ static bool evaluate_default(object* o, void* d)
 
 static bool evaluate_user(object* o, void* d)
 {
-  if(static_gui) static_gui->changed();
+  set_time_save_days();
   return true;
 }
 
@@ -519,7 +519,7 @@ void draw_object_header(char* path, bool locallyEditable, int16_t width, int8_t 
       }
       else{
         object_property_set(user, path, (char*)"");
-        if(static_gui) static_gui->changed();
+        set_time_save_days();
       }
     }
     track_drag(dropId, true);
@@ -553,7 +553,7 @@ void draw_object_header(char* path, bool locallyEditable, int16_t width, int8_t 
   char pikId[256]; snprintf(pikId, 256, " >## %s", path);
   if(ImGui::Button(pikId, ImVec2(smallButtonWidth, buttonHeight)) && !dragPathId){
     object_property_add(user, (char*)"viewing-r", object_property(user, path));
-    if(static_gui) static_gui->changed();
+    set_time_save_days();
   }
   track_drag(pikId, true);
 

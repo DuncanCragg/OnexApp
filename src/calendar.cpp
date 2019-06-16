@@ -479,8 +479,8 @@ void draw_day_cell(char* path, struct tm* thisdate, int day, int col, int16_t wi
           }
           else{
             object_property_add(user, path, evtuid);
-            if(static_gui) static_gui->changed();
           }
+          set_time_save_days();
         }
         hide_keyboard();
         free(editingCell); editingCell=0;

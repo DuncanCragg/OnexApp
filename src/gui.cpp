@@ -20,11 +20,6 @@ GUI::GUI(VulkanBase* a)
   app = a;
 };
 
-void GUI::changed()
-{
-  set_time_save_days();
-}
-
 void GUI::prepare()
 {
   device = app->vulkanDevice;

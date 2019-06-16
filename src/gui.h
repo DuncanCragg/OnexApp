@@ -76,7 +76,6 @@ public:
   void keyPressed(uint32_t keyCode, char32_t u32key);
   void keyReleased(uint32_t keyCode);
   void render();
-  void changed();
 
   ~GUI();
 };
