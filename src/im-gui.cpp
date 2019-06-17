@@ -87,7 +87,7 @@ int texWidth, texHeight;
 
 object* config;
 object* user;
-char*   userUID;
+char*   userUID=0;
 
 extern bool evaluate_event(object* o, void* d);
 
@@ -97,9 +97,16 @@ static bool evaluate_default(object* o, void* d)
   return true;
 }
 
+void draw_gui()
+{
+  if(userUID) onex_run_evaluators(userUID, 0);
+}
+
+static void draw_window();
+
 static bool evaluate_user(object* o, void* d)
 {
-  set_time_save_days();
+  draw_window();
   return true;
 }
 
@@ -172,7 +179,6 @@ void init_onex()
     userUID=object_property(config, (char*)"user");
     user=onex_get_from_cache(userUID);
   }
-  onex_run_evaluators(userUID, 0); // !
 }
 
 void init_imgui(float width, float height)
@@ -931,6 +937,7 @@ void draw_view()
       if(calendarView){
         tableView=false;
         close_all_starting((char*)"viewing-r");
+        set_time_save_days();
       }
     }
     ImGui::PopStyleColor();
@@ -973,7 +980,7 @@ void draw_view()
   draw_link();
 }
 
-void draw_gui()
+void draw_window()
 {
   ImGui::NewFrame();
 
