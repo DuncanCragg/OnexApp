@@ -89,8 +89,6 @@ object* config;
 object* user;
 char*   userUID=0;
 
-extern bool evaluate_event(object* o, void* d);
-
 static bool evaluate_default(object* o, void* d)
 {
   log_write("evaluate_default data=%p\n", d); object_log(o);
