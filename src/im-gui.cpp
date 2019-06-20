@@ -108,33 +108,23 @@ static bool evaluate_user(object* o, void* d)
   return true;
 }
 
-typedef struct {
-  char* key;
-  char* val;
-} keyval;
-
-static bool evaluate_object_input(object* o, void* kv){
-  if(!kv) return true;
-  char* key=((keyval*)kv)->key;
-  char* val=((keyval*)kv)->val;
-  object_property_set(o, key, val);
+/*
   if(!strcmp(key, (char*)"is") && !strcmp(val, (char*)"event")){
     object_set_evaluator(o, (char*)"event");
   }
   if(!strcmp(key, (char*)"is") && !strcmp(val, (char*)"light")){
     object_set_evaluator(o, (char*)"light");
   }
-  return true;
-};
+*/
 
 extern "C" void sprintExternalStorageDirectory(char* buf, int buflen, const char* format);
 
 void init_onex()
 {
-  onex_set_evaluators((char*)"default", evaluate_object_input, evaluate_default, 0);
-  onex_set_evaluators((char*)"user",    evaluate_user, 0);
-  onex_set_evaluators((char*)"event",   evaluate_object_input, evaluate_event, 0);
-  onex_set_evaluators((char*)"light",   evaluate_object_input, evaluate_light_logic, 0);
+  onex_set_evaluators((char*)"default", evaluate_object_setter, evaluate_default, 0);
+  onex_set_evaluators((char*)"user",                            evaluate_user, 0);
+  onex_set_evaluators((char*)"event",   evaluate_object_setter, evaluate_event, 0);
+  onex_set_evaluators((char*)"light",   evaluate_object_setter, evaluate_light_logic, 0);
 
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
   char dbpath[128];
@@ -311,6 +301,16 @@ void set_scaling()
 
 // ---------------
 
+void invoke_single_update(char* uid, char* key, char* val)
+{
+  properties* update = properties_new(1);
+  list*       li=list_new(2);
+  list_add(li, value_new((char*)"=>"));
+  list_add(li, value_new(val));
+  properties_set(update, value_new(key), li);
+  onex_run_evaluators(uid, update);
+}
+
 void set_new_tag(char* path, char* tag)
 {
   char* lastcolon=strrchr(path,':'); *lastcolon=0;
@@ -339,8 +339,7 @@ void set_new_value(char* path, char* buf, bool single)
   if(single){
     char* lastcolon=strrchr(path,':'); *lastcolon=0;
     char* uid=object_property(user, path);
-    keyval kv = { lastcolon+1, buf };
-    onex_run_evaluators(uid, &kv);
+    invoke_single_update(uid, lastcolon+1, buf);
     *lastcolon=':';
   }
   else{
@@ -357,12 +356,6 @@ void set_new_value(char* path, char* buf, bool single)
 }
 
 // ---------------
-
-void set_property_name(char* path , char* name)
-{
-  object* objectEditing = onex_get_from_cache(object_property(user, path));
-  object_property_set(objectEditing, name, (char*)"--");
-}
 
 static object* create_new_object_for_property_name(char* path, char* name);
 
@@ -672,7 +665,7 @@ void draw_object_footer(char* path, bool locallyEditable, int16_t width, int16_t
       if(*propNameBuf){
         if(!strcmp(propNameBuf, "Rules")) set_property_name_and_object(path, propNameBuf);
         else if(!strcmp(propNameBuf, "Notifying")) set_property_name_and_link(path, propNameBuf);
-        else set_property_name(path, propNameBuf);
+        else invoke_single_update(object_property(user, path), propNameBuf, (char*)"--");
         *propNameBuf=0;
       }
       hide_keyboard();
