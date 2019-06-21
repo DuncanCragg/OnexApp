@@ -398,22 +398,38 @@ object* create_new_object_for_property_name(char* path, char* name)
 
 object* create_new_object_like_others(char* path)
 {
-  object* r=object_new(0, (char*)"default", 0, 4);
-  bool filled=false;
+  object* r=0;
   int16_t ln = object_property_length(user, path);
+  int8_t maxsz=0;
   for(int i=1; i<=ln; i++){
     size_t l=strlen(path);
     snprintf(path+l, 128-l, ":%d", i);
     int8_t sz=object_property_size(user, path);
-    if(sz>0) for(int j=1; j<=sz; j++){
+    if(sz>maxsz) maxsz=sz;
+    path[l] = 0;
+  }
+  if(maxsz<4) maxsz=4;
+  r=object_new(0, (char*)"default", 0, maxsz);
+  char* is=0;
+  for(int i=ln; i>=1; i--){
+    size_t l=strlen(path);
+    snprintf(path+l, 128-l, ":%d", i);
+    int8_t sz=object_property_size(user, path);
+    for(int j=1; j<=sz; j++){
       char* key=object_property_key(user, path, j);
-      char* is=0; if(key && !strcmp(key,"is")) is=object_property_val(user, path, j);
-      object_property_set(r, key, is? is: (char*)"--");
-      filled=true;
+      if(!strcmp(key,"is")){
+        if(!is){
+          is=object_property_val(user, path, j);
+          object_property_set(r, (char*)"is", is);
+        }
+      }
+      else{
+        object_property_set(r, key, (char*)"--");
+      }
     }
     path[l] = 0;
   }
-  if(!filled) object_property_set(r, (char*)"is", (char*)"editable");
+  if(!is) object_property_set(r, (char*)"is", (char*)"editable");
   return r;
 }
 
