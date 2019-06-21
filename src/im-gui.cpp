@@ -152,7 +152,7 @@ void init_onex()
     object_property_set(taglookup, (char*)"celebrate", object_property(tagceleb, (char*)"UID"));
     object_property_set(taglookup, (char*)"love",      object_property(taglove,  (char*)"UID"));
 
-    object* links=object_new(0, 0, (char*)"links list", 4);
+    object* links=object_new(0, (char*)"default", (char*)"links list", 4);
     object_property_set(links, (char*)"list", object_property(taglookup, (char*)"UID"));
 
     user=object_new(0, (char*)"user", (char*)"user", 8);
@@ -526,9 +526,9 @@ void draw_object_header(char* path, bool locallyEditable, int16_t width, int8_t 
       if(!strncmp(path, "viewing-l", strlen("viewing-l"))){
         char* lastcolon=strrchr(path,':'); *lastcolon=0;
         char* secondlastcolon=strrchr(path, ':'); *secondlastcolon=0;
-        object* objectEditing = onex_get_from_cache(object_property(user, path));
+        char* uid=object_property(user, path);
         *lastcolon=':'; *secondlastcolon=':';
-        object_property_set(objectEditing, secondlastcolon+1, (char*)"");
+        invoke_single_update(uid, secondlastcolon+1, (char*)"");
       }
       else{
         object_property_set(user, path, (char*)"");
