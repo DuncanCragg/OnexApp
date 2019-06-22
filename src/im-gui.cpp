@@ -314,20 +314,21 @@ void invoke_single_update(char* uid, char* key, char* val)
 void set_new_tag(char* path, char* tag)
 {
   char* lastcolon=strrchr(path,':'); *lastcolon=0;
-  object* objectEditing = onex_get_from_cache(object_property(user, path));
+  char* uid=object_property(user, path);
+  object* objectEditing = onex_get_from_cache(uid);
   if(objectEditing){
     if(*tag){
       char tagpath[64]; snprintf(tagpath, 64, "taglookup:%s", tag);
       char* tagUID=object_property(config, tagpath);
       if(!tagUID) return;
       if(object_property_is(objectEditing, lastcolon+1, (char*)"--")){
-        object_property_set(objectEditing, lastcolon+1, tagUID);
+        invoke_single_update(uid, lastcolon+1, tagUID);
       }
       else object_property_add(objectEditing, lastcolon+1, tagUID);
     }
     else{
       if(object_property_is(objectEditing, lastcolon+1, (char*)"--")){
-        object_property_set(objectEditing, lastcolon+1, (char*)"");
+        invoke_single_update(uid, lastcolon+1, (char*)"");
       }
     }
   }
@@ -345,13 +346,9 @@ void set_new_value(char* path, char* buf, bool single)
   else{
     char* lastcolon=strrchr(path,':'); *lastcolon=0;
     char* secondlastcolon=strrchr(path, ':'); *secondlastcolon=0;
-    object* objectEditing = onex_get_from_cache(object_property(user, path));
-    *secondlastcolon=':';
-    *lastcolon=':';
-    if(objectEditing){
-      if(!*buf) object_property_set(objectEditing, secondlastcolon+1, (char*)"");
-      else object_property_set(objectEditing, secondlastcolon+1, buf);
-    }
+    char* uid=object_property(user, path);
+    *secondlastcolon=':'; *lastcolon=':';
+    invoke_single_update(uid, secondlastcolon+1, buf);
   }
 }
 
@@ -361,10 +358,10 @@ static object* create_new_object_for_property_name(char* path, char* name);
 
 void set_property_name_and_object(char* path , char* name)
 {
-  object* objectEditing = onex_get_from_cache(object_property(user, path));
+  char* uid=object_property(user, path);
   object* o = create_new_object_for_property_name(path, name);
-  if(o) object_property_set(objectEditing, name, object_property(o, (char*)"UID"));
-  else object_property_set(objectEditing, name, (char*)"--");
+  if(o) invoke_single_update(uid, name, object_property(o, (char*)"UID"));
+  else invoke_single_update(uid, name, (char*)"--");
 }
 
 char* pop_last(char* path)
@@ -380,8 +377,8 @@ void set_property_name_and_link(char* path , char* name)
 {
   char* lastlink=pop_last((char*)"viewing-r");
   if(!lastlink) return;
-  object* objectEditing = onex_get_from_cache(object_property(user, path));
-  object_property_set(objectEditing, name, lastlink);
+  char* uid=object_property(user, path);
+  invoke_single_update(uid, name, lastlink);
 }
 
 // -------------
@@ -729,12 +726,13 @@ void draw_new_value_or_object_button(char* path, int16_t width, int j, int8_t de
   char addObjId[256]; snprintf(addObjId, 256, "+object ## %s", pathj);
   if(ImGui::Button(addObjId, ImVec2(w, buttonHeight)) && !dragPathId){
     char* lastcolon=strrchr(path,':'); *lastcolon=0;
-    object* objectEditing = onex_get_from_cache(object_property(user, path));
+    char* uid=object_property(user, path);
+    object* objectEditing = onex_get_from_cache(uid);
     *lastcolon=':';
     object* o = create_new_object_like_others(path);
     if(o){
       if(object_property_is(objectEditing, lastcolon+1, (char*)"--")){
-        object_property_set(objectEditing, lastcolon+1, object_property(o, (char*)"UID"));
+        invoke_single_update(uid, lastcolon+1, object_property(o, (char*)"UID"));
       }
       else object_property_add(objectEditing, lastcolon+1, object_property(o, (char*)"UID"));
     }
@@ -748,10 +746,11 @@ void draw_new_value_or_object_button(char* path, int16_t width, int j, int8_t de
     char* lastlink=pop_last((char*)"viewing-r");
     if(lastlink){
       char* lastcolon=strrchr(path,':'); *lastcolon=0;
-      object* objectEditing = onex_get_from_cache(object_property(user, path));
+      char* uid=object_property(user, path);
+      object* objectEditing = onex_get_from_cache(uid);
       *lastcolon=':';
       if(object_property_is(objectEditing, lastcolon+1, (char*)"--")){
-        object_property_set(objectEditing, lastcolon+1, lastlink);
+        invoke_single_update(uid, lastcolon+1, lastlink);
       }
       else object_property_add(objectEditing, lastcolon+1, lastlink);
     }
