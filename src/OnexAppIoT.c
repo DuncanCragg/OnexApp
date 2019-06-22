@@ -3,7 +3,7 @@
 #include <onex-kernel/gpio.h>
 #include <onex-kernel/serial.h>
 #include <onf.h>
-#include <behaviours.h>
+#include <onr.h>
 
 object* button;
 object* light;
