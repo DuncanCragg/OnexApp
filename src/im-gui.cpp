@@ -301,7 +301,7 @@ void set_scaling()
 
 // ---------------
 
-void invoke_single_update(char* uid, char* key, char* val)
+void invoke_single_set(char* uid, char* key, char* val)
 {
   properties* update = properties_new(1);
   list*       li=list_new(2);
@@ -322,13 +322,13 @@ void set_new_tag(char* path, char* tag)
       char* tagUID=object_property(config, tagpath);
       if(!tagUID) return;
       if(object_property_is(objectEditing, lastcolon+1, (char*)"--")){
-        invoke_single_update(uid, lastcolon+1, tagUID);
+        invoke_single_set(uid, lastcolon+1, tagUID);
       }
       else object_property_add(objectEditing, lastcolon+1, tagUID);
     }
     else{
       if(object_property_is(objectEditing, lastcolon+1, (char*)"--")){
-        invoke_single_update(uid, lastcolon+1, (char*)"");
+        invoke_single_set(uid, lastcolon+1, (char*)"");
       }
     }
   }
@@ -340,7 +340,7 @@ void set_new_value(char* path, char* buf, bool single)
   if(single){
     char* lastcolon=strrchr(path,':'); *lastcolon=0;
     char* uid=object_property(user, path);
-    invoke_single_update(uid, lastcolon+1, buf);
+    invoke_single_set(uid, lastcolon+1, buf);
     *lastcolon=':';
   }
   else{
@@ -348,7 +348,7 @@ void set_new_value(char* path, char* buf, bool single)
     char* secondlastcolon=strrchr(path, ':'); *secondlastcolon=0;
     char* uid=object_property(user, path);
     *secondlastcolon=':'; *lastcolon=':';
-    invoke_single_update(uid, secondlastcolon+1, buf);
+    invoke_single_set(uid, secondlastcolon+1, buf);
   }
 }
 
@@ -360,8 +360,8 @@ void set_property_name_and_object(char* path , char* name)
 {
   char* uid=object_property(user, path);
   object* o = create_new_object_for_property_name(path, name);
-  if(o) invoke_single_update(uid, name, object_property(o, (char*)"UID"));
-  else invoke_single_update(uid, name, (char*)"--");
+  if(o) invoke_single_set(uid, name, object_property(o, (char*)"UID"));
+  else invoke_single_set(uid, name, (char*)"--");
 }
 
 char* pop_last(char* path)
@@ -378,7 +378,7 @@ void set_property_name_and_link(char* path , char* name)
   char* lastlink=pop_last((char*)"viewing-r");
   if(!lastlink) return;
   char* uid=object_property(user, path);
-  invoke_single_update(uid, name, lastlink);
+  invoke_single_set(uid, name, lastlink);
 }
 
 // -------------
@@ -525,7 +525,7 @@ void draw_object_header(char* path, bool locallyEditable, int16_t width, int8_t 
         char* secondlastcolon=strrchr(path, ':'); *secondlastcolon=0;
         char* uid=object_property(user, path);
         *lastcolon=':'; *secondlastcolon=':';
-        invoke_single_update(uid, secondlastcolon+1, (char*)"");
+        invoke_single_set(uid, secondlastcolon+1, (char*)"");
       }
       else{
         object_property_set(user, path, (char*)"");
@@ -678,7 +678,7 @@ void draw_object_footer(char* path, bool locallyEditable, int16_t width, int16_t
       if(*propNameBuf){
         if(!strcmp(propNameBuf, "Rules")) set_property_name_and_object(path, propNameBuf);
         else if(!strcmp(propNameBuf, "Notifying")) set_property_name_and_link(path, propNameBuf);
-        else invoke_single_update(object_property(user, path), propNameBuf, (char*)"--");
+        else invoke_single_set(object_property(user, path), propNameBuf, (char*)"--");
         *propNameBuf=0;
       }
       hide_keyboard();
@@ -732,7 +732,7 @@ void draw_new_value_or_object_button(char* path, int16_t width, int j, int8_t de
     object* o = create_new_object_like_others(path);
     if(o){
       if(object_property_is(objectEditing, lastcolon+1, (char*)"--")){
-        invoke_single_update(uid, lastcolon+1, object_property(o, (char*)"UID"));
+        invoke_single_set(uid, lastcolon+1, object_property(o, (char*)"UID"));
       }
       else object_property_add(objectEditing, lastcolon+1, object_property(o, (char*)"UID"));
     }
@@ -750,7 +750,7 @@ void draw_new_value_or_object_button(char* path, int16_t width, int j, int8_t de
       object* objectEditing = onex_get_from_cache(uid);
       *lastcolon=':';
       if(object_property_is(objectEditing, lastcolon+1, (char*)"--")){
-        invoke_single_update(uid, lastcolon+1, lastlink);
+        invoke_single_set(uid, lastcolon+1, lastlink);
       }
       else object_property_add(objectEditing, lastcolon+1, lastlink);
     }
