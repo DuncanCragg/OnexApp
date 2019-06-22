@@ -474,8 +474,7 @@ void draw_day_cell(char* path, struct tm* thisdate, int day, int col, int16_t wi
           char* evtuid=object_property(o, (char*)"UID");
           char* caluid=calendarUIDs[col];
           if(caluid){
-            object* objectEditing = onex_get_from_cache(caluid);
-            object_property_add(objectEditing, (char*)"list", evtuid);
+            invoke_single_add(caluid, (char*)"list", evtuid);
           }
           else{
             object_property_add(user, path, evtuid);

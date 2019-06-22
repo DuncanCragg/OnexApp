@@ -134,9 +134,9 @@ void make_link()
       char newpropname[128];
       if(!propname){ best_prop_name(newpropname, IM_ARRAYSIZE(newpropname), objectEditing, touid); propname=newpropname; }
       if(object_property_is(objectEditing, propname, (char*)"--")){
-        object_property_set(objectEditing, propname, touid);
+        invoke_single_set(fromuid, propname, touid);
       }
-      else object_property_add(objectEditing, propname, touid);
+      else invoke_single_add(fromuid, propname, touid);
     }
   }
   if(linkFrom) free(linkFrom); linkFrom=0;

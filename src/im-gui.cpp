@@ -311,6 +311,17 @@ void invoke_single_set(char* uid, char* key, char* val)
   onex_run_evaluators(uid, update);
 }
 
+void invoke_single_add(char* uid, char* key, char* val)
+{
+  properties* update = properties_new(1);
+  list*       li=list_new(3);
+  list_add(li, value_new((char*)"=>"));
+  list_add(li, value_new((char*)"@."));
+  list_add(li, value_new(val));
+  properties_set(update, value_new(key), li);
+  onex_run_evaluators(uid, update);
+}
+
 void set_new_tag(char* path, char* tag)
 {
   char* lastcolon=strrchr(path,':'); *lastcolon=0;
@@ -324,7 +335,7 @@ void set_new_tag(char* path, char* tag)
       if(object_property_is(objectEditing, lastcolon+1, (char*)"--")){
         invoke_single_set(uid, lastcolon+1, tagUID);
       }
-      else object_property_add(objectEditing, lastcolon+1, tagUID);
+      else invoke_single_add(uid, lastcolon+1, tagUID);
     }
     else{
       if(object_property_is(objectEditing, lastcolon+1, (char*)"--")){
@@ -734,7 +745,7 @@ void draw_new_value_or_object_button(char* path, int16_t width, int j, int8_t de
       if(object_property_is(objectEditing, lastcolon+1, (char*)"--")){
         invoke_single_set(uid, lastcolon+1, object_property(o, (char*)"UID"));
       }
-      else object_property_add(objectEditing, lastcolon+1, object_property(o, (char*)"UID"));
+      else invoke_single_add(uid, lastcolon+1, object_property(o, (char*)"UID"));
     }
   }
   if(!linkFrom) track_drag(addObjId, false);
@@ -752,7 +763,7 @@ void draw_new_value_or_object_button(char* path, int16_t width, int j, int8_t de
       if(object_property_is(objectEditing, lastcolon+1, (char*)"--")){
         invoke_single_set(uid, lastcolon+1, lastlink);
       }
-      else object_property_add(objectEditing, lastcolon+1, lastlink);
+      else invoke_single_add(uid, lastcolon+1, lastlink);
     }
   }
   if(!linkFrom) track_drag(addLnkId, false);

@@ -72,3 +72,6 @@ void set_scaling();
 
 void draw_gui();
 
+void invoke_single_set(char* uid, char* key, char* val);
+void invoke_single_add(char* uid, char* key, char* val);
+
