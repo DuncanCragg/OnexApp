@@ -702,7 +702,7 @@ void VulkanBase::prepareFrame()
 
 void VulkanBase::submitFrame()
 {
-  VK_CHECK_RESULT(swapChain.queuePresent(queue, currentBuffer, semaphores.renderComplete));
+                  swapChain.queuePresent(queue, currentBuffer, semaphores.renderComplete);
   VK_CHECK_RESULT(vkQueueWaitIdle(queue));
 }
 
