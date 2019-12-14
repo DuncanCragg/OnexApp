@@ -4,18 +4,21 @@ package network.object.onexapp;
 import java.io.ByteArrayOutputStream;
 
 import android.os.*;
-import android.view.*;
 import android.view.inputmethod.*;
 import android.view.ViewGroup.LayoutParams;
 import android.view.KeyEvent;
-import android.view.View.*;
 import android.widget.*;
 import android.text.*;
 import android.content.Context;
 import android.app.NativeActivity;
 import android.hardware.usb.*;
 import android.content.*;
+import android.util.Log;
 import android.app.*;
+
+import android.support.v4.content.LocalBroadcastManager;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 
 import com.felhr.usbserial.UsbSerialInterface;
 import com.felhr.usbserial.UsbSerialDevice;
@@ -26,12 +29,45 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
 
     static OnexNativeActivity self=null;
 
+    public static final String LOGNAME = "OnexApp";
+
+    private static UsbSerialDevice serialPort = null;
+
+    private static final int REQUEST_SELECT_DEVICE = 1;
+    private static final int REQUEST_ENABLE_BT = 2;
+    private static final int UART_PROFILE_CONNECTED = 20;
+    private static final int UART_PROFILE_DISCONNECTED = 21;
+
+    private UartService uartService = null;
+
+ // uartService.disconnect();
+ // showMessage("nRFUART running in background.\nDisconnect to exit");
+
+    private BluetoothAdapter bluetoothAdapter = null;
+    private BluetoothDevice bluetoothDevice = null;
+
     @Override
     public void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState); System.out.println("onCreate");
         self=this;
         setUpKeyboardView();
         System.loadLibrary("onexapp");
+
+        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (bluetoothAdapter != null) {
+
+          bindToUARTService();
+
+          if (!bluetoothAdapter.isEnabled()) {
+            Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
+          }
+          else {
+            Intent newIntent = new Intent(this, DeviceListActivity.class);
+            startActivityForResult(newIntent, REQUEST_SELECT_DEVICE);
+          }
+        }
+        else Toast.makeText(this, "Bluetooth is not available", Toast.LENGTH_LONG).show();
     }
 
     @Override
@@ -47,6 +83,11 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
     @Override
     public void onResume(){
         super.onResume(); System.out.println("onResume");
+        if (!bluetoothAdapter.isEnabled()) {
+            Log.i(LOGNAME, "BT not enabled yet");
+            Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
+        }
     }
 
     @Override
@@ -63,6 +104,14 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
     public void onDestroy(){
         super.onDestroy(); System.out.println("onDestroy");
         self=null;
+        try {
+            LocalBroadcastManager.getInstance(this).unregisterReceiver(UARTStatusChangeReceiver);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        unbindService(serviceConnection);
+        uartService.stopSelf();
+        uartService= null;
     }
 
     // -----------------------------------------------------------
@@ -126,7 +175,7 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
             public void beforeTextChanged(CharSequence s, int start, int count, int after){}
             public void afterTextChanged(Editable s){}
         });
-        addContentView(kbdView, new ViewGroup.LayoutParams(10, 10));
+        addContentView(kbdView, new LayoutParams(10, 10));
     }
 
     public void activateKey(int keyCode, int ch){
@@ -160,24 +209,25 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
 
     public static native void onSerialRecv(String b);
 
-    private UsbSerialInterface.UsbReadCallback recvCB = new UsbSerialInterface.UsbReadCallback() {
-        ByteArrayOutputStream buff = new ByteArrayOutputStream();
-        @Override
-        public void onReceivedData(byte[] data) {
-          try{
-            buff.write(data);
-            String chars = buff.toString("UTF-8");
-            int x = chars.lastIndexOf('\n');
-            if(x == -1) return;
-            String newChars = chars.substring(0,x+1);
-            buff.reset();
-            buff.write(chars.substring(x+1).getBytes());
-            onSerialRecv(newChars);
-          }catch(Exception e){}
-        }
-    };
+    ByteArrayOutputStream buff = new ByteArrayOutputStream();
 
-    UsbSerialDevice serialPort = null;
+    private void dataRecv(byte[] data) {
+      try{
+        buff.write(data);
+        String chars = buff.toString("UTF-8");
+        int x = chars.lastIndexOf('\n');
+        if(x == -1) return;
+        String newChars = chars.substring(0,x+1);
+        buff.reset();
+        buff.write(chars.substring(x+1).getBytes());
+        onSerialRecv(newChars);
+      }catch(Exception e){}
+    }
+
+    private UsbSerialInterface.UsbReadCallback recvCB = new UsbSerialInterface.UsbReadCallback() {
+        @Override
+        public void onReceivedData(byte[] data) { dataRecv(data); }
+    };
 
     @Override
     protected void onNewIntent(Intent intent){
@@ -199,9 +249,120 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
       serialPort.read(recvCB);
     }
 
-    public void serialSend(String chars)
-    {
-      if(serialPort!=null) try{ serialPort.write(chars.getBytes("UTF-8")); }catch(Exception e){}
+    // -----------------------------------------------------------
+
+    private ServiceConnection serviceConnection = new ServiceConnection() {
+        public void onServiceConnected(ComponentName className, IBinder rawBinder) {
+            uartService = ((UartService.LocalBinder)rawBinder).getService();
+            Log.d(LOGNAME, "UART Service= " + uartService);
+            if (!uartService.initialize()) {
+              Log.e(LOGNAME, "Unable to initialize UART service");
+            }
+        }
+
+        public void onServiceDisconnected(ComponentName classname) {
+            uartService = null;
+        }
+    };
+
+    private void bindToUARTService() {
+        Intent bindIntent = new Intent(this, UartService.class);
+        bindService(bindIntent, serviceConnection, Context.BIND_AUTO_CREATE);
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(UartService.ACTION_GATT_CONNECTED);
+        intentFilter.addAction(UartService.ACTION_GATT_DISCONNECTED);
+        intentFilter.addAction(UartService.ACTION_GATT_SERVICES_DISCOVERED);
+        intentFilter.addAction(UartService.ACTION_DATA_AVAILABLE);
+        intentFilter.addAction(UartService.DEVICE_DOES_NOT_SUPPORT_UART);
+        LocalBroadcastManager.getInstance(this).registerReceiver(UARTStatusChangeReceiver, intentFilter);
+    }
+
+    private final BroadcastReceiver UARTStatusChangeReceiver = new BroadcastReceiver() {
+
+        ByteArrayOutputStream buff = new ByteArrayOutputStream();
+
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+
+            if (action.equals(UartService.ACTION_GATT_CONNECTED)) {
+               runOnUiThread(new Runnable() {
+                 public void run() {
+                   Log.d(LOGNAME, "connected");
+                 }
+               });
+            }
+
+            if (action.equals(UartService.ACTION_GATT_DISCONNECTED)) {
+               runOnUiThread(new Runnable() {
+                 public void run() {
+                   Log.d(LOGNAME, "disconnected");
+                   uartService.close();
+                 }
+               });
+            }
+
+            if (action.equals(UartService.ACTION_GATT_SERVICES_DISCOVERED)) {
+                uartService.enableTXNotification();
+            }
+
+            if (action.equals(UartService.ACTION_DATA_AVAILABLE)) {
+                try {
+                    byte[] data = intent.getByteArrayExtra(UartService.EXTRA_DATA);
+                    dataRecv(data);
+                } catch (Exception e) {
+                    Log.e(LOGNAME, e.toString());
+                }
+            }
+
+            if (action.equals(UartService.DEVICE_DOES_NOT_SUPPORT_UART)){
+              showMessage("Device doesn't support UART. Disconnecting");
+              uartService.disconnect();
+            }
+        }
+    };
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+      switch (requestCode) {
+
+        case REQUEST_ENABLE_BT:
+            if (resultCode == Activity.RESULT_OK) {
+                Toast.makeText(this, "Bluetooth enabled", Toast.LENGTH_SHORT).show();
+                Intent newIntent = new Intent(this, DeviceListActivity.class);
+                startActivityForResult(newIntent, REQUEST_SELECT_DEVICE);
+            } else {
+                Log.d(LOGNAME, "BT not enabled");
+                Toast.makeText(this, "Bluetooth not enabled", Toast.LENGTH_SHORT).show();
+            }
+            break;
+        case REQUEST_SELECT_DEVICE:
+            if (resultCode == Activity.RESULT_OK && data != null) {
+                String deviceAddress = data.getStringExtra(BluetoothDevice.EXTRA_DEVICE);
+                bluetoothDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(deviceAddress);
+                Log.d(LOGNAME, "device selected, address=" + bluetoothDevice);
+                uartService.connect(deviceAddress);
+            }
+            break;
+        default:
+            Log.e(LOGNAME, "wrong request code");
+            break;
+      }
+    }
+
+    // -----------------------------------------------------------
+
+    public void serialSend(String chars){
+      try {
+        if (uartService!=null){
+          uartService.writeRXCharacteristic(chars.getBytes("UTF-8"));
+        }
+        else
+        if(serialPort!=null){
+          serialPort.write(chars.getBytes("UTF-8"));
+        }
+      }catch(Exception e){
+        e.printStackTrace();
+      }
     }
 
     // -----------------------------------------------------------
@@ -232,6 +393,12 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
                   .setContentIntent(pendingIntent);
       NotificationManager notifMgr = (NotificationManager)this.getSystemService(this.NOTIFICATION_SERVICE);
       notifMgr.notify(12345, notifbuilder.build());
+    }
+
+    // -----------------------------------------------------------
+
+    private void showMessage(String msg) {
+        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
 
     // -----------------------------------------------------------

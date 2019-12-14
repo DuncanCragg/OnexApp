@@ -4,14 +4,18 @@
   android:versionCode="1"
   android:versionName="1.0">
 
-  <uses-sdk android:minSdkVersion="24" />
+  <uses-sdk android:minSdkVersion="24" android:targetSdkVersion="24" />
 
   <uses-feature android:name="android.hardware.touchscreen" android:required="false"/>
   <uses-feature android:name="android.hardware.gamepad" android:required="false"/>
   <uses-feature android:name="android.software.leanback" android:required="false"/>
   <uses-feature android:name="android.hardware.usb.host"/>
+  <uses-feature android:name="android.hardware.bluetooth_le" android:required="true"/>
 
   <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+  <uses-permission android:name="android.permission.BLUETOOTH" />
+  <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+  <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 
   <application android:allowBackup="false"
                android:label="onexapp"
@@ -41,6 +45,13 @@
                  android:resource="@xml/device_filter"/>
 
     </activity>
+
+    <activity android:name=".DeviceListActivity"
+              android:label="@string/device_list_name"
+              android:theme="@android:style/Theme.Dialog"/>
+
+    <service android:name=".UartService"
+             android:enabled="true" />
 
     <receiver android:name=".AlarmReceiver" android:exported="false" >
         <intent-filter>
