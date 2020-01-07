@@ -151,16 +151,22 @@ void init_onex()
     object_property_set(taglookup, (char*)"train",     object_property(tagtrain, (char*)"UID"));
     object_property_set(taglookup, (char*)"celebrate", object_property(tagceleb, (char*)"UID"));
     object_property_set(taglookup, (char*)"love",      object_property(taglove,  (char*)"UID"));
-
+/*
     object* links=object_new(0, (char*)"default", (char*)"links list", 4);
     object_property_set(links, (char*)"list", object_property(taglookup, (char*)"UID"));
-
+*/
     user=object_new(0, (char*)"user", (char*)"user", 8);
     userUID=object_property(user, (char*)"UID");
-    object_property_set(user, (char*)"viewing-l", object_property(links, (char*)"UID"));
+
+    object* device=onex_get_device();
+    char* deviceUID=object_property(device, (char*)"UID");
+    object_property_set(device, (char*)"user", userUID);
+
+    object_property_set(user, (char*)"viewing-l", object_property(device, (char*)"UID"));
 
     config=object_new((char*)"uid-0", 0, (char*)"config", 10);
     object_property_set(config, (char*)"user", userUID);
+    object_property_set(config, (char*)"device", deviceUID);
     object_property_set(config, (char*)"taglookup", object_property(taglookup, (char*)"UID"));
   }
   else{
