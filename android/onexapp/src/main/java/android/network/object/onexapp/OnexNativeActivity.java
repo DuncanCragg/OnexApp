@@ -354,7 +354,7 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
     public void serialSend(String chars){
       try {
         if (uartService!=null){
-          uartService.writeRXCharacteristic(chars.getBytes("UTF-8"));
+          uartService.write(chars.getBytes("UTF-8"));
         }
         else
         if(serialPort!=null){

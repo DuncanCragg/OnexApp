@@ -40,7 +40,10 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import java.util.List;
+import java.util.ArrayList;
 import java.util.UUID;
+import java.util.Arrays;
+import java.lang.Math;
 
 /**
  * Service for managing connection and data communication with a GATT server hosted on a
@@ -112,6 +115,18 @@ public class UartService extends Service {
                                          int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
+            }
+        }
+
+        @Override
+        public void onCharacteristicWrite(BluetoothGatt gatt,
+                                          BluetoothGattCharacteristic characteristic,
+                                          int status) {
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+              writeAChunk();
+            }
+            else {
+              Log.w(LOGNAME, "onCharacteristicWrite "+status+"!=SUCCESS");
             }
         }
 
@@ -306,6 +321,31 @@ public class UartService extends Service {
 
     }
 
+    private ArrayList writeChunks=new ArrayList();
+
+    public void write(byte[] value){
+      if(writeChunks.size() !=0){
+        System.out.println("Already writing! (FIXME). Dropped: "+new String(value));
+        return;
+      }
+      int MAX_TX_LEN=20;
+      int s=0;
+      int e;
+      while(s<value.length){
+        e=s+Math.min(value.length-s, MAX_TX_LEN);
+        byte[] slice = Arrays.copyOfRange(value, s, e);
+        writeChunks.add(slice);
+        s=e;
+      }
+      writeAChunk();
+    }
+
+    private void writeAChunk(){
+      if(writeChunks.size()==0) return;
+      byte[] slice = (byte[])writeChunks.remove(0);
+      writeRXCharacteristic(slice);
+    }
+
     public void writeRXCharacteristic(byte[] value)
     {
         if (bluetoothGATT == null) {
@@ -328,7 +368,7 @@ public class UartService extends Service {
         RxChar.setValue(value);
         boolean status = bluetoothGATT.writeCharacteristic(RxChar);
 
-        Log.d(LOGNAME, "write TXchar - status=" + status);
+        Log.d(LOGNAME, "write TXchar (" + new String(value) + ") status=" + status);
     }
 
     private void showMessage(String msg) {
