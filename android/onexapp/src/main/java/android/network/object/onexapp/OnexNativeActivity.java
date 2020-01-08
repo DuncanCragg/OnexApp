@@ -356,7 +356,6 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
         if (uartService!=null){
           uartService.write(chars.getBytes("UTF-8"));
         }
-        else
         if(serialPort!=null){
           serialPort.write(chars.getBytes("UTF-8"));
         }
