@@ -207,7 +207,11 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
 
     // -----------------------------------------------------------
 
-    public static native void onSerialRecv(String b);
+    private void asyncConnected(){
+        new Thread(){ public void run(){ serialOnRecv(null); }}.start();
+    }
+
+    public static native void serialOnRecv(String b);
 
     ByteArrayOutputStream buff = new ByteArrayOutputStream();
 
@@ -220,7 +224,7 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
         String newChars = chars.substring(0,x+1);
         buff.reset();
         buff.write(chars.substring(x+1).getBytes());
-        onSerialRecv(newChars);
+        serialOnRecv(newChars);
       }catch(Exception e){}
     }
 
@@ -247,6 +251,7 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
       serialPort.setParity(UsbSerialInterface.PARITY_NONE);
       serialPort.setFlowControl(UsbSerialInterface.FLOW_CONTROL_OFF);
       serialPort.read(recvCB);
+      asyncConnected();
     }
 
     // -----------------------------------------------------------
@@ -272,6 +277,7 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
         intentFilter.addAction(UartService.ACTION_GATT_CONNECTED);
         intentFilter.addAction(UartService.ACTION_GATT_DISCONNECTED);
         intentFilter.addAction(UartService.ACTION_GATT_SERVICES_DISCOVERED);
+        intentFilter.addAction(UartService.ACTION_UART_CONNECTED);
         intentFilter.addAction(UartService.ACTION_DATA_AVAILABLE);
         intentFilter.addAction(UartService.DEVICE_DOES_NOT_SUPPORT_UART);
         LocalBroadcastManager.getInstance(this).registerReceiver(UARTStatusChangeReceiver, intentFilter);
@@ -286,6 +292,11 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
 
             if (action.equals(UartService.ACTION_GATT_CONNECTED)) {
                 Log.d(LOGNAME, "gatt connected");
+            }
+
+            if (action.equals(UartService.ACTION_UART_CONNECTED)) {
+                Log.d(LOGNAME, "uart connected");
+                asyncConnected();
             }
 
             if (action.equals(UartService.ACTION_GATT_DISCONNECTED)) {

@@ -388,13 +388,13 @@ JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyRelea
   static_gui->keyReleased(keyCode);
 }
 
-void on_serial_recv(char* b);
+extern void serial_on_recv(char* b);
 
-JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onSerialRecv(JNIEnv* env, jobject thiz, jstring b)
+JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_serialOnRecv(JNIEnv* env, jobject thiz, jstring b)
 {
-  const char* chars = env->GetStringUTFChars(b, 0);
-  on_serial_recv((char*)chars);
-  env->ReleaseStringUTFChars(b, chars);
+  const char* chars = b? env->GetStringUTFChars(b, 0): 0;
+  serial_on_recv((char*)chars);
+  if(b) env->ReleaseStringUTFChars(b, chars);
 }
 
 JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onAlarmRecv(JNIEnv* env, jobject thiz, jstring juid)
