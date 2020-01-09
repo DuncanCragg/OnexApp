@@ -285,23 +285,20 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
             String action = intent.getAction();
 
             if (action.equals(UartService.ACTION_GATT_CONNECTED)) {
-               runOnUiThread(new Runnable() {
-                 public void run() {
-                   Log.d(LOGNAME, "connected");
-                 }
-               });
+                Log.d(LOGNAME, "gatt connected");
             }
 
             if (action.equals(UartService.ACTION_GATT_DISCONNECTED)) {
-               runOnUiThread(new Runnable() {
-                 public void run() {
-                   Log.d(LOGNAME, "disconnected");
-                   uartService.close();
-                 }
-               });
+                runOnUiThread(new Runnable() {
+                  public void run() {
+                    Log.d(LOGNAME, "disconnected");
+                    uartService.close();
+                  }
+                });
             }
 
             if (action.equals(UartService.ACTION_GATT_SERVICES_DISCOVERED)) {
+                Log.d(LOGNAME, "services discovered");
                 uartService.enableTXNotification();
             }
 
