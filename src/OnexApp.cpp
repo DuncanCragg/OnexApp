@@ -32,15 +32,25 @@ void showOrHideSoftKeyboard(bool show)
 
 void serial_send(char* b)
 {
+  JavaVM* vm = androidApp->activity->vm;
   JNIEnv* env;
-  androidApp->activity->vm->AttachCurrentThread(&env, 0);
+  jint res = vm->GetEnv((void**)&env, JNI_VERSION_1_6);
+  bool attached=false;
+  if(res!=JNI_OK) {
+     res=vm->AttachCurrentThread(&env, 0);
+     if(res!=JNI_OK){
+         log_write("Failed to AttachCurrentThread, ErrorCode: %d sending: %s", res, b);
+         return;
+     }
+     attached=true;
+  }
   jobject nativeActivity = androidApp->activity->clazz;
   jclass nativeActivityClass = env->GetObjectClass(nativeActivity);
   jmethodID method = env->GetMethodID(nativeActivityClass, "serialSend", "(Ljava/lang/String;)V");
   jstring buff = env->NewStringUTF(b);
   env->CallVoidMethod(nativeActivity, method, buff);
   env->DeleteLocalRef(buff);
-  androidApp->activity->vm->DetachCurrentThread();
+  if(attached) vm->DetachCurrentThread();
 }
 
 void showNotification(char* title, char* text)
