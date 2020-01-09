@@ -341,29 +341,34 @@ public class UartService extends Service {
     private void writeAChunk(){
       if(writeChunks.size()==0) return;
       byte[] slice = (byte[])writeChunks.remove(0);
-      writeRXCharacteristic(slice);
+      boolean ok=writeRXCharacteristic(slice);
+      if(!ok){
+        Log.d(LOGNAME, "can't send, dropping: "+new String(slice));
+        writeChunks.clear();
+      }
     }
 
-    public void writeRXCharacteristic(byte[] value)
+    public boolean writeRXCharacteristic(byte[] value)
     {
         if (bluetoothGATT == null) {
             Log.e(LOGNAME, "UART GATT not there yet");
-            return;
+            return false;
         }
         BluetoothGattService RxService = bluetoothGATT.getService(RX_SERVICE_UUID);
         if (RxService == null) {
             Log.e(LOGNAME, "Rx service not found!");
-            return;
+            return false;
         }
         BluetoothGattCharacteristic RxChar = RxService.getCharacteristic(RX_CHAR_UUID);
         if (RxChar == null) {
             Log.e(LOGNAME, "Rx charateristic not found!");
-            return;
+            return false;
         }
         RxChar.setValue(value);
         boolean status = bluetoothGATT.writeCharacteristic(RxChar);
 
         Log.d(LOGNAME, "write TXchar (" + new String(value) + ") status=" + status);
+        return status;
     }
 
     /**
