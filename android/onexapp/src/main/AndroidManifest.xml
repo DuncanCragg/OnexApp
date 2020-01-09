@@ -23,7 +23,7 @@
                android:hasCode="true">
 
     <activity android:name="OnexNativeActivity"
-              android:label="Onex"
+              android:label="OnexApp"
               android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
               android:launchMode="singleTask"
               android:screenOrientation="landscape"
