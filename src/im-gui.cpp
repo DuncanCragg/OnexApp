@@ -158,11 +158,10 @@ void init_onex()
     user=object_new(0, (char*)"user", (char*)"user", 8);
     userUID=object_property(user, (char*)"UID");
 
-    object* device=onex_get_device();
-    char* deviceUID=object_property(device, (char*)"UID");
-    object_property_set(device, (char*)"user", userUID);
+    char* deviceUID=object_property(onex_device_object, (char*)"UID");
+    object_property_set(onex_device_object, (char*)"user", userUID);
 
-    object_property_set(user, (char*)"viewing-l", object_property(device, (char*)"UID"));
+    object_property_set(user, (char*)"viewing-l", object_property(onex_device_object, (char*)"UID"));
 
     config=object_new((char*)"uid-0", 0, (char*)"config", 10);
     object_property_set(config, (char*)"user", userUID);
@@ -889,7 +888,7 @@ void draw_nested_object_properties_list(char* path, bool locallyEditable, int16_
         if(!is_uid(val)){
           draw_new_property_value_editor(path, 0, val, false, locallyEditable, width-rhsPadding, buttonHeight, depth);
         }else{
-          bool locallyEditable = object_is_local(val);
+          bool locallyEditable = is_local(val);
           draw_object_properties(path, locallyEditable, width-rhsPadding, height, depth+1);
         }
         draw_padding(path, width-rhsPadding, paddingHeight, depth);
@@ -930,7 +929,7 @@ void draw_view()
       int8_t s=strlen("viewing-l")+1;
       char path[s]; memcpy(path, "viewing-l", s);
       char* uid=object_property(user, (char*)"viewing-l");
-      bool locallyEditable = object_is_local(uid);
+      bool locallyEditable = is_local(uid);
       draw_object_properties(path, locallyEditable, workspace1Width-rhsPadding, workspace1Height, 1);
     }
     ImGui::EndChild();
