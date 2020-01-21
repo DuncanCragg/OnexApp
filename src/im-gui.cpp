@@ -416,7 +416,7 @@ object* create_new_object_like_others(char* path)
   int8_t maxsz=0;
   for(int i=1; i<=ln; i++){
     size_t l=strlen(path);
-    snprintf(path+l, 128-l, ":%d", i);
+    snprintf(path+l, 128-l, ":%d:", i);
     int8_t sz=object_property_size(user, path);
     if(sz>maxsz) maxsz=sz;
     path[l] = 0;
@@ -426,7 +426,7 @@ object* create_new_object_like_others(char* path)
   char* is=0;
   for(int i=ln; i>=1; i--){
     size_t l=strlen(path);
-    snprintf(path+l, 128-l, ":%d", i);
+    snprintf(path+l, 128-l, ":%d:", i);
     int8_t sz=object_property_size(user, path);
     for(int j=1; j<=sz; j++){
       char* key=object_property_key(user, path, j);
@@ -474,9 +474,10 @@ void get_summary(char* path, char* summary)
 int16_t calculate_key_width(char* path)
 {
   int16_t w=0;
-  int8_t sz = object_property_size(user, path);
+  char pathcolon[128]; snprintf(pathcolon, 128, "%s:", path);
+  int8_t sz = object_property_size(user, pathcolon);
   if(sz>0) for(int i=1; i<=sz; i++){
-    char* key=object_property_key(user, path, i);
+    char* key=object_property_key(user, pathcolon, i);
     if(key){
       int16_t l=strlen(key);
       if(l > w) w=l;
@@ -489,9 +490,10 @@ int16_t calculate_scroller_height(char* path, int16_t height)
 {
   int16_t heightforscrollers=height-2.5*buttonHeight;
   int8_t  numberofscrollers=0;
-  int8_t sz = object_property_size(user, path);
+  char pathcolon[128]; snprintf(pathcolon, 128, "%s:", path);
+  int8_t sz = object_property_size(user, pathcolon);
   if(sz>0) for(int i=1; i<=sz; i++){
-    char* key=object_property_key(user, path, i);
+    char* key=object_property_key(user, pathcolon, i);
     char pathkey[128]; size_t l = snprintf(pathkey, 128, "%s:%s", path, key);
     uint16_t ln = object_property_length(user, pathkey);
     uint32_t wid=0;
@@ -807,9 +809,10 @@ void draw_object_properties(char* path, bool locallyEditable, int16_t width, int
   if(strcmp(path, "viewing-l") && !is_open(path)) return;
   int16_t scrollerheight=calculate_scroller_height(path, height);
   int16_t keyWidth=calculate_key_width(path);
-  int8_t sz = object_property_size(user, path);
+  char pathcolon[128]; snprintf(pathcolon, 128, "%s:", path);
+  int8_t sz = object_property_size(user, pathcolon);
   if(sz>0) for(int i=1; i<=sz; i++){
-    char* key=object_property_key(user, path, i);
+    char* key=object_property_key(user, pathcolon, i);
     char pathkey[128]; size_t l = snprintf(pathkey, 128, "%s:%s", path, key);
     if(!key) log_write("key=null: path=%s pathkey=%s i=%d sz=%d values: %s value: %s\n", path, pathkey, i, sz, object_property(user, pathkey), object_property_val(user, path, i));
     uint16_t ln = object_property_length(user, pathkey);
