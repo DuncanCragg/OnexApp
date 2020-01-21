@@ -92,6 +92,8 @@ char*   userUID=0;
 static bool evaluate_default(object* o, void* d)
 {
   log_write("evaluate_default data=%p\n", d); object_log(o);
+  char* alerted_is=object_property(o, (char*)"Alerted:is");
+  log_write("alerted_is: %s\n", alerted_is);
   return true;
 }
 
@@ -158,6 +160,7 @@ void init_onex()
     user=object_new(0, (char*)"user", (char*)"user", 8);
     userUID=object_property(user, (char*)"UID");
 
+    object_set_evaluator(onex_device_object, (char*)"default");
     char* deviceUID=object_property(onex_device_object, (char*)"UID");
     object_property_set(onex_device_object, (char*)"user", userUID);
 
@@ -308,16 +311,19 @@ void set_scaling()
 
 void invoke_single_set(char* uid, char* key, char* val)
 {
+log_write("invoke_single_set %s %s %s\n", uid, key, val);
   properties* update = properties_new(1);
   list*       li=list_new(2);
   list_add(li, value_new((char*)"=>"));
   list_add(li, value_new(val));
   properties_set(update, value_new(key), li);
+item_log(update);
   onex_run_evaluators(uid, update);
 }
 
 void invoke_single_add(char* uid, char* key, char* val)
 {
+log_write("invoke_single_add %s %s %s\n", uid, key, val);
   properties* update = properties_new(1);
   list*       li=list_new(3);
   list_add(li, value_new((char*)"=>"));
@@ -897,7 +903,7 @@ void draw_nested_object_properties_list(char* path, bool locallyEditable, int16_
         draw_padding(path, width-rhsPadding, paddingHeight, depth);
         path[l] = 0;
       }
-      if(locallyEditable) draw_new_value_or_object_button(path, width-rhsPadding, j, depth, false);
+      if(locallyEditable) draw_new_value_or_object_button(path, width-rhsPadding, j, depth, true);
     }
   }
   ImGui::EndChild();
