@@ -513,7 +513,7 @@ int16_t calculate_scroller_height(char* path, int16_t height)
 
 // ---------------
 
-void draw_object_header(char* path, bool locallyEditable, int16_t width, int8_t depth)
+void draw_object_header(char* path, bool isEditable, int16_t width, int8_t depth)
 {
   bool nodarken=depth<DARKEN_DEPTH;
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0,0));
@@ -591,7 +591,7 @@ void draw_object_header(char* path, bool locallyEditable, int16_t width, int8_t 
   ImGui::PopStyleVar(1);
 }
 
-void draw_new_property_value_editor(char* path, char* propname, char* val, bool single, bool locallyEditable, int16_t width, int16_t height, int8_t depth)
+void draw_new_property_value_editor(char* path, char* propname, char* val, bool single, bool isEditable, int16_t width, int16_t height, int8_t depth)
 {
   if(!val){ log_write("val==null: path=%s\n", path); return; }
   static int blurrer=0;
@@ -620,7 +620,7 @@ void draw_new_property_value_editor(char* path, char* propname, char* val, bool 
     if(height==buttonHeight){ ImGui::InputText(valId, valBuf, IM_ARRAYSIZE(valBuf), flags); multy=0; }
     else                      ImGui::InputTextMultiline(valId, valBuf, IM_ARRAYSIZE(valBuf), ImVec2(width, height), flags);
     if(ImGui::IsItemActive() && ImGui::IsMouseReleased(0) && !dragPathId){
-      if(locallyEditable){
+      if(isEditable){
         propNameEditing = strdup(path);
         show_keyboard(multy);
       }
@@ -646,10 +646,10 @@ void draw_new_property_value_editor(char* path, char* propname, char* val, bool 
   ImGui::PopItemWidth();
 }
 
-void draw_object_footer(char* path, bool locallyEditable, int16_t width, int16_t keyWidth, int8_t depth)
+void draw_object_footer(char* path, bool isEditable, int16_t width, int16_t keyWidth, int8_t depth)
 {
   if(depth>=3) return;
-  if(!locallyEditable) return;
+  if(!isEditable) return;
   static bool grabbedFocus=false;
   static char propNameBuf[256] = "";
   ImGuiIO& io = ImGui::GetIO();
@@ -796,18 +796,18 @@ void draw_key(char* path, char* key, int16_t width, int16_t height, int16_t keyW
   ImGui::SameLine();
 }
 
-static void draw_nested_object_properties_list(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth);
+static void draw_nested_object_properties_list(char* path, bool isEditable, int16_t width, int16_t height, int8_t depth);
 
-void draw_property_list(char* path, char* key, bool locallyEditable, int16_t width, int16_t height, int16_t keyWidth, int8_t depth)
+void draw_property_list(char* path, char* key, bool isEditable, int16_t width, int16_t height, int16_t keyWidth, int8_t depth)
 {
   if(width < 200) return;
   draw_key(path, key, width, height, keyWidth, depth);
-  draw_nested_object_properties_list(path, locallyEditable, width-keyWidth, height, depth);
+  draw_nested_object_properties_list(path, isEditable, width-keyWidth, height, depth);
 }
 
-void draw_object_properties(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth)
+void draw_object_properties(char* path, bool isEditable, int16_t width, int16_t height, int8_t depth)
 {
-  draw_object_header(path, locallyEditable, width, depth);
+  draw_object_header(path, isEditable, width, depth);
   if(strcmp(path, "viewing-l") && !is_open(path)) return;
   int16_t scrollerheight=calculate_scroller_height(path, height);
   int16_t keyWidth=calculate_key_width(path);
@@ -827,17 +827,17 @@ void draw_object_properties(char* path, bool locallyEditable, int16_t width, int
     int hgt;
     if(wid >0) hgt=(wid/40+1)*buttonHeight;
     else       hgt=scrollerheight;
-    if(hgt>=buttonHeight) draw_property_list(pathkey, key, locallyEditable, width, hgt, keyWidth, depth);
+    if(hgt>=buttonHeight) draw_property_list(pathkey, key, isEditable, width, hgt, keyWidth, depth);
     else{
       char blnId[256]; snprintf(blnId, 256, "##filler %d %d %s", width, hgt, pathkey);
       ImGui::Button(blnId, ImVec2(width, paddingHeight));
       track_drag(blnId, true);
     }
   }
-  draw_object_footer(path, locallyEditable, width, keyWidth, depth);
+  draw_object_footer(path, isEditable, width, keyWidth, depth);
 }
 
-void draw_nested_object_properties_list(char* path, bool locallyEditable, int16_t width, int16_t height, int8_t depth)
+void draw_nested_object_properties_list(char* path, bool isEditable, int16_t width, int16_t height, int8_t depth)
 {
   bool oneline=(height==buttonHeight);
   bool multiln=false;
@@ -878,7 +878,7 @@ void draw_nested_object_properties_list(char* path, bool locallyEditable, int16_
   {
     if(oneline || multiln){
       if(n) textlines[n-1]=0;
-      draw_new_property_value_editor(path, 0, textlines, true, locallyEditable, width, height, depth);
+      draw_new_property_value_editor(path, 0, textlines, true, isEditable, width, height, depth);
     }
     else
     if(newline){
@@ -891,15 +891,16 @@ void draw_nested_object_properties_list(char* path, bool locallyEditable, int16_
         char* val=object_property_get_n(user, path, j);
         snprintf(path+l, 128-l, ":%d", j);
         if(!is_uid(val)){
-          draw_new_property_value_editor(path, 0, val, false, locallyEditable, width-rhsPadding, buttonHeight, depth);
+          draw_new_property_value_editor(path, 0, val, false, isEditable, width-rhsPadding, buttonHeight, depth);
         }else{
-          bool locallyEditable = is_local(val);
-          draw_object_properties(path, locallyEditable, width-rhsPadding, height, depth+1);
+          char pathis[128]; snprintf(pathis, 128, "%s:is", path);
+          bool isEditable = is_local(val) || object_property_contains(user, pathis, (char*)"editable");
+          draw_object_properties(path, isEditable, width-rhsPadding, height, depth+1);
         }
         draw_padding(path, width-rhsPadding, paddingHeight, depth);
         path[l] = 0;
       }
-      if(locallyEditable) draw_new_value_or_object_button(path, width-rhsPadding, j, depth, true);
+      if(isEditable) draw_new_value_or_object_button(path, width-rhsPadding, j, depth, true);
     }
   }
   ImGui::EndChild();
@@ -934,8 +935,8 @@ void draw_view()
       int8_t s=strlen("viewing-l")+1;
       char path[s]; memcpy(path, "viewing-l", s);
       char* uid=object_property(user, (char*)"viewing-l");
-      bool locallyEditable = is_local(uid);
-      draw_object_properties(path, locallyEditable, workspace1Width-rhsPadding, workspace1Height, 1);
+      bool isEditable = is_local(uid) || object_property_contains(user, (char*)"viewing-l:is", (char*)"editable");
+      draw_object_properties(path, isEditable, workspace1Width-rhsPadding, workspace1Height, 1);
     }
     ImGui::EndChild();
 
