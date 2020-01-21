@@ -122,6 +122,7 @@ extern "C" void sprintExternalStorageDirectory(char* buf, int buflen, const char
 void init_onex()
 {
   onex_set_evaluators((char*)"default", evaluate_object_setter, evaluate_default, 0);
+  onex_set_evaluators((char*)"device",  evaluate_device_logic, 0);
   onex_set_evaluators((char*)"user",                            evaluate_user, 0);
   onex_set_evaluators((char*)"event",   evaluate_object_setter, evaluate_event, 0);
   onex_set_evaluators((char*)"light",   evaluate_object_setter, evaluate_light_logic, 0);
@@ -158,6 +159,7 @@ void init_onex()
     user=object_new(0, (char*)"user", (char*)"user", 8);
     userUID=object_property(user, (char*)"UID");
 
+    object_set_evaluator(onex_device_object, (char*)"device");
     char* deviceUID=object_property(onex_device_object, (char*)"UID");
     object_property_set(onex_device_object, (char*)"user", userUID);
 
