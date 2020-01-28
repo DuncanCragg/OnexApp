@@ -1,6 +1,6 @@
 
 #include <imgui.h>
-extern void ImStrncpy(char* dst, const char* src, size_t count);
+
 #define IM_ARRAYSIZE(_ARR)  ((int)(sizeof(_ARR)/sizeof(*_ARR)))
 
 #include "im-gui.h"
@@ -813,9 +813,9 @@ void draw_object_properties(char* path, bool isEditable, int16_t width, int16_t 
   int16_t keyWidth=calculate_key_width(path);
   char pathcolon[128]; snprintf(pathcolon, 128, "%s:", path);
   int8_t sz = object_property_size(user, pathcolon);
-  if(sz>0) for(int i=1; i<=sz; i++){
+  for(int i=1; i<=sz; i++){
     char* key=object_property_key(user, pathcolon, i);
-    char pathkey[128]; size_t l = snprintf(pathkey, 128, "%s:%s", path, key);
+    char pathkey[128]; snprintf(pathkey, 128, "%s:%s", path, key);
     if(!key) log_write("key=null: path=%s pathkey=%s i=%d sz=%d values: %s value: %s\n", path, pathkey, i, sz, object_property(user, pathkey), object_property_val(user, path, i));
     uint16_t ln = object_property_length(user, pathkey);
     uint32_t wid=0;

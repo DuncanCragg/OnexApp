@@ -1,6 +1,6 @@
 
 #include <imgui.h>
-extern void ImStrncpy(char* dst, const char* src, size_t count);
+
 #define IM_ARRAYSIZE(_ARR)  ((int)(sizeof(_ARR)/sizeof(*_ARR)))
 
 #include "im-gui.h"
@@ -105,7 +105,11 @@ void best_prop_name(char* newpropname, int proplen, object* from, char* touid)
   else{
     object* to=onex_get_from_cache(touid);
     char* is=object_property_values(to, (char*)"is");
-    ImStrncpy(newpropname, is, proplen);
+    size_t edlen=strlen("editable ");
+    if(!strncmp(is, "editable ", edlen)){
+      ImStrncpy(newpropname, is+edlen, proplen);
+    }
+    else ImStrncpy(newpropname, is, proplen);
     for(char* p=newpropname; *p; p++) if(*p==' ') *p='-';
   }
 }

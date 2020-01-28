@@ -4,7 +4,7 @@ extern "C" {
 }
 
 #include <imgui.h>
-extern void ImStrncpy(char* dst, const char* src, size_t count);
+
 #define IM_ARRAYSIZE(_ARR)  ((int)(sizeof(_ARR)/sizeof(*_ARR)))
 
 #include "im-gui.h"

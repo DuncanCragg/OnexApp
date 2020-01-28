@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+extern void ImStrncpy(char* dst, const char* src, size_t count);
 #include <assert.h>
 #include <vector>
 #include <array>
