@@ -310,23 +310,40 @@ void set_scaling()
 
 void invoke_single_set(char* uid, char* key, char* val)
 {
-  properties* update = properties_new(1);
-  list*       li=list_new(2);
-  list_add(li, value_new((char*)"=>"));
-  list_add(li, value_new(val));
-  properties_set(update, value_new(key), li);
-  onex_run_evaluators(uid, update);
+  if(is_local(uid)){
+    properties* update = properties_new(1);
+    list*       li=list_new(2);
+    list_add(li, value_new((char*)"=>"));
+    if(val && *val) list_add(li, value_new(val));
+    properties_set(update, value_new(key), li);
+    onex_run_evaluators(uid, update);
+  }
+  else{
+    object* edit=object_new(0, 0, (char*)"editable edit rule", 3);
+    object_property_add(edit, (char*)"Notifying", uid);
+    char upd[128]; snprintf(upd, 128, "=> %s", val? val: "");
+    object_property_set(edit, key, upd);
+  }
 }
 
 void invoke_single_add(char* uid, char* key, char* val)
 {
-  properties* update = properties_new(1);
-  list*       li=list_new(3);
-  list_add(li, value_new((char*)"=>"));
-  list_add(li, value_new((char*)"@."));
-  list_add(li, value_new(val));
-  properties_set(update, value_new(key), li);
-  onex_run_evaluators(uid, update);
+  if(!val || !*val) return;
+  if(is_local(uid)){
+    properties* update = properties_new(1);
+    list*       li=list_new(3);
+    list_add(li, value_new((char*)"=>"));
+    list_add(li, value_new((char*)"@."));
+    list_add(li, value_new(val));
+    properties_set(update, value_new(key), li);
+    onex_run_evaluators(uid, update);
+  }
+  else{
+    object* edit=object_new(0, 0, (char*)"editable edit rule", 3);
+    object_property_add(edit, (char*)"Notifying", uid);
+    char upd[128]; snprintf(upd, 128, "=> @. %s", val);
+    object_property_set(edit, key, upd);
+  }
 }
 
 void set_new_tag(char* path, char* tag)
