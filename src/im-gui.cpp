@@ -209,6 +209,7 @@ void init_imgui(float width, float height)
   style.Colors[ImGuiCol_Header] = actionBackground;
   style.Colors[ImGuiCol_HeaderHovered] = actionBackground;
   style.Colors[ImGuiCol_HeaderActive] = actionBackgroundActive;
+  style.Colors[ImGuiCol_Separator] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f); // make it disappear..
 //  style.Colors[ImGuiCol_Column] = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
 //  style.Colors[ImGuiCol_ColumnHovered] = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
 //  style.Colors[ImGuiCol_ColumnActive] = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
@@ -1062,7 +1063,7 @@ void draw_view()
     }
     ImGui::PopStyleColor(4);
 
-    ImGui::Separator();
+    ImGui::Separator(); // needed to reset to LHS?
 
     int8_t s=strlen("viewing-r")+1; char path[s]; memcpy(path, "viewing-r", s);
     if(displayView) draw_display(path, ws2width-rhsPadding, workspace2Height);
