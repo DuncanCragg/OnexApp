@@ -36,6 +36,9 @@ ImVec4 renderColourSoft        (0.65f, 0.70f, 0.80f, 1.0f);
 ImVec4 renderBackground        (0.95f, 0.95f, 1.00f, 1.0f);
 ImVec4 renderBackgroundActive  (0.90f, 0.90f, 0.95f, 1.0f);
 
+ImVec4 ledOff(20.0f/255, 150.0f/255, 10.0f/255, 1.0f);
+ImVec4 ledOn(100.0f/255, 255.0f/255, 50.0f/255, 1.0f);
+
 ImVec4 schemeBrown(183.0f/255, 142.0f/255, 96.0f/255, 1.0f);
 ImVec4 schemeYellow(255.0f/255, 245.0f/255, 180.0f/255, 1.0f);
 ImVec4 schemeMauve(221.0f/255, 190.0f/255, 243.0f/255, 1.0f);
@@ -234,16 +237,16 @@ void init_imgui(float width, float height)
 //window_flags |= ImGuiWindowFlags_HorizontalScrollbar;
 //window_flags |= ImGuiWindowFlags_AlwaysVerticalScrollbar;
 //window_flags |= ImGuiWindowFlags_AlwaysHorizontalScrollbar;
-//  window_flags |= ImGuiWindowFlags_NoTitleBar;
-//  window_flags |= ImGuiWindowFlags_NoCollapse;
-//  window_flags |= ImGuiWindowFlags_MenuBar;
-//  window_flags |= ImGuiWindowFlags_NoScrollWithMouse;
-//  window_flags |= ImGuiWindowFlags_AlwaysAutoResize;
-//  window_flags |= ImGuiWindowFlags_NoSavedSettings;
-//  window_flags |= ImGuiWindowFlags_NoInputs;
-//  window_flags |= ImGuiWindowFlags_NoFocusOnAppearing;
-//  window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
-//  window_flags |= ImGuiWindowFlags_AlwaysUseWindowPadding;
+//window_flags |= ImGuiWindowFlags_NoTitleBar;
+//window_flags |= ImGuiWindowFlags_NoCollapse;
+//window_flags |= ImGuiWindowFlags_MenuBar;
+//window_flags |= ImGuiWindowFlags_NoScrollWithMouse;
+//window_flags |= ImGuiWindowFlags_AlwaysAutoResize;
+//window_flags |= ImGuiWindowFlags_NoSavedSettings;
+//window_flags |= ImGuiWindowFlags_NoInputs;
+//window_flags |= ImGuiWindowFlags_NoFocusOnAppearing;
+//window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
+//window_flags |= ImGuiWindowFlags_AlwaysUseWindowPadding;
 }
 
 
@@ -1009,7 +1012,7 @@ void draw_view()
 
     if(displayView) ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
     else            ImGui::PushStyleColor(ImGuiCol_Text, actionColour);
-    if(ImGui::Button(" display", ImVec2(buttonWidth+smallButtonWidth, buttonHeight)))
+    if(ImGui::Button(" display", ImVec2(buttonWidth/2+smallButtonWidth, buttonHeight)))
     {
       displayView=!displayView;
       if(displayView){
@@ -1024,7 +1027,7 @@ void draw_view()
 
     if(calendarView) ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
     else             ImGui::PushStyleColor(ImGuiCol_Text, actionColour);
-    if(ImGui::Button(" calendar", ImVec2(buttonWidth+smallButtonWidth, buttonHeight)))
+    if(ImGui::Button(" calendar", ImVec2(buttonWidth/2+smallButtonWidth, buttonHeight)))
     {
       calendarView=!calendarView;
       if(calendarView){
@@ -1040,7 +1043,7 @@ void draw_view()
 
     if(tableView) ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
     else          ImGui::PushStyleColor(ImGuiCol_Text, actionColour);
-    if(ImGui::Button(" table", ImVec2(buttonWidth, buttonHeight)))
+    if(ImGui::Button(" table", ImVec2(buttonWidth/2+smallButtonWidth/2, buttonHeight)))
     {
       tableView=!tableView;
       if(tableView){

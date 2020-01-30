@@ -56,6 +56,9 @@ extern ImVec4 renderColourSoft;
 extern ImVec4 renderBackground;
 extern ImVec4 renderBackgroundActive;
 
+extern ImVec4 ledOff;
+extern ImVec4 ledOn;
+
 extern ImVec4 schemeBrown;
 extern ImVec4 schemeYellow;
 extern ImVec4 schemeMauve;
