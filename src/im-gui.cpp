@@ -310,19 +310,50 @@ void set_scaling()
 
 void invoke_single_set(char* uid, char* key, char* val)
 {
+  char* colon=strrchr(key, ':');
+  int i=0;
+  if(colon){
+    *colon=0;
+    i=strtol(colon+1,0,10);
+  }
   if(is_local(uid)){
     properties* update = properties_new(1);
-    list*       li=list_new(2);
-    list_add(li, value_new((char*)"=>"));
-    if(val && *val) list_add(li, value_new(val));
+    list*       li=list_new(i? i+1: 2);
+    if(i){
+      if(!*val){
+        for(int x=1; x<i; x++){
+          list_add(li, value_new((char*)"something"));
+        }
+        list_add(li, value_new((char*)"(=>)"));
+      }
+      else log_write("**** trying to set list indexed value! *** \n");
+    }
+    else{
+      list_add(li, value_new((char*)"=>"));
+      if(val && *val) list_add(li, value_new(val));
+    }
     properties_set(update, value_new(key), li);
     onex_run_evaluators(uid, update);
   }
   else{
     object* edit=object_new(0, 0, (char*)"editable edit rule", 3);
     object_property_add(edit, (char*)"Notifying", uid);
-    char upd[128]; snprintf(upd, 128, "=> %s", val? val: "");
+    char upd[128];
+    if(i){
+      if(!*val){
+        size_t s=0;
+        for(int x=1; x<i; x++){
+          s+=snprintf(upd+s, 128, "something ");
+        }
+        snprintf(upd+s, 128, "(=>)");
+      }
+      else log_write("**** trying to set list indexed value! *** \n");
+    }
+    else snprintf(upd, 128, "=> %s", val? val: "");
     object_property_set(edit, key, upd);
+  }
+  if(colon){
+    *colon=':';
   }
 }
 
