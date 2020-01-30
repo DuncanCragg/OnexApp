@@ -4,12 +4,12 @@
 #define IM_ARRAYSIZE(_ARR)  ((int)(sizeof(_ARR)/sizeof(*_ARR)))
 
 #include "im-gui.h"
+#include "display.h"
 #include "calendar.h"
 #include "ux-features.h"
 
 
 #pragma GCC diagnostic ignored "-Wformat-truncation"
-
 
 
 GUI* static_gui;
@@ -72,6 +72,7 @@ uint16_t yOffsetCounter=0;
 
 static bool rhsFullScreen=false;
 
+bool displayView=false;
 bool calendarView=false;
 bool tableView=false;
 
@@ -303,7 +304,7 @@ void set_scaling()
   workspace1Width=((int)app->width)/2-10;
   workspace1Height=(int)app->height-70;
   workspace2Width=((int)app->width)/2-10;
-  workspace2Height=(int)app->height-70;
+  workspace2Height=(int)app->height;
 }
 
 // ---------------
@@ -1005,12 +1006,28 @@ void draw_view()
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, actionBackground);
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, actionBackground);
 
+    if(displayView) ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
+    else            ImGui::PushStyleColor(ImGuiCol_Text, actionColour);
+    if(ImGui::Button(" display", ImVec2(buttonWidth+smallButtonWidth, buttonHeight)))
+    {
+      displayView=!displayView;
+      if(displayView){
+        tableView=false;
+        calendarView=false;
+        close_all_starting((char*)"viewing-r");
+      }
+    }
+    ImGui::PopStyleColor();
+
+    ImGui::SameLine();
+
     if(calendarView) ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);
     else             ImGui::PushStyleColor(ImGuiCol_Text, actionColour);
     if(ImGui::Button(" calendar", ImVec2(buttonWidth+smallButtonWidth, buttonHeight)))
     {
       calendarView=!calendarView;
       if(calendarView){
+        displayView=false;
         tableView=false;
         close_all_starting((char*)"viewing-r");
         set_time_save_days();
@@ -1026,6 +1043,7 @@ void draw_view()
     {
       tableView=!tableView;
       if(tableView){
+        displayView=false;
         calendarView=false;
         close_all_starting((char*)"viewing-r");
       }
@@ -1047,10 +1065,12 @@ void draw_view()
     ImGui::Separator();
 
     int8_t s=strlen("viewing-r")+1; char path[s]; memcpy(path, "viewing-r", s);
-    if(calendarView) draw_calendar(path, ws2width-rhsPadding, workspace2Height-100);
+    if(displayView) draw_display(path, ws2width-rhsPadding, workspace2Height);
     else
-    if(tableView);// drawTable(..);
-    else             draw_nested_object_properties_list(path, false, ws2width-rhsPadding, workspace2Height-100, 1);
+    if(calendarView) draw_calendar(path, ws2width-rhsPadding, workspace2Height-3*buttonHeight);
+    else
+    if(tableView);// draw_table(..);
+    else             draw_nested_object_properties_list(path, false, ws2width-rhsPadding, workspace2Height-3*buttonHeight, 1);
   }
   ImGui::EndChild();
   draw_link();

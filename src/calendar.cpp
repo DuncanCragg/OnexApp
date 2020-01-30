@@ -13,8 +13,6 @@ extern "C" {
 
 #pragma GCC diagnostic ignored "-Wformat-truncation"
 
-#define IM_ARRAYSIZE(_ARR)  ((int)(sizeof(_ARR)/sizeof(*_ARR)))
-
 #define UPPER_SCROLL_JUMP 20
 #define COLUMN_WIDTH 225
 
