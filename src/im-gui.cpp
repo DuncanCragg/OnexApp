@@ -112,15 +112,6 @@ static bool evaluate_user(object* o, void* d)
   return true;
 }
 
-/*
-  if(!strcmp(key, (char*)"is") && !strcmp(val, (char*)"event")){
-    object_set_evaluator(o, (char*)"event");
-  }
-  if(!strcmp(key, (char*)"is") && !strcmp(val, (char*)"light")){
-    object_set_evaluator(o, (char*)"light");
-  }
-*/
-
 extern "C" void sprintExternalStorageDirectory(char* buf, int buflen, const char* format);
 
 void init_onex()
@@ -339,6 +330,14 @@ void invoke_single_set(char* uid, char* key, char* val)
     }
     properties_set(update, value_new(key), li);
     onex_run_evaluators(uid, update);
+    if(!strcmp(key, (char*)"is")){
+      char* evaluator;
+      if(strstr(val, (char*)"light")) evaluator=(char*)"light"; else
+      if(strstr(val, (char*)"event")) evaluator=(char*)"event";
+      else                            evaluator=(char*)"default";
+      object* o = onex_get_from_cache(uid);
+      object_set_evaluator(o, evaluator);
+    }
   }
   else{
     object* edit=object_new(0, 0, (char*)"editable edit rule", 3);
