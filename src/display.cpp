@@ -51,6 +51,7 @@ void draw_light(char* path, int16_t width)
     ImGui::Button(keyId, ImVec2(200, 200-OUTER_PADDING*2));
     ImGui::PopStyleColor(4);
   }
+  ImGui::SameLine();
   ImGui::EndChild();
   ImGui::PopStyleColor(2);
 }
@@ -105,6 +106,7 @@ void draw_button(char* path, int16_t width)
     }
     ImGui::PopStyleColor(4);
   }
+  ImGui::SameLine();
   ImGui::EndChild();
   ImGui::PopStyleColor(2);
 }
