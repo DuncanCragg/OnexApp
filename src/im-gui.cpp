@@ -48,15 +48,15 @@ ImVec4 schemePlum(230.0f/255, 179.0f/255, 230.0f/255, 1.0f);
 
 #define DARKEN_DEPTH 3
 
-uint16_t buttonHeight=70;
-uint16_t paddingHeight=15;
-uint16_t objectHeight=400;
-uint16_t listHeight=1000;
+uint16_t buttonHeight=0;
+uint16_t paddingHeight=0;
+uint16_t objectHeight=0;
+uint16_t listHeight=0;
 
-uint16_t shorterValWidth=680;
-uint16_t buttonWidth=190;
-uint16_t smallButtonWidth=65;
-uint16_t rhsPadding=20;
+uint16_t shorterValWidth=0;
+uint16_t buttonWidth=0;
+uint16_t smallButtonWidth=0;
+uint16_t rhsPadding=0;
 
 uint16_t workspace1Width;
 uint16_t workspace1Height;
@@ -290,7 +290,7 @@ void set_scaling()
   float heightratio = ((float)app->height)/1350.0;
   float widthratio = ((float)app->width)/2000.0;
 
-  buttonHeight=70*heightratio;
+  buttonHeight=68*heightratio;
   paddingHeight=15*heightratio;
   objectHeight=400*heightratio;
   listHeight=1000*heightratio;
@@ -533,7 +533,7 @@ int16_t calculate_key_width(char* path)
       if(l > w) w=l;
     }
   }
-  return w>7? w*28: 196;
+  return w>7? w*18: 196;
 }
 
 int16_t calculate_scroller_height(char* path, int16_t height)
