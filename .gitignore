@@ -1,4 +1,7 @@
 .*.sw?
+_build/
+sdk
+dfu.zip
 CMakeFiles/
 CMakeCache.txt
 Makefile
