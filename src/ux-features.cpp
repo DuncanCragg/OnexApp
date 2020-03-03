@@ -7,8 +7,6 @@
 #include "calendar.h"
 #include "ux-features.h"
 
-#pragma GCC diagnostic ignored "-Wformat-truncation"
-
 #define DRAG_THRESHOLD         30.0f
 #define START_DRIFT_THRESHOLD  10.0f
 #define END_DRIFT_THRESHOLD     0.01f

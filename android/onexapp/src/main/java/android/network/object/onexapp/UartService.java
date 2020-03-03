@@ -333,11 +333,9 @@ public class UartService extends Service {
 
     private ArrayList<byte[]> writeChunks=new ArrayList<byte[]>();
 
-    public void write(byte[] value){
-      if(writeChunks.size() !=0){
-        System.out.println("Already writing! (FIXME). Dropped: "+new String(value));
-        return;
-      }
+    private boolean writesInProgress=false;
+
+    public synchronized void write(byte[] value){
       int MAX_TX_LEN=20;
       int s=0;
       int e;
@@ -347,16 +345,23 @@ public class UartService extends Service {
         writeChunks.add(slice);
         s=e;
       }
-      writeAChunk();
+      if(!writesInProgress) writeAChunk();
     }
 
-    private void writeAChunk(){
-      if(writeChunks.size()==0) return;
-      byte[] slice = (byte[])writeChunks.remove(0);
+    private synchronized void writeAChunk(){
+      if(writeChunks.size()==0){
+        writesInProgress=false;
+        return;
+      }
+      byte[] slice = (byte[])writeChunks.get(0);
       boolean ok=writeRXCharacteristic(slice);
-      if(!ok){
-        Log.d(LOGNAME, "can't send, dropping: "+new String(slice));
-        writeChunks.clear();
+      if(ok){
+        writeChunks.remove(0);
+        writesInProgress=true;
+      }
+      else{
+        Log.d(LOGNAME, "can't send "+new String(slice));
+        writesInProgress=false;
       }
     }
 
