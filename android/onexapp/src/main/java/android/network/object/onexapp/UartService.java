@@ -373,7 +373,7 @@ public class UartService extends Service {
         }
         BluetoothGattCharacteristic RxChar = RxService.getCharacteristic(RX_CHAR_UUID);
         if (RxChar == null) {
-            Log.e(LOGNAME, "Rx charateristic not found!");
+            Log.e(LOGNAME, "Rx characteristic not found!");
             return false;
         }
         RxChar.setValue(value);

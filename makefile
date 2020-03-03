@@ -40,7 +40,7 @@ NRF5_C_SOURCE_FILES = \
 
 
 ONEXAPP_IOT_OBJECTS = \
-./src/OnexAppIoT.c \
+./src/OnexAppWatch.c \
 
 
 # Source files common to all targets
