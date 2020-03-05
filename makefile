@@ -36,7 +36,6 @@ NRF5_C_SOURCE_FILES = \
 ./OnexKernel/src/platforms/nRF5/gpio.c \
 ./OnexKernel/src/platforms/nRF5/time.c \
 ./OnexKernel/src/platforms/nRF5/random.c \
-#./OnexKernel/src/platforms/nRF5/radio.c \
 
 
 ONEXAPP_IOT_OBJECTS = \
