@@ -33,9 +33,16 @@ int main()
   blenus_init(0);
   onex_init("");
 
+#if defined(BOARD_PCA10059)
   gpio_mode_cb(BUTTON_1, INPUT_PULLUP, button_changed);
   gpio_mode(LED1_G, OUTPUT);
   gpio_mode(LED2_B, OUTPUT);
+#elif defined(BOARD_PINETIME)
+  gpio_mode_cb(BUTTON_1, INPUT_PULLDOWN, button_changed);
+  gpio_mode(   BUTTON_ENABLE, OUTPUT);
+  gpio_set(    BUTTON_ENABLE, 1);
+  gpio_mode(LED_3, OUTPUT);
+#endif
 
   onex_set_evaluators("evaluate_button", evaluate_edit_rule, evaluate_button_io, 0);
   onex_set_evaluators("evaluate_light",  evaluate_edit_rule, evaluate_light_logic, evaluate_light_io, 0);
@@ -56,8 +63,12 @@ int main()
 
   onex_run_evaluators(lightuid, 0);
 
+#if defined(BOARD_PCA10059)
   gpio_set(LED1_G, 0);
   gpio_set(LED2_B, 1);
+#elif defined(BOARD_PINETIME)
+  gpio_set(LED_3, 1);
+#endif
 
   while(1){
     onex_loop();
@@ -80,10 +91,18 @@ bool evaluate_light_io(object* light, void* d)
 {
   if(object_property_is(light, "light", "on")){
     WHERESTHEHEAP("evaluate_light_io on");
+#if defined(BOARD_PCA10059)
     gpio_set(LED2_B, 0);
+#elif defined(BOARD_PINETIME)
+    gpio_set(LED_3, 0);
+#endif
   } else {
     WHERESTHEHEAP("evaluate_light_io off");
+#if defined(BOARD_PCA10059)
     gpio_set(LED2_B, 1);
+#elif defined(BOARD_PINETIME)
+    gpio_set(LED_3, 1);
+#endif
   }
   return true;
 }
