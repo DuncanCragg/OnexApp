@@ -2,7 +2,9 @@
 #include <stdlib.h>
 #include <boards.h>
 #include <onex-kernel/gpio.h>
+#if defined(HAS_SERIAL)
 #include <onex-kernel/serial.h>
+#endif
 #include <onex-kernel/blenus.h>
 #include <onex-kernel/time.h>
 #include <onex-kernel/log.h>
@@ -25,7 +27,9 @@ int main()
 {
   log_init();
   time_init();
+#if defined(HAS_SERIAL)
   serial_init(0,0);
+#endif
   blenus_init(0);
   onex_init("");
 

@@ -12,8 +12,8 @@ $(OUTPUT_DIRECTORY)/OnexApp.out: \
 
 
 NRF5_INCLUDES = \
-./OnexKernel/include \
 ./OnexLang/include \
+./OnexKernel/include \
 ./OnexKernel/src/ \
 ./OnexKernel/src/onp/ \
 ./OnexKernel/src/platforms/nRF5/ \
@@ -28,14 +28,14 @@ LIB_OBJECTS = \
 
 
 NRF5_C_SOURCE_FILES = \
-./OnexKernel/src/platforms/nRF5/serial.c \
-./OnexKernel/src/platforms/nRF5/blenus.c \
 ./OnexKernel/src/platforms/nRF5/properties.c \
-./OnexKernel/src/platforms/nRF5/log.c \
-./OnexKernel/src/platforms/nRF5/channel-serial.c \
-./OnexKernel/src/platforms/nRF5/gpio.c \
 ./OnexKernel/src/platforms/nRF5/time.c \
 ./OnexKernel/src/platforms/nRF5/random.c \
+./OnexKernel/src/platforms/nRF5/gpio.c \
+./OnexKernel/src/platforms/nRF5/serial.c \
+./OnexKernel/src/platforms/nRF5/blenus.c \
+./OnexKernel/src/platforms/nRF5/log.c \
+./OnexKernel/src/platforms/nRF5/channel-serial.c \
 
 
 ONEXAPP_IOT_OBJECTS = \
@@ -269,6 +269,7 @@ CFLAGS += -DNRF5
 CFLAGS += -DNRF_SD_BLE_API_VERSION=7
 CFLAGS += -DS140
 CFLAGS += -DSOFTDEVICE_PRESENT
+CFLAGS += -DHAS_SERIAL
 CFLAGS += -DONP_CHANNEL_SERIAL
 CFLAGS += -mcpu=cortex-m4
 CFLAGS += -mthumb -mabi=aapcs
@@ -343,7 +344,7 @@ PRIVATE_PEM = ~/the-u-web/OnexKernel/doc/local/private.pem
 flash: default
 	@echo Flashing: $(OUTPUT_DIRECTORY)/OnexApp.hex
 	nrfutil pkg generate --hw-version 52 --sd-req 0xCA --application-version 1 --application _build/OnexApp.hex --key-file $(PRIVATE_PEM) dfu.zip
-	nrfutil dfu usb-serial -pkg dfu.zip -p /dev/ttyACM0 -b 115200
+	nrfutil dfu usb-serial -pkg dfu.zip -p /dev/ttyACM1 -b 115200
 
 # Flash softdevice
 flash_softdevice:
@@ -354,7 +355,7 @@ flash_softdevice:
 erase:
 	nrfjprog -f nrf52 --eraseall
 
-SDK_CONFIG_FILE := ./src/platforms/nRF5/sdk_config.h
+SDK_CONFIG_FILE := ./OnexKernel/src/platforms/nRF5/sdk_config.h
 CMSIS_CONFIG_TOOL := $(SDK_ROOT)/external_tools/cmsisconfig/CMSIS_Configuration_Wizard.jar
 sdk_config:
 	java -jar $(CMSIS_CONFIG_TOOL) $(SDK_CONFIG_FILE)
