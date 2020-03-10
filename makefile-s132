@@ -43,6 +43,12 @@ ONEXAPP_IOT_OBJECTS = \
 # Source files common to all targets
 SRC_FILES += \
   $(SDK_ROOT)/modules/nrfx/mdk/gcc_startup_nrf52.S \
+  $(SDK_ROOT)/integration/nrfx/legacy/nrf_drv_spi.c \
+  $(SDK_ROOT)/components/drivers_ext/st7789/st7789.c \
+  $(SDK_ROOT)/components/drivers_ext/st7789/spi_master_fast.c \
+  $(SDK_ROOT)/components/libraries/gfx/nrf_gfx.c \
+  $(SDK_ROOT)/external/thedotfactory_fonts/orkney24pts.c \
+  $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_spim.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_rtt.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_serial.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_uart.c \
@@ -101,6 +107,8 @@ SRC_FILES += \
 
 # Include folders common to all targets
 INC_FOLDERS += \
+  $(SDK_ROOT)/components/drivers_ext/st7789 \
+  $(SDK_ROOT)/external/thedotfactory_fonts \
   $(SDK_ROOT)/components/nfc/ndef/generic/message \
   $(SDK_ROOT)/components/nfc/t2t_lib \
   $(SDK_ROOT)/components/nfc/t4t_parser/hl_detection_procedure \
@@ -256,7 +264,7 @@ CFLAGS += -DSOFTDEVICE_PRESENT
 CFLAGS += -DONP_CHANNEL_SERIAL
 CFLAGS += -mcpu=cortex-m4
 CFLAGS += -mthumb -mabi=aapcs
-CFLAGS += -Wall -Werror
+CFLAGS += -Wall -Werror -Wno-unused-but-set-variable
 CFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
 # keep every function in a separate section, this allows linker to discard unused ones
 CFLAGS += -ffunction-sections -fdata-sections -fno-strict-aliasing

@@ -1,6 +1,7 @@
 
 #include <stdlib.h>
 #include <boards.h>
+#include <nrf_gfx.h>
 #include <onex-kernel/gpio.h>
 #if defined(HAS_SERIAL)
 #include <onex-kernel/serial.h>
@@ -23,6 +24,12 @@ bool evaluate_light_io(object* light, void* d);
 void* x;
 #define WHERESTHEHEAP(s) x = malloc(1); log_write("heap after %s: %x\n", s, x);
 
+extern const nrf_lcd_t nrf_lcd_st7789;
+extern const nrf_gfx_font_desc_t orkney_24ptFontInfo;
+
+static const nrf_lcd_t * p_lcd = &nrf_lcd_st7789;
+static const nrf_gfx_font_desc_t * p_font = &orkney_24ptFontInfo;
+
 int main()
 {
   log_init();
@@ -31,6 +38,12 @@ int main()
   serial_init(0,0);
 #endif
   blenus_init(0);
+
+  APP_ERROR_CHECK(nrf_gfx_init(p_lcd));
+  nrf_gfx_screen_fill(p_lcd, 0xC618);
+  nrf_gfx_point_t text_start = NRF_GFX_POINT(5,5);
+  APP_ERROR_CHECK(nrf_gfx_print_fast2(p_lcd, &text_start, 0x001F, "OnexOS", p_font, true));
+
   onex_init("");
 
 #if defined(BOARD_PCA10059)
