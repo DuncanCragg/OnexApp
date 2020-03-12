@@ -83,7 +83,7 @@ int main()
   gpio_set(LED1_G, LEDS_ACTIVE_STATE);
   gpio_set(LED2_B, !LEDS_ACTIVE_STATE);
 #elif defined(BOARD_PINETIME)
-  gfx_pos(30, 30);
+  gfx_pos(10, 10);
   gfx_text("OnexOS");
   gpio_set(LCD_BACKLIGHT_HIGH, LEDS_ACTIVE_STATE);
   int next_touch_poll = 0;
@@ -142,14 +142,14 @@ bool evaluate_light_io(object* light, void* d)
 #if defined(BOARD_PCA10059)
     gpio_set(LED2_B, LEDS_ACTIVE_STATE);
 #elif defined(BOARD_PINETIME)
-    gfx_pos(30, 80);
+    gfx_pos(10, 60);
     gfx_text("ON");
 #endif
   } else {
 #if defined(BOARD_PCA10059)
     gpio_set(LED2_B, !LEDS_ACTIVE_STATE);
 #elif defined(BOARD_PINETIME)
-    gfx_pos(30, 80);
+    gfx_pos(10, 60);
     gfx_text("OFF");
 #endif
   }
