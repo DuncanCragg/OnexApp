@@ -20,9 +20,8 @@ object* light;
 char* buttonuid;
 char* lightuid;
 
-#if defined(BOARD_PCA10059)
 void button_changed(int);
-#elif defined(BOARD_PINETIME)
+#if defined(BOARD_PINETIME)
 void touched();
 #endif
 bool evaluate_button_io(object* button, void* pressed);
@@ -96,24 +95,24 @@ int main()
 #if defined(BOARD_PINETIME)
     int curr_time=time_ms();
     if(curr_time > next_touch_poll){
-      next_touch_poll=curr_time+100;
+      next_touch_poll=curr_time+50;
       touch_info ti=touch_get_info();
       bool p=(ti.action==TOUCH_ACTION_CONTACT);
       if(p!=pressed){
         pressed=p;
-        onex_run_evaluators(buttonuid, (void*)(bool)pressed);
+        button_changed(pressed);
       }
     }
 #endif
   }
 }
 
-#if defined(BOARD_PCA10059)
 void button_changed(int pressed)
 {
   onex_run_evaluators(buttonuid, (void*)(bool)pressed);
 }
-#elif defined(BOARD_PINETIME)
+
+#if defined(BOARD_PINETIME)
 void touched()
 {
   touch_info ti=touch_get_info();
@@ -140,7 +139,6 @@ bool evaluate_button_io(object* button, void* pressed)
 bool evaluate_light_io(object* light, void* d)
 {
   if(object_property_is(light, "light", "on")){
-    WHERESTHEHEAP("evaluate_light_io on");
 #if defined(BOARD_PCA10059)
     gpio_set(LED2_B, LEDS_ACTIVE_STATE);
 #elif defined(BOARD_PINETIME)
@@ -148,7 +146,6 @@ bool evaluate_light_io(object* light, void* d)
     gfx_text("ON");
 #endif
   } else {
-    WHERESTHEHEAP("evaluate_light_io off");
 #if defined(BOARD_PCA10059)
     gpio_set(LED2_B, !LEDS_ACTIVE_STATE);
 #elif defined(BOARD_PINETIME)
