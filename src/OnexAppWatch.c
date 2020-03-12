@@ -23,6 +23,7 @@ char* lightuid;
 void button_changed(int);
 #if defined(BOARD_PINETIME)
 void touched();
+static bool was_touched=false;
 #endif
 bool evaluate_button_io(object* button, void* pressed);
 bool evaluate_light_io(object* light, void* d);
@@ -86,14 +87,28 @@ int main()
   gfx_pos(10, 10);
   gfx_text("OnexOS");
   gpio_set(LCD_BACKLIGHT_HIGH, LEDS_ACTIVE_STATE);
-  int next_touch_poll = 0;
+  uint64_t next_touch_poll = 0;
   bool pressed=false;
 #endif
 
   while(1){
     onex_loop();
 #if defined(BOARD_PINETIME)
-    int curr_time=time_ms();
+    if(was_touched){
+      was_touched=false;
+      touch_info ti=touch_get_info();
+      if(ti.gesture==TOUCH_GESTURE_TAP_LONG){
+        gpio_set(LCD_BACKLIGHT_LOW,  !LEDS_ACTIVE_STATE);
+        gpio_set(LCD_BACKLIGHT_MID,  !LEDS_ACTIVE_STATE);
+        gpio_set(LCD_BACKLIGHT_HIGH, !LEDS_ACTIVE_STATE);
+      }
+      else {
+        gpio_set(LCD_BACKLIGHT_LOW,  LEDS_ACTIVE_STATE);
+        gpio_set(LCD_BACKLIGHT_MID,  LEDS_ACTIVE_STATE);
+        gpio_set(LCD_BACKLIGHT_HIGH, LEDS_ACTIVE_STATE);
+      }
+    }
+    uint64_t curr_time=time_ms();
     if(curr_time > next_touch_poll){
       next_touch_poll=curr_time+50;
       touch_info ti=touch_get_info();
@@ -115,17 +130,7 @@ void button_changed(int pressed)
 #if defined(BOARD_PINETIME)
 void touched()
 {
-  touch_info ti=touch_get_info();
-  if(ti.gesture==TOUCH_GESTURE_TAP_LONG){
-    gpio_set(LCD_BACKLIGHT_LOW,  !LEDS_ACTIVE_STATE);
-    gpio_set(LCD_BACKLIGHT_MID,  !LEDS_ACTIVE_STATE);
-    gpio_set(LCD_BACKLIGHT_HIGH, !LEDS_ACTIVE_STATE);
-  }
-  else {
-    gpio_set(LCD_BACKLIGHT_LOW,  LEDS_ACTIVE_STATE);
-    gpio_set(LCD_BACKLIGHT_MID,  LEDS_ACTIVE_STATE);
-    gpio_set(LCD_BACKLIGHT_HIGH, LEDS_ACTIVE_STATE);
-  }
+  was_touched=true;
 }
 #endif
 
