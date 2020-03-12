@@ -40,8 +40,6 @@ int main()
   gfx_screen_colour(0xC618);
   gfx_text_colour(0x001F);
   gfx_screen_fill();
-  gfx_pos(30, 30);
-  gfx_text("OnexOS");
 #endif
 
   onex_init("");
@@ -54,7 +52,7 @@ int main()
   gpio_mode_cb(BUTTON_1, INPUT_PULLDOWN, button_changed);
   gpio_mode(   BUTTON_ENABLE, OUTPUT);
   gpio_set(    BUTTON_ENABLE, 1);
-  gpio_mode(LED_3, OUTPUT);
+  gpio_mode(LCD_BACKLIGHT_HIGH, OUTPUT);
 #endif
 
   onex_set_evaluators("evaluate_button", evaluate_edit_rule, evaluate_button_io, 0);
@@ -77,10 +75,12 @@ int main()
   onex_run_evaluators(lightuid, 0);
 
 #if defined(BOARD_PCA10059)
-  gpio_set(LED1_G, 0);
-  gpio_set(LED2_B, 1);
+  gpio_set(LED1_G, LEDS_ACTIVE_STATE);
+  gpio_set(LED2_B, !LEDS_ACTIVE_STATE);
 #elif defined(BOARD_PINETIME)
-  gpio_set(LED_3, 1);
+  gfx_pos(30, 30);
+  gfx_text("OnexOS");
+  gpio_set(LCD_BACKLIGHT_HIGH, LEDS_ACTIVE_STATE);
 #endif
 
   while(1){
@@ -105,16 +105,18 @@ bool evaluate_light_io(object* light, void* d)
   if(object_property_is(light, "light", "on")){
     WHERESTHEHEAP("evaluate_light_io on");
 #if defined(BOARD_PCA10059)
-    gpio_set(LED2_B, 0);
+    gpio_set(LED2_B, LEDS_ACTIVE_STATE);
 #elif defined(BOARD_PINETIME)
-    gpio_set(LED_3, 0);
+    gfx_pos(30, 80);
+    gfx_text("ON");
 #endif
   } else {
     WHERESTHEHEAP("evaluate_light_io off");
 #if defined(BOARD_PCA10059)
-    gpio_set(LED2_B, 1);
+    gpio_set(LED2_B, !LEDS_ACTIVE_STATE);
 #elif defined(BOARD_PINETIME)
-    gpio_set(LED_3, 1);
+    gfx_pos(30, 80);
+    gfx_text("OFF");
 #endif
   }
   return true;
