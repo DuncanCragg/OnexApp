@@ -1,9 +1,6 @@
 
 #include <stdlib.h>
 #include <boards.h>
-#if defined(BOARD_PINETIME)
-#include <onex-kernel/gfx.h>
-#endif
 #include <onex-kernel/gpio.h>
 #if defined(HAS_SERIAL)
 #include <onex-kernel/serial.h>
@@ -11,6 +8,10 @@
 #include <onex-kernel/blenus.h>
 #include <onex-kernel/time.h>
 #include <onex-kernel/log.h>
+#if defined(BOARD_PINETIME)
+#include <onex-kernel/gfx.h>
+#include <onex-kernel/touch.h>
+#endif
 #include <onf.h>
 #include <onr.h>
 
@@ -19,7 +20,11 @@ object* light;
 char* buttonuid;
 char* lightuid;
 
+#if defined(BOARD_PCA10059)
 void button_changed(int);
+#elif defined(BOARD_PINETIME)
+void touched();
+#endif
 bool evaluate_button_io(object* button, void* pressed);
 bool evaluate_light_io(object* light, void* d);
 
@@ -49,6 +54,7 @@ int main()
   gpio_mode(LED1_G, OUTPUT);
   gpio_mode(LED2_B, OUTPUT);
 #elif defined(BOARD_PINETIME)
+  touch_init(touched);
   gpio_mode_cb(BUTTON_1, INPUT_PULLDOWN, button_changed);
   gpio_mode(   BUTTON_ENABLE, OUTPUT);
   gpio_set(    BUTTON_ENABLE, 1);
@@ -81,17 +87,48 @@ int main()
   gfx_pos(30, 30);
   gfx_text("OnexOS");
   gpio_set(LCD_BACKLIGHT_HIGH, LEDS_ACTIVE_STATE);
+  int next_touch_poll = 0;
+  bool pressed=false;
 #endif
 
   while(1){
     onex_loop();
+#if defined(BOARD_PINETIME)
+    int curr_time=time_ms();
+    if(curr_time > next_touch_poll){
+      next_touch_poll=curr_time+100;
+      touch_info ti=touch_get_info();
+      bool p=(ti.action==TOUCH_ACTION_CONTACT);
+      if(p!=pressed){
+        pressed=p;
+        onex_run_evaluators(buttonuid, (void*)(bool)pressed);
+      }
+    }
+#endif
   }
 }
 
+#if defined(BOARD_PCA10059)
 void button_changed(int pressed)
 {
   onex_run_evaluators(buttonuid, (void*)(bool)pressed);
 }
+#elif defined(BOARD_PINETIME)
+void touched()
+{
+  touch_info ti=touch_get_info();
+  if(ti.gesture==TOUCH_GESTURE_TAP_LONG){
+    gpio_set(LCD_BACKLIGHT_LOW,  !LEDS_ACTIVE_STATE);
+    gpio_set(LCD_BACKLIGHT_MID,  !LEDS_ACTIVE_STATE);
+    gpio_set(LCD_BACKLIGHT_HIGH, !LEDS_ACTIVE_STATE);
+  }
+  else {
+    gpio_set(LCD_BACKLIGHT_LOW,  LEDS_ACTIVE_STATE);
+    gpio_set(LCD_BACKLIGHT_MID,  LEDS_ACTIVE_STATE);
+    gpio_set(LCD_BACKLIGHT_HIGH, LEDS_ACTIVE_STATE);
+  }
+}
+#endif
 
 bool evaluate_button_io(object* button, void* pressed)
 {

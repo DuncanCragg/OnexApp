@@ -32,6 +32,7 @@ NRF5_C_SOURCE_FILES = \
 ./OnexKernel/src/platforms/nRF5/random.c \
 ./OnexKernel/src/platforms/nRF5/gpio.c \
 ./OnexKernel/src/platforms/nRF5/gfx.c \
+./OnexKernel/src/platforms/nRF5/touch.c \
 ./OnexKernel/src/platforms/nRF5/blenus.c \
 ./OnexKernel/src/platforms/nRF5/log.c \
 ./OnexKernel/src/platforms/nRF5/channel-serial.c \
@@ -49,6 +50,7 @@ SRC_FILES += \
   $(SDK_ROOT)/components/drivers_ext/st7789/spi_master_fast.c \
   $(SDK_ROOT)/components/libraries/gfx/nrf_gfx.c \
   $(SDK_ROOT)/external/thedotfactory_fonts/orkney24pts.c \
+  $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_twi.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_spim.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_rtt.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_serial.c \
