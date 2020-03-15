@@ -24,6 +24,13 @@ char* lightuid;
 
 void button_changed(int);
 
+#if defined(NRF5)
+static void gpio_init()
+{
+  if(!nrfx_gpiote_is_init()) APP_ERROR_CHECK(nrfx_gpiote_init());
+}
+#endif
+
 #if defined(BOARD_PINETIME)
 static void touched();
 static bool was_touched=false;
@@ -38,6 +45,9 @@ void* x;
 int main()
 {
   log_init();
+#if defined(NRF5)
+  gpio_init();
+#endif
   time_init();
 #if defined(HAS_SERIAL)
   serial_init(0,0);
@@ -62,8 +72,6 @@ int main()
   gpio_mode(   BUTTON_ENABLE, OUTPUT);
   gpio_set(    BUTTON_ENABLE, 1);
   gpio_mode(LCD_BACKLIGHT_HIGH, OUTPUT);
-
-  if(!nrfx_gpiote_is_init()) APP_ERROR_CHECK(nrfx_gpiote_init());
 
   touch_init(touched);
 #endif
