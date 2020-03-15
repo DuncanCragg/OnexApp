@@ -1,6 +1,8 @@
 
 #include <stdlib.h>
 #include <boards.h>
+#include <nrfx_gpiote.h>
+#include <app_timer.h>
 #include <onex-kernel/gpio.h>
 #if defined(HAS_SERIAL)
 #include <onex-kernel/serial.h>
@@ -60,6 +62,8 @@ int main()
   gpio_mode(   BUTTON_ENABLE, OUTPUT);
   gpio_set(    BUTTON_ENABLE, 1);
   gpio_mode(LCD_BACKLIGHT_HIGH, OUTPUT);
+
+  if(!nrfx_gpiote_is_init()) APP_ERROR_CHECK(nrfx_gpiote_init());
 
   touch_init(touched);
 #endif
