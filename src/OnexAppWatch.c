@@ -1,15 +1,12 @@
 
-#include <stdlib.h>
 #include <boards.h>
-#include <nrfx_gpiote.h>
-#include <app_timer.h>
+#include <onex-kernel/log.h>
+#include <onex-kernel/time.h>
 #include <onex-kernel/gpio.h>
 #if defined(HAS_SERIAL)
 #include <onex-kernel/serial.h>
 #endif
 #include <onex-kernel/blenus.h>
-#include <onex-kernel/time.h>
-#include <onex-kernel/log.h>
 #if defined(BOARD_PINETIME)
 #include <onex-kernel/gfx.h>
 #include <onex-kernel/touch.h>
