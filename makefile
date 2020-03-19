@@ -39,7 +39,7 @@ NRF5_C_SOURCE_FILES = \
 
 
 ONEXAPP_IOT_OBJECTS = \
-./src/OnexAppWatch.c \
+./src/OnexAppBL.c \
 
 
 # Source files common to all targets
@@ -271,6 +271,7 @@ CFLAGS += -DS140
 CFLAGS += -DSOFTDEVICE_PRESENT
 CFLAGS += -DHAS_SERIAL
 CFLAGS += -DONP_CHANNEL_SERIAL
+CFLAGS += -DONP_OVER_SERIAL
 CFLAGS += -mcpu=cortex-m4
 CFLAGS += -mthumb -mabi=aapcs
 CFLAGS += -Wall -Werror
