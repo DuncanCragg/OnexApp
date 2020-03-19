@@ -116,8 +116,10 @@ int main()
 
 void button_changed(int pressed)
 {
+#if defined(BOARD_PINETIME)
   gfx_pos(10, 110);
   gfx_text(pressed? "X": "O");
+#endif
   onex_run_evaluators(buttonuid, (void*)(bool)pressed);
 }
 
