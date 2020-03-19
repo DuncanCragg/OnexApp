@@ -83,6 +83,7 @@ int main()
   object_property_set(user, "viewing", deviceuid);
   object_property_set(controllers, "backlight", "on");
 
+  onex_run_evaluators(sensorsuid, false);
   onex_run_evaluators(controllersuid, 0);
 
   gfx_pos(10, 10);
@@ -94,14 +95,7 @@ int main()
 
     if(new_touch_info){
       new_touch_info=false;
-/*
-      if(ti.gesture==TOUCH_GESTURE_TAP_LONG){
-        gpio_set(LCD_BACKLIGHT_HIGH, !LEDS_ACTIVE_STATE);
-      }
-      else {
-        gpio_set(LCD_BACKLIGHT_HIGH, LEDS_ACTIVE_STATE);
-      }
-*/
+      onex_run_evaluators(controllersuid, (ti.gesture==TOUCH_GESTURE_TAP_LONG)? "off": "on");
     }
   }
 }
@@ -132,8 +126,10 @@ bool evaluate_sensors_io(object* o, void* pressed)
   return true;
 }
 
-bool evaluate_controllers_io(object* o, void* d)
+bool evaluate_controllers_io(object* o, void* backlight)
 {
+  if(backlight) object_property_set(controllers, "backlight", (char*)backlight);
+
   if(object_property_is(controllers, "backlight", "on")){
     gpio_set(LCD_BACKLIGHT_HIGH, LEDS_ACTIVE_STATE);
   } else {
