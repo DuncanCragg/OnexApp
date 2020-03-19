@@ -52,6 +52,7 @@ SRC_FILES += \
   $(SDK_ROOT)/external/thedotfactory_fonts/orkney24pts.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_twi.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_spim.c \
+  $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_saadc.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_rtt.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_serial.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_uart.c \

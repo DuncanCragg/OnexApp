@@ -33,6 +33,8 @@ static bool evaluate_user(object* sensors, void* pressed);
 static bool evaluate_sensors_io(object* sensors, void* pressed);
 static bool evaluate_controllers_io(object* sensors, void* pressed);
 
+#define ADC_CHANNEL 0
+
 void* x;
 #define WHERESTHEHEAP(s) x = malloc(1); log_write("heap after %s: %x\n", s, x);
 
@@ -55,6 +57,7 @@ int main()
   gpio_mode(   BUTTON_ENABLE, OUTPUT);
   gpio_set(    BUTTON_ENABLE, 1);
   gpio_mode(CHARGE_SENSE, INPUT);
+  gpio_adc_init(BATTERY_V, ADC_CHANNEL);
 
   gpio_mode(LCD_BACKLIGHT_HIGH, OUTPUT);
 
@@ -110,13 +113,21 @@ void button_changed(int pressed)
 
 bool evaluate_sensors_io(object* o, void* pressed)
 {
-  char* s=(char*)(pressed? "down": "up");
-  object_property_set(sensors, "button", s);
-
   char b[16];
+
+  int16_t bv = gpio_read(ADC_CHANNEL);
+  int16_t mv = bv*2000/(1024/(33/10));
+  int8_t  pc = ((mv-3520)*100/5200)*10;
+  snprintf(b, 16, "%d%%(%d)", pc, mv);
+
+  object_property_set(sensors, "battery-percent", b);
+
   int batt=gpio_get(CHARGE_SENSE);
   snprintf(b, 16, "%s", batt? "battery": "charging");
   object_property_set(sensors, "battery-charge", b);
+
+  char* s=(char*)(pressed? "down": "up");
+  object_property_set(sensors, "button", s);
 
   return true;
 }
