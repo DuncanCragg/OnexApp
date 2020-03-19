@@ -3,9 +3,14 @@
 #include <onex-kernel/log.h>
 #include <onex-kernel/time.h>
 #include <onex-kernel/gpio.h>
+#if defined(HAS_SERIAL)
+#include <onex-kernel/serial.h>
+#endif
 #include <onex-kernel/blenus.h>
+#if defined(BOARD_PINETIME)
 #include <onex-kernel/gfx.h>
 #include <onex-kernel/touch.h>
+#endif
 #include <onf.h>
 #include <onr.h>
 
@@ -16,6 +21,7 @@ char* lightuid;
 
 void button_changed(int);
 
+#if defined(BOARD_PINETIME)
 static touch_info_t ti;
 static bool new_touch_info=false;
 
@@ -24,6 +30,7 @@ void touched(touch_info_t touchinfo)
   ti=touchinfo;
   new_touch_info=true;
 }
+#endif
 
 bool evaluate_button_io(object* button, void* pressed);
 bool evaluate_light_io(object* light, void* d);
@@ -36,20 +43,31 @@ int main()
   log_init();
   time_init();
   gpio_init();
+#if defined(HAS_SERIAL)
+  serial_init(0,0);
+#endif
   blenus_init(0);
 
+#if defined(BOARD_PINETIME)
   gfx_init();
   gfx_screen_colour(0xC618);
   gfx_text_colour(0x001F);
   gfx_screen_fill();
   touch_init(touched);
+#endif
 
   onex_init("");
 
+#if defined(BOARD_PCA10059)
+  gpio_mode_cb(BUTTON_1, INPUT_PULLUP, button_changed);
+  gpio_mode(LED1_G, OUTPUT);
+  gpio_mode(LED2_B, OUTPUT);
+#elif defined(BOARD_PINETIME)
   gpio_mode_cb(BUTTON_1, INPUT_PULLDOWN, button_changed);
   gpio_mode(   BUTTON_ENABLE, OUTPUT);
   gpio_set(    BUTTON_ENABLE, 1);
   gpio_mode(LCD_BACKLIGHT_HIGH, OUTPUT);
+#endif
 
   onex_set_evaluators("evaluate_button", evaluate_edit_rule, evaluate_button_io, 0);
   onex_set_evaluators("evaluate_light",  evaluate_edit_rule, evaluate_light_logic, evaluate_light_io, 0);
@@ -70,12 +88,18 @@ int main()
 
   onex_run_evaluators(lightuid, 0);
 
+#if defined(BOARD_PCA10059)
+  gpio_set(LED1_G, LEDS_ACTIVE_STATE);
+  gpio_set(LED2_B, !LEDS_ACTIVE_STATE);
+#elif defined(BOARD_PINETIME)
   gfx_pos(10, 10);
   gfx_text("OnexOS");
   gpio_set(LCD_BACKLIGHT_HIGH, LEDS_ACTIVE_STATE);
+#endif
 
   while(1){
     onex_loop();
+#if defined(BOARD_PINETIME)
     if(new_touch_info){
       new_touch_info=false;
       if(ti.gesture==TOUCH_GESTURE_TAP_LONG){
@@ -86,13 +110,16 @@ int main()
       }
       button_changed(ti.action==TOUCH_ACTION_CONTACT);
     }
+#endif
   }
 }
 
 void button_changed(int pressed)
 {
+#if defined(BOARD_PINETIME)
   gfx_pos(10, 110);
   gfx_text(pressed? "X": "O");
+#endif
   onex_run_evaluators(buttonuid, (void*)(bool)pressed);
 }
 
