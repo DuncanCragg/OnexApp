@@ -9,10 +9,14 @@
 #include <onf.h>
 #include <onr.h>
 
-object* button;
-object* light;
-char* buttonuid;
-char* lightuid;
+object* sensors;
+object* controllers;
+object* user;
+
+char* deviceuid;
+char* sensorsuid;
+char* controllersuid;
+char* useruid;
 
 void button_changed(int);
 
@@ -25,8 +29,9 @@ void touched(touch_info_t touchinfo)
   new_touch_info=true;
 }
 
-bool evaluate_button_io(object* button, void* pressed);
-bool evaluate_light_io(object* light, void* d);
+static bool evaluate_user(object* sensors, void* pressed);
+static bool evaluate_sensors_io(object* sensors, void* pressed);
+static bool evaluate_controllers_io(object* sensors, void* pressed);
 
 void* x;
 #define WHERESTHEHEAP(s) x = malloc(1); log_write("heap after %s: %x\n", s, x);
@@ -49,77 +54,88 @@ int main()
   gpio_mode_cb(BUTTON_1, INPUT_PULLDOWN, button_changed);
   gpio_mode(   BUTTON_ENABLE, OUTPUT);
   gpio_set(    BUTTON_ENABLE, 1);
+  gpio_mode(CHARGE_SENSE, INPUT);
+
   gpio_mode(LCD_BACKLIGHT_HIGH, OUTPUT);
 
-  onex_set_evaluators("evaluate_button", evaluate_edit_rule, evaluate_button_io, 0);
-  onex_set_evaluators("evaluate_light",  evaluate_edit_rule, evaluate_light_logic, evaluate_light_io, 0);
-  onex_set_evaluators("evaluate_device", evaluate_device_logic, 0);
+  onex_set_evaluators("device",      evaluate_device_logic, 0);
+  onex_set_evaluators("user",        evaluate_user, 0);
+  onex_set_evaluators("sensors",                         evaluate_sensors_io, 0);
+  onex_set_evaluators("controllers", evaluate_edit_rule, evaluate_controllers_io, 0);
 
-  button=object_new(0, "evaluate_button", "editable button", 4);
-  light =object_new(0, "evaluate_light",  "editable light", 4);
-  buttonuid=object_property(button, "UID");
-  lightuid=object_property(light, "UID");
+  object_set_evaluator(onex_device_object, "device");
+  user       =object_new(0, "user",        "user", 8);
+  sensors    =object_new(0, "sensors",     "sensors", 8);
+  controllers=object_new(0, "controllers", "editable controllers", 4);
 
-  object_property_set(button, "name", "£€§");
+  deviceuid     =object_property(onex_device_object, "UID");
+  useruid       =object_property(user, "UID");
+  sensorsuid    =object_property(sensors, "UID");
+  controllersuid=object_property(controllers, "UID");
 
-  object_property_set(light, "light", "off");
+  object_property_add(onex_device_object, (char*)"user", useruid);
+  object_property_add(onex_device_object, (char*)"io",   sensorsuid);
+  object_property_add(onex_device_object, (char*)"io",   controllersuid);
 
-  object_set_evaluator(onex_device_object, (char*)"evaluate_device");
-  object_property_add(onex_device_object, (char*)"io", buttonuid);
-  object_property_add(onex_device_object, (char*)"io", lightuid);
+  object_property_set(user, "viewing", deviceuid);
+  object_property_set(controllers, "backlight", "on");
 
-  onex_run_evaluators(lightuid, 0);
+  onex_run_evaluators(controllersuid, 0);
 
   gfx_pos(10, 10);
   gfx_text("OnexOS");
-  gpio_set(LCD_BACKLIGHT_HIGH, LEDS_ACTIVE_STATE);
 
   while(1){
+
     onex_loop();
+
     if(new_touch_info){
       new_touch_info=false;
+/*
       if(ti.gesture==TOUCH_GESTURE_TAP_LONG){
         gpio_set(LCD_BACKLIGHT_HIGH, !LEDS_ACTIVE_STATE);
       }
       else {
         gpio_set(LCD_BACKLIGHT_HIGH, LEDS_ACTIVE_STATE);
       }
-      button_changed(ti.action==TOUCH_ACTION_CONTACT);
+*/
     }
   }
 }
 
 void button_changed(int pressed)
 {
-  gfx_pos(10, 110);
-  gfx_text(pressed? "X": "O");
-  onex_run_evaluators(buttonuid, (void*)(bool)pressed);
+  onex_run_evaluators(sensorsuid, (void*)(bool)pressed);
 }
 
-bool evaluate_button_io(object* button, void* pressed)
+bool evaluate_sensors_io(object* o, void* pressed)
 {
   char* s=(char*)(pressed? "down": "up");
-  object_property_set(button, "state", s);
+  object_property_set(sensors, "button", s);
+
+  char b[16];
+  int batt=gpio_get(CHARGE_SENSE);
+  snprintf(b, 16, "%s", batt? "battery": "charging");
+  object_property_set(sensors, "battery-charge", b);
+
   return true;
 }
 
-bool evaluate_light_io(object* light, void* d)
+bool evaluate_controllers_io(object* o, void* d)
 {
-  if(object_property_is(light, "light", "on")){
-#if defined(BOARD_PCA10059)
-    gpio_set(LED2_B, LEDS_ACTIVE_STATE);
-#elif defined(BOARD_PINETIME)
-    gfx_pos(10, 60);
-    gfx_text("ON");
-#endif
+  if(object_property_is(controllers, "backlight", "on")){
+    gpio_set(LCD_BACKLIGHT_HIGH, LEDS_ACTIVE_STATE);
   } else {
-#if defined(BOARD_PCA10059)
-    gpio_set(LED2_B, !LEDS_ACTIVE_STATE);
-#elif defined(BOARD_PINETIME)
-    gfx_pos(10, 60);
-    gfx_text("OFF");
-#endif
+    gpio_set(LCD_BACKLIGHT_HIGH, !LEDS_ACTIVE_STATE);
   }
   return true;
 }
+
+bool evaluate_user(object* o, void* d)
+{
+//draw_ui();
+  return true;
+}
+
+
 
