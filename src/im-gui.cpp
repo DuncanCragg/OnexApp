@@ -158,7 +158,7 @@ void init_onex()
     char* deviceUID=object_property(onex_device_object, (char*)"UID");
     object_property_set(onex_device_object, (char*)"user", userUID);
 
-    object_property_set(user, (char*)"viewing-l", object_property(onex_device_object, (char*)"UID"));
+    object_property_set(user, (char*)"viewing-l", deviceUID);
 
     config=object_new((char*)"uid-0", 0, (char*)"config", 10);
     object_property_set(config, (char*)"user", userUID);
