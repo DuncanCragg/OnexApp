@@ -49,9 +49,8 @@ int main()
   gfx_screen_colour(0xC618);
   gfx_text_colour(0x001F);
   gfx_screen_fill();
-  touch_init(touched);
 
-  onex_init("");
+  touch_init(touched);
 
   gpio_mode_cb(BUTTON_1, INPUT_PULLDOWN, button_changed);
   gpio_mode(   BUTTON_ENABLE, OUTPUT);
@@ -61,9 +60,11 @@ int main()
 
   gpio_mode(LCD_BACKLIGHT_HIGH, OUTPUT);
 
+  onex_init("");
+
   onex_set_evaluators("device",      evaluate_device_logic, 0);
   onex_set_evaluators("user",        evaluate_user, 0);
-  onex_set_evaluators("sensors",                         evaluate_sensors_io, 0);
+  onex_set_evaluators("sensors",     evaluate_sensors_io, 0);
   onex_set_evaluators("controllers", evaluate_edit_rule, evaluate_controllers_io, 0);
 
   object_set_evaluator(onex_device_object, "device");
@@ -102,7 +103,7 @@ int main()
 
 void button_changed(int pressed)
 {
-  onex_run_evaluators(sensorsuid, (void*)(bool)pressed);
+  onex_run_evaluators(sensorsuid, pressed? "down": "up");
 }
 
 bool evaluate_sensors_io(object* o, void* pressed)
@@ -120,8 +121,7 @@ bool evaluate_sensors_io(object* o, void* pressed)
   snprintf(b, 16, "%s", batt? "battery": "charging");
   object_property_set(sensors, "battery-charge", b);
 
-  char* s=(char*)(pressed? "down": "up");
-  object_property_set(sensors, "button", s);
+  if(pressed) object_property_set(sensors, "button", pressed);
 
   return true;
 }
