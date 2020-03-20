@@ -19,6 +19,7 @@ char* controllersuid;
 char* useruid;
 
 void button_changed(int);
+void every_minute();
 
 static touch_info_t ti;
 static bool new_touch_info=false;
@@ -59,6 +60,8 @@ int main()
   gpio_adc_init(BATTERY_V, ADC_CHANNEL);
 
   gpio_mode(LCD_BACKLIGHT_HIGH, OUTPUT);
+
+  time_ticker(every_minute, 60000);
 
   onex_init("");
 
@@ -104,6 +107,11 @@ int main()
 void button_changed(int pressed)
 {
   onex_run_evaluators(sensorsuid, pressed? "down": "up");
+}
+
+void every_minute()
+{
+  onex_run_evaluators(sensorsuid, 0);
 }
 
 bool evaluate_sensors_io(object* o, void* pressed)
