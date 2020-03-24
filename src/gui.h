@@ -20,6 +20,7 @@ extern void ImStrncpy(char* dst, const char* src, size_t count);
 
 extern "C" {
 #include <onex-kernel/log.h>
+#include <onex-kernel/time.h>
 #include <onf.h>
 #include <onr.h>
 #include <items.h>

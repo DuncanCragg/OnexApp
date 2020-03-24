@@ -383,6 +383,26 @@ bool evaluate_event(object* o, void* d)
   return true;
 }
 
+bool evaluate_clock(object* o, void* d)
+{
+  uint64_t es=time_es();
+  char ess[16];
+  if(es>>32) snprintf(ess, 16, "%u%u", ((uint32_t)(es>>32)),(uint32_t)es);
+  else       snprintf(ess, 16,   "%u",                      (uint32_t)es);
+  object_property_set_volatile(o, (char*)"timestamp", ess);
+
+  time_t estt = (time_t)es;
+  struct tm* tms = localtime(&estt);
+
+  char ts[32]; strftime(ts, 32, "%Y/%m/%d", tms);
+  object_property_set_volatile(o, (char*)"date", ts);
+
+  ts[32]; strftime(ts, 32, "%H:%M:%S", tms);
+  object_property_set_volatile(o, (char*)"time", ts);
+
+  return true;
+}
+
 typedef struct {
   char* title;
   char* date;
