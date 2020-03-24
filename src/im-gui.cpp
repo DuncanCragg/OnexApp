@@ -465,8 +465,8 @@ void set_property_name_and_object(char* path , char* name)
 
 char* pop_last(char* path)
 {
-  uint16_t len=object_property_length(user, path);
-  char popPath[64]; snprintf(popPath, 64, "%s:%d", path, len);
+  uint16_t ln=object_property_length(user, path);
+  char popPath[64]; snprintf(popPath, 64, "%s:%d", path, ln);
   char* last = object_property(user, popPath);
   object_property_set(user, popPath, 0);
   return last;
