@@ -383,6 +383,7 @@ bool evaluate_event(object* o, void* d)
   return true;
 }
 
+// actually will be in behaviours
 bool evaluate_clock(object* o, void* d)
 {
   uint64_t es=time_es();
@@ -393,11 +394,12 @@ bool evaluate_clock(object* o, void* d)
 
   time_t estt = (time_t)es;
   struct tm* tms = localtime(&estt);
+  char ts[32];
 
-  char ts[32]; strftime(ts, 32, "%Y/%m/%d", tms);
+  strftime(ts, 32, "%Y/%m/%d", tms);
   object_property_set_volatile(o, (char*)"date", ts);
 
-  ts[32]; strftime(ts, 32, "%H:%M:%S", tms);
+  strftime(ts, 32, "%H:%M:%S", tms);
   object_property_set_volatile(o, (char*)"time", ts);
 
   return true;
