@@ -133,10 +133,10 @@ void save_day(char* path, int j, int col)
   char ts[32]; int n=strftime(ts, 32, "%Y-%m-%d", &start_date);
   snprintf(ts+n, 32-n, "/%d", col);
   char eventpath[128]; snprintf(eventpath, 128, "%s:%d", path, j);
-  list* l=(list*)properties_get(calstamps, value_new(ts));
+  list* l=(list*)properties_get(calstamps, ts);
   if(!l) l=list_new(32);
   list_add(l, value_new(eventpath));
-  properties_set(calstamps, value_new(ts), l);
+  properties_set(calstamps, ts, l);
 }
 
 void save_days(char* path)
@@ -384,23 +384,26 @@ bool evaluate_event(object* o, void* d)
 }
 
 // actually will be in behaviours
-bool evaluate_clock(object* o, void* d)
+bool evaluate_clock(object* oclock, void* d)
 {
   uint64_t es=time_es();
   char ess[16];
   if(es>>32) snprintf(ess, 16, "%u%u", ((uint32_t)(es>>32)),(uint32_t)es);
   else       snprintf(ess, 16,   "%u",                      (uint32_t)es);
-  object_property_set_volatile(o, (char*)"timestamp", ess);
 
-  time_t estt = (time_t)es;
-  struct tm* tms = localtime(&estt);
+  if(object_property_is(oclock, (char*)"timestamp", ess)) return true;
+
+  object_property_set(oclock, (char*)"timestamp", ess);
+
+  time_t est = (time_t)es;
+  struct tm* tms = localtime(&est);
   char ts[32];
 
   strftime(ts, 32, "%Y/%m/%d", tms);
-  object_property_set_volatile(o, (char*)"date", ts);
+  object_property_set(oclock, (char*)"date", ts);
 
   strftime(ts, 32, "%H:%M:%S", tms);
-  object_property_set_volatile(o, (char*)"time", ts);
+  object_property_set(oclock, (char*)"time", ts);
 
   return true;
 }
@@ -527,16 +530,16 @@ void get_cell_titles(char* titles, struct tm* thisdate, int col)
 {
   char ts[32]; int n=strftime(ts, 32, "%Y-%m-%d", thisdate);
   snprintf(ts+n, 32-n, "/%d", col);
-  list* l=(list*)properties_get(calstamps, value_new(ts));
+  list* l=(list*)properties_get(calstamps, ts);
   if(l){
     int at=0;
     static properties* uidseen=properties_new(100);
-    properties_clear(uidseen, false);
+    properties_clear(uidseen, true);
     for(int e=1; e<=list_size(l); e++){
       char* eventpath=value_string((value*)list_get_n(l,e));
       char* eventuid=object_property(user, eventpath);
-      if(!properties_get(uidseen, value_new(eventuid))){
-        properties_set(uidseen, value_new(eventuid), value_new(eventuid));
+      if(!properties_get(uidseen, eventuid)){
+        properties_set(uidseen, eventuid, value_new(eventuid));
         char titlepath[128]; snprintf(titlepath, 128, "%s:title", eventpath);
         char* title=object_property_values(user, titlepath);
         at+=snprintf(titles+at, 512-at, "%s\n", title? title: (char*)"--");
@@ -549,17 +552,17 @@ void get_tag_icons(char* tagicons, int taglen, struct tm* thisdate, int cols)
 {
   int ti=0;
   static properties* uidseen=properties_new(100);
-  properties_clear(uidseen, false);
+  properties_clear(uidseen, true);
   for(int col=1; col<=cols; col++){
     char ts[32]; int n=strftime(ts, 32, "%Y-%m-%d", thisdate);
     snprintf(ts+n, 32-n, "/%d", col);
-    list* l=(list*)properties_get(calstamps, value_new(ts));
+    list* l=(list*)properties_get(calstamps, ts);
     if(!l) continue;
     for(int e=1; e<=list_size(l); e++){
       char* eventpath=value_string((value*)list_get_n(l,e));
       char* eventuid=object_property(user, eventpath);
-      if(!properties_get(uidseen, value_new(eventuid))){
-        properties_set(uidseen, value_new(eventuid), value_new(eventuid));
+      if(!properties_get(uidseen, eventuid)){
+        properties_set(uidseen, eventuid, value_new(eventuid));
         char tagpath[128];
         snprintf(tagpath, 128, "%s:tags", eventpath);
         int ln=object_property_length(user, tagpath);
@@ -582,7 +585,7 @@ void get_cell_events_and_show_open(char* path, struct tm* thisdate, int col)
 {
   char ts[32]; int n=strftime(ts, 32, "%Y-%m-%d", thisdate);
   snprintf(ts+n, 32-n, "/%d", col);
-  list* l=(list*)properties_get(calstamps, value_new(ts));
+  list* l=(list*)properties_get(calstamps, ts);
   if(l){
     for(int e=1; e<=list_size(l); e++){
       char* eventpath=value_string((value*)list_get_n(l,e));

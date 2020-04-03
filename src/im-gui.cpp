@@ -168,7 +168,7 @@ void init_onex()
     user=object_new(0, (char*)"user", (char*)"user", 8);
     userUID=object_property(user, (char*)"UID");
 
-    oclock=object_new(0, (char*)"clock", (char*)"clock event", 7);
+    oclock=object_new(0, (char*)"clock", (char*)"clock event", 12);
     object_property_set(oclock, (char*)"title", (char*)"OnexApp Clock");
     object_property_set(oclock, (char*)"timestamp", (char*)"1585045750");
     object_property_set(oclock, (char*)"timezone", (char*)"GMT");
@@ -357,7 +357,7 @@ void invoke_single_set(char* uid, char* key, char* val)
       list_add(li, value_new((char*)"=>"));
       if(val && *val) list_add(li, value_new(val));
     }
-    properties_set(update, value_new(key), li);
+    properties_set(update, key, li);
     onex_run_evaluators(uid, update);
     if(!strcmp(key, (char*)"is")){
       char* evaluator;
@@ -399,7 +399,7 @@ void invoke_single_add(char* uid, char* key, char* val)
     list_add(li, value_new((char*)"=>"));
     list_add(li, value_new((char*)"@."));
     list_add(li, value_new(val));
-    properties_set(update, value_new(key), li);
+    properties_set(update, key, li);
     onex_run_evaluators(uid, update);
   }
   else{
