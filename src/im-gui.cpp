@@ -170,11 +170,8 @@ void init_onex()
 
     oclock=object_new(0, (char*)"clock", (char*)"clock event", 12);
     object_property_set(oclock, (char*)"title", (char*)"OnexApp Clock");
-    object_property_set(oclock, (char*)"timestamp", (char*)"1585045750");
     object_property_set(oclock, (char*)"timezone", (char*)"GMT");
     object_property_set(oclock, (char*)"daylight", (char*)"BST");
-    object_property_set(oclock, (char*)"date", (char*)"2020-03-24");
-    object_property_set(oclock, (char*)"time", (char*)"12:00:00");
     clockUID=object_property(oclock, (char*)"UID");
 
     object_set_evaluator(onex_device_object, (char*)"device");

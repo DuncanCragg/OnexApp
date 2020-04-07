@@ -383,31 +383,6 @@ bool evaluate_event(object* o, void* d)
   return true;
 }
 
-// actually will be in behaviours
-bool evaluate_clock(object* oclock, void* d)
-{
-  uint64_t es=time_es();
-  char ess[16];
-  if(es>>32) snprintf(ess, 16, "%u%u", ((uint32_t)(es>>32)),(uint32_t)es);
-  else       snprintf(ess, 16,   "%u",                      (uint32_t)es);
-
-  if(object_property_is(oclock, (char*)"timestamp", ess)) return true;
-
-  object_property_set(oclock, (char*)"timestamp", ess);
-
-  time_t est = (time_t)es;
-  struct tm* tms = localtime(&est);
-  char ts[32];
-
-  strftime(ts, 32, "%Y/%m/%d", tms);
-  object_property_set(oclock, (char*)"date", ts);
-
-  strftime(ts, 32, "%H:%M:%S", tms);
-  object_property_set(oclock, (char*)"time", ts);
-
-  return true;
-}
-
 typedef struct {
   char* title;
   char* date;
