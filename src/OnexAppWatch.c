@@ -34,6 +34,8 @@ static bool evaluate_user(object* sensors, void* pressed);
 static bool evaluate_sensors_io(object* sensors, void* pressed);
 static bool evaluate_controllers_io(object* sensors, void* pressed);
 
+static void draw_ui();
+
 #define ADC_CHANNEL 0
 
 void* x;
@@ -47,8 +49,8 @@ int main()
   blenus_init(0);
 
   gfx_init();
-  gfx_screen_colour(0xC618);
-  gfx_text_colour(0x001F);
+  gfx_screen_colour(GFX_BLACK);
+  gfx_text_colour(GFX_BLUE);
   gfx_screen_fill();
 
   touch_init(touched);
@@ -60,8 +62,6 @@ int main()
   gpio_adc_init(BATTERY_V, ADC_CHANNEL);
 
   gpio_mode(LCD_BACKLIGHT_HIGH, OUTPUT);
-
-  time_ticker(every_minute, 60000);
 
   onex_init("");
 
@@ -90,8 +90,9 @@ int main()
   onex_run_evaluators(sensorsuid, false);
   onex_run_evaluators(controllersuid, 0);
 
-  gfx_pos(10, 10);
-  gfx_text("OnexOS");
+  time_ticker(every_minute, 60000);
+
+  draw_ui();
 
   while(1){
 
@@ -148,9 +149,35 @@ bool evaluate_controllers_io(object* o, void* backlight)
 
 bool evaluate_user(object* o, void* d)
 {
-//draw_ui();
+  draw_ui();
   return true;
 }
 
 
+#define PADDING 2
+#define L_PADDING 5
+#define T_PADDING 5
+#define ROW_HEIGHT 26
+#define PROPERTY_WIDTH 100
+#define VALUE_WIDTH 130
+#define SCREEN_WIDTH 240
+#define SCREEN_HEIGHT 240
+
+#define ACTION_BG       GFX_RGB256(245,245,100)
+#define ACTION_COLOUR   GFX_RGB256(128,26,51)
+#define PROPERTY_BG     GFX_RGB256(247,255,250)
+#define PROPERTY_COLOUR GFX_RGB256(51,128,77)
+#define VALUE_BG        GFX_RGB256(245,222,255)
+#define VALUE_COLOUR    GFX_RGB256(51,51,100)
+
+void draw_ui()
+{
+  gfx_rect_line(0,0, SCREEN_WIDTH,SCREEN_HEIGHT, GFX_GREY_F, PADDING);
+
+  gfx_screen_colour(ACTION_BG);
+  gfx_rect_fill(PADDING,PADDING, SCREEN_WIDTH-PADDING,ROW_HEIGHT, ACTION_BG);
+  gfx_pos(PADDING+L_PADDING, PADDING+T_PADDING);
+  gfx_text_colour(ACTION_COLOUR);
+  gfx_text("user");
+}
 
