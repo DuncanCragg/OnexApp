@@ -18,8 +18,15 @@ char* sensorsuid;
 char* controllersuid;
 char* useruid;
 
-void button_changed(int);
-void every_minute();
+static void every_minute()
+{
+  onex_run_evaluators(sensorsuid, 0);
+}
+
+static void button_changed(int pressed)
+{
+  onex_run_evaluators(sensorsuid, pressed? "down": "up");
+}
 
 static touch_info_t ti;
 static bool new_touch_info=false;
@@ -103,16 +110,6 @@ int main()
       onex_run_evaluators(controllersuid, (ti.gesture==TOUCH_GESTURE_TAP_LONG)? "off": "on");
     }
   }
-}
-
-void button_changed(int pressed)
-{
-  onex_run_evaluators(sensorsuid, pressed? "down": "up");
-}
-
-void every_minute()
-{
-  onex_run_evaluators(sensorsuid, 0);
 }
 
 bool evaluate_sensors_io(object* o, void* pressed)
