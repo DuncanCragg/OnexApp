@@ -1,12 +1,12 @@
-PROJECT_NAME     := OnexApp
-TARGETS          := OnexApp
+PROJECT_NAME     := OnexOS
+TARGETS          := OnexOS
 OUTPUT_DIRECTORY := _build
 VERBOSE = 1
 PRETTY  = 1
 
 SDK_ROOT := ./sdk
 
-$(OUTPUT_DIRECTORY)/OnexApp.out: \
+$(OUTPUT_DIRECTORY)/OnexOS.out: \
   LINKER_SCRIPT  := ./OnexKernel/src/platforms/nRF5/s132/onex.ld
 
 
@@ -38,8 +38,8 @@ NRF5_C_SOURCE_FILES = \
 ./OnexKernel/src/platforms/nRF5/channel-serial.c \
 
 
-ONEXAPP_IOT_OBJECTS = \
-./src/OnexAppWatch.c \
+ONEXOS_OBJECTS = \
+./src/OnexOS.c \
 
 
 # Source files common to all targets
@@ -107,7 +107,7 @@ SRC_FILES += \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh.c \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh_ble.c \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh_soc.c \
-  $(NRF5_C_SOURCE_FILES) $(LIB_OBJECTS) $(ONEXAPP_IOT_OBJECTS)
+  $(NRF5_C_SOURCE_FILES) $(LIB_OBJECTS) $(ONEXOS_OBJECTS)
 
 # Include folders common to all targets
 INC_FOLDERS += \
@@ -303,10 +303,10 @@ LDFLAGS += -Wl,--gc-sections
 # use newlib in nano version
 LDFLAGS += --specs=nano.specs
 
-OnexApp: CFLAGS += -D__HEAP_SIZE=8192
-OnexApp: CFLAGS += -D__STACK_SIZE=8192
-OnexApp: ASMFLAGS += -D__HEAP_SIZE=8192
-OnexApp: ASMFLAGS += -D__STACK_SIZE=8192
+OnexOS: CFLAGS += -D__HEAP_SIZE=8192
+OnexOS: CFLAGS += -D__STACK_SIZE=8192
+OnexOS: ASMFLAGS += -D__HEAP_SIZE=8192
+OnexOS: ASMFLAGS += -D__STACK_SIZE=8192
 
 # Add standard libraries at the very end of the linker input, after all objects
 # that may need symbols provided by these libraries.
@@ -316,12 +316,12 @@ LIB_FILES += -lc -lnosys -lm
 .PHONY: default help
 
 # Default target - first one defined
-default: OnexApp
+default: OnexOS
 
 # Print all targets that can be built
 help:
 	@echo following targets are available:
-	@echo		OnexApp
+	@echo		OnexOS
 	@echo		flash_softdevice
 	@echo		sdk_config - starting external tool for editing sdk_config.h
 	@echo		flash      - flashing binary
@@ -336,8 +336,8 @@ $(foreach target, $(TARGETS), $(call define_target, $(target)))
 
 # Flash the program
 flash: default
-	@echo Flashing: $(OUTPUT_DIRECTORY)/OnexApp.hex
-	nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/OnexApp.hex --sectorerase
+	@echo Flashing: $(OUTPUT_DIRECTORY)/OnexOS.hex
+	nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/OnexOS.hex --sectorerase
 	nrfjprog -f nrf52 --reset
 
 # Flash softdevice
