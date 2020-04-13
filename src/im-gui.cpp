@@ -103,7 +103,7 @@ static bool evaluate_default(object* o, void* d)
 }
 
 bool ticked=false;
-void every_second()
+static void every_second()
 {
   ticked=true;
 }
