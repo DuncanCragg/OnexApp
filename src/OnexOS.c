@@ -11,12 +11,19 @@
 
 object* sensors;
 object* controllers;
+object* oclock;
 object* user;
 
 char* deviceuid;
 char* sensorsuid;
 char* controllersuid;
+char* clockuid;
 char* useruid;
+
+static void every_second()
+{
+  onex_run_evaluators(clockuid, 0);
+}
 
 static void every_minute()
 {
@@ -76,20 +83,30 @@ int main()
   onex_set_evaluators("user",        evaluate_user, 0);
   onex_set_evaluators("sensors",     evaluate_sensors_io, 0);
   onex_set_evaluators("controllers", evaluate_edit_rule, evaluate_controllers_io, 0);
+  onex_set_evaluators("clock",       evaluate_clock_sync, evaluate_clock, 0);
 
   object_set_evaluator(onex_device_object, "device");
+
   user       =object_new(0, "user",        "user", 8);
   sensors    =object_new(0, "sensors",     "sensors", 8);
   controllers=object_new(0, "controllers", "editable controllers", 4);
+  oclock     =object_new(0, "clock",       "clock event", 12);
 
   deviceuid     =object_property(onex_device_object, "UID");
   useruid       =object_property(user, "UID");
   sensorsuid    =object_property(sensors, "UID");
   controllersuid=object_property(controllers, "UID");
+  clockuid      =object_property(oclock, "UID");
+
+  object_property_set(oclock, "title", "Clock");
+  object_property_set(oclock, "timezone", "GMT");
+  object_property_add(oclock, "timezone", "BST");
+  object_property_set(oclock, "device", deviceuid);
 
   object_property_add(onex_device_object, (char*)"user", useruid);
   object_property_add(onex_device_object, (char*)"io",   sensorsuid);
   object_property_add(onex_device_object, (char*)"io",   controllersuid);
+  object_property_add(onex_device_object, (char*)"io",   clockuid);
 
   object_property_set(user, "viewing", deviceuid);
   object_property_set(controllers, "backlight", "on");
@@ -97,6 +114,7 @@ int main()
   onex_run_evaluators(sensorsuid, false);
   onex_run_evaluators(controllersuid, 0);
 
+  time_ticker(every_second, 1000);
   time_ticker(every_minute, 60000);
 
   draw_ui();
