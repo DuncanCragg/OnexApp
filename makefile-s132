@@ -111,6 +111,7 @@ SRC_FILES += \
 
 # Include folders common to all targets
 INC_FOLDERS += \
+  $(SDK_ROOT)/modules/nrfx/soc/ \
   $(SDK_ROOT)/components/drivers_ext/st7789 \
   $(SDK_ROOT)/external/thedotfactory_fonts \
   $(SDK_ROOT)/components/nfc/ndef/generic/message \
@@ -266,6 +267,7 @@ CFLAGS += -DNRF_SD_BLE_API_VERSION=7
 CFLAGS += -DS132
 CFLAGS += -DSOFTDEVICE_PRESENT
 CFLAGS += -DONP_CHANNEL_SERIAL
+CFLAGS += -DLOG_TO_GFX
 CFLAGS += -mcpu=cortex-m4
 CFLAGS += -mthumb -mabi=aapcs
 CFLAGS += -Wall -Werror -Wno-unused-but-set-variable
