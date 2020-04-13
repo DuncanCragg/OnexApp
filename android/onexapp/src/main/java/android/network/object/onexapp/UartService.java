@@ -336,6 +336,10 @@ public class UartService extends Service {
     private boolean writesInProgress=false;
 
     public synchronized void write(byte[] value){
+      if(writeChunks.size() >100){
+        Log.d(LOGNAME, "Write buffer full!");
+        return;
+      }
       int MAX_TX_LEN=20;
       int s=0;
       int e;
@@ -368,7 +372,7 @@ public class UartService extends Service {
     public boolean writeRXCharacteristic(byte[] value)
     {
         if (bluetoothGATT == null) {
-            Log.e(LOGNAME, "UART GATT not there yet");
+            Log.e(LOGNAME, "UART GATT not there");
             return false;
         }
         BluetoothGattService RxService = bluetoothGATT.getService(RX_SERVICE_UUID);
@@ -384,7 +388,6 @@ public class UartService extends Service {
         RxChar.setValue(value);
         boolean status = bluetoothGATT.writeCharacteristic(RxChar);
 
-        Log.d(LOGNAME, "write TXchar (" + new String(value) + ") status=" + status);
         return status;
     }
 

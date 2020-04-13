@@ -29,6 +29,7 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
 
     static OnexNativeActivity self=null;
 
+    public static final boolean logReadWrite = true;
     public static final String LOGNAME = "OnexApp";
 
     private static UsbSerialDevice serialPort = null;
@@ -224,6 +225,7 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
         String newChars = chars.substring(0,x+1);
         buff.reset();
         buff.write(chars.substring(x+1).getBytes());
+        if(logReadWrite) Log.d(LOGNAME, "read (" + newChars + ")" );
         serialOnRecv(newChars);
       }catch(Exception e){}
     }
@@ -360,6 +362,7 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
     // -----------------------------------------------------------
 
     public void serialSend(String chars){
+      if(logReadWrite) Log.d(LOGNAME, "write (" + chars + ")");
       try {
         if (uartService!=null){
           uartService.write(chars.getBytes("UTF-8"));
