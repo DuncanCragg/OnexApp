@@ -1,4 +1,5 @@
 
+#include <string.h>
 #include <boards.h>
 #include <onex-kernel/log.h>
 #include <onex-kernel/time.h>
@@ -20,33 +21,22 @@ char* controllersuid;
 char* clockuid;
 char* useruid;
 
-static void every_second()
-{
-  onex_run_evaluators(clockuid, 0);
-}
+static volatile bool event_tick_sec=false;
+static volatile bool event_tick_min=false;
+static volatile bool event_button=false;
+static volatile bool event_touch=false;
 
-static void every_minute()
-{
-  onex_run_evaluators(sensorsuid, 0);
-}
+static volatile bool         pressed;
+static volatile touch_info_t touchinfo;
 
-static void button_changed(int pressed)
-{
-  onex_run_evaluators(sensorsuid, pressed? "down": "up");
-}
+static void every_second(){           event_tick_sec=true; }
+static void every_minute(){           event_tick_min=true; }
+static void button_changed(int p){    event_button=true; pressed=p; }
+static void touched(touch_info_t ti){ event_touch=true;  touchinfo=ti; }
 
-static touch_info_t ti;
-static bool new_touch_info=false;
-
-void touched(touch_info_t touchinfo)
-{
-  ti=touchinfo;
-  new_touch_info=true;
-}
-
-static bool evaluate_user(object* sensors, void* pressed);
-static bool evaluate_sensors_io(object* sensors, void* pressed);
-static bool evaluate_controllers_io(object* sensors, void* pressed);
+static bool evaluate_user(object* o, void* d);
+static bool evaluate_sensors_io(object* o, void* d);
+static bool evaluate_controllers_io(object* o, void* d);
 
 static void draw_ui();
 
@@ -54,6 +44,28 @@ static void draw_ui();
 
 void* x;
 #define WHERESTHEHEAP(s) x = malloc(1); log_write("heap after %s: %x\n", s, x);
+
+extern volatile char* event_log_buffer;
+
+void draw_log(char* s)
+{
+  char* nl=strchr(s, '\n');
+  char* s2;
+  if(nl){
+    *nl=0;
+    s2=nl+1;
+  }
+  if(strlen(s)>9) s[9]=0;
+  if(nl && strlen(s2)>9) s2[9]=0;
+  gfx_push(10,150);
+  gfx_text(s);
+  if(nl){
+    gfx_push(10,190);
+    gfx_text(s2);
+    gfx_pop();
+  }
+  gfx_pop();
+}
 
 int main()
 {
@@ -108,9 +120,10 @@ int main()
   object_property_add(onex_device_object, (char*)"io",   controllersuid);
   object_property_add(onex_device_object, (char*)"io",   clockuid);
 
-  object_property_set(user, "viewing", deviceuid);
+  object_property_set(user, "viewing", clockuid);
   object_property_set(controllers, "backlight", "on");
 
+  onex_run_evaluators(useruid, 0);
   onex_run_evaluators(sensorsuid, false);
   onex_run_evaluators(controllersuid, 0);
 
@@ -123,9 +136,25 @@ int main()
 
     onex_loop();
 
-    if(new_touch_info){
-      new_touch_info=false;
-      onex_run_evaluators(controllersuid, (ti.gesture==TOUCH_GESTURE_TAP_LONG)? "off": "on");
+    if(event_tick_sec){
+      event_tick_sec=false;
+      onex_run_evaluators(clockuid, 0);
+    }
+    if(event_tick_min){
+      event_tick_min=false;
+      onex_run_evaluators(sensorsuid, 0);
+    }
+    if(event_button){
+      event_button=false;
+      onex_run_evaluators(sensorsuid, pressed? "down": "up");
+    }
+    if(event_touch){
+      event_touch=false;
+      onex_run_evaluators(controllersuid, (touchinfo.gesture==TOUCH_GESTURE_TAP_LONG)? "off": "on");
+    }
+    if(event_log_buffer){
+      draw_log((char*)event_log_buffer);
+      event_log_buffer=0;
     }
   }
 }
@@ -164,7 +193,8 @@ bool evaluate_controllers_io(object* o, void* backlight)
 
 bool evaluate_user(object* o, void* d)
 {
-  draw_ui();
+//draw_ui();
+  log_write(object_property(user, "viewing:time"));
   return true;
 }
 
