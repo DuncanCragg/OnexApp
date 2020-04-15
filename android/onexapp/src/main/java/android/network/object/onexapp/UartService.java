@@ -338,6 +338,7 @@ public class UartService extends Service {
     public synchronized void write(byte[] value){
       if(writeChunks.size() >100){
         Log.d(LOGNAME, "Write buffer full!");
+        if(!writesInProgress) writeAChunk();
         return;
       }
       int MAX_TX_LEN=20;
