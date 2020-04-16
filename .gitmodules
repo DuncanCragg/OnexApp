@@ -7,3 +7,6 @@
 [submodule "OnexLang"]
 	path = OnexLang
 	url = git@github.com:DuncanCragg/OnexLang.git
+[submodule "external/lvgl"]
+	path = external/lvgl
+	url = git@github.com:littlevgl/lvgl.git
