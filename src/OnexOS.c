@@ -73,20 +73,20 @@ void draw_log(char* s)
 static lv_disp_buf_t disp_buf;
 static lv_color_t lv_buffer[LV_HOR_RES_MAX * 10];
 
-void set_pixel(int x, int y, lv_color_t c)
-{
-  gfx_pixel(x,y, c.full);
-}
-
-void gfx_draw_area(lv_disp_drv_t * disp, const lv_area_t* area, lv_color_t* color_p)
+void gfx_draw_area(uint16_t x1, uint16_t x2, uint16_t y1, uint16_t y2, uint16_t* colours)
 {
   int32_t x, y;
-  for(y = area->y1; y <= area->y2; y++) {
-    for(x = area->x1; x <= area->x2; x++) {
-      set_pixel(x, y, *color_p);
-      color_p++;
+  for(y = y1; y <= y2; y++) {
+    for(x = x1; x <= x2; x++) {
+      gfx_pixel(x,y, *colours);
+      colours++;
     }
   }
+}
+
+void draw_area_and_ready(lv_disp_drv_t * disp, const lv_area_t* area, lv_color_t* color_p)
+{
+  gfx_draw_area(area->x1, area->x2, area->y1, area->y2, (uint16_t*)color_p);
   lv_disp_flush_ready(disp);
 }
 
@@ -101,7 +101,7 @@ int main()
   lv_disp_buf_init(&disp_buf, lv_buffer, NULL, LV_HOR_RES_MAX * 10);
   lv_disp_drv_t disp_drv;
   lv_disp_drv_init(&disp_drv);
-  disp_drv.flush_cb = gfx_draw_area;
+  disp_drv.flush_cb = draw_area_and_ready;
   disp_drv.buffer = &disp_buf;
   lv_disp_drv_register(&disp_drv);
 
