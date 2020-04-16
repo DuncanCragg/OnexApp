@@ -254,14 +254,18 @@ void init_ui()
   lv_label_set_align(big_time, LV_LABEL_ALIGN_CENTER);
   lv_obj_align(big_time, lv_scr_act(), LV_ALIGN_CENTER, 0, -30);
 
-  lv_style_t st;
-  lv_style_copy(&st, &lv_style_plain);
-  st.body.main_color = LV_COLOR_BLACK;
-  st.body.grad_color = LV_COLOR_BLACK;
-  st.image.color     = LV_COLOR_WHITE;
-  st.text.color      = LV_COLOR_BLACK;
-  st.text.font = &noto_sans_numeric_60;
-  lv_label_set_style(big_time, LV_LABEL_STYLE_MAIN, &st);
+  lv_style_t bg;
+  lv_style_copy(&bg, &lv_style_plain);
+  bg.body.main_color = LV_COLOR_BLACK;
+  bg.body.grad_color = LV_COLOR_BLACK;
+  bg.image.color     = LV_COLOR_WHITE;
+  bg.text.color      = LV_COLOR_WHITE;
+  bg.text.font       = &noto_sans_numeric_60;
+  lv_label_set_style(lv_scr_act(), LV_LABEL_STYLE_MAIN, &bg);
+
+  lv_style_t lb;
+  lv_style_copy(&lb, &bg);
+  lv_label_set_style(big_time, LV_LABEL_STYLE_MAIN, &lb);
 }
 
 void draw_ui()
