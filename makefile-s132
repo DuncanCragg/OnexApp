@@ -12,6 +12,8 @@ $(OUTPUT_DIRECTORY)/OnexOS.out: \
 
 NRF5_INCLUDES = \
 ./external \
+./external/fonts \
+./external/lvgl \
 ./OnexLang/include \
 ./OnexKernel/include \
 ./OnexKernel/src/ \
@@ -40,6 +42,8 @@ NRF5_C_SOURCE_FILES = \
 
 
 EXTERNAL_SOURCES = \
+./external/fonts/fonts_noto_sans_numeric_60.c \
+./external/fonts/fonts_noto_sans_numeric_80.c \
 ./external/lvgl/src/lv_core/lv_group.c \
 ./external/lvgl/src/lv_core/lv_indev.c \
 ./external/lvgl/src/lv_core/lv_obj.c \

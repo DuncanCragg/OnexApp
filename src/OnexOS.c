@@ -9,7 +9,9 @@
 #include <onex-kernel/touch.h>
 #include <onf.h>
 #include <onr.h>
-#include <lvgl/lvgl.h>
+#include <lvgl.h>
+#include <noto_sans_numeric_60.h>
+#include <noto_sans_numeric_80.h>
 
 object* sensors;
 object* controllers;
@@ -70,14 +72,7 @@ void draw_log(char* s)
   gfx_pop();
 }
 
-static lv_disp_buf_t disp_buf;
-static lv_color_t lv_buffer[LV_HOR_RES_MAX * 10];
-
-void draw_area_and_ready(lv_disp_drv_t * disp, const lv_area_t* area, lv_color_t* color_p)
-{
-  gfx_draw_area(area->x1, area->x2, area->y1, area->y2, (uint16_t*)color_p);
-  lv_disp_flush_ready(disp);
-}
+static void init_ui();
 
 int main()
 {
@@ -86,13 +81,7 @@ int main()
   gpio_init();
   blenus_init(0);
 
-  lv_init();
-  lv_disp_buf_init(&disp_buf, lv_buffer, NULL, LV_HOR_RES_MAX * 10);
-  lv_disp_drv_t disp_drv;
-  lv_disp_drv_init(&disp_drv);
-  disp_drv.flush_cb = draw_area_and_ready;
-  disp_drv.buffer = &disp_buf;
-  lv_disp_drv_register(&disp_drv);
+  init_ui();
 
   gfx_init();
   gfx_screen_colour(GFX_BLACK);
@@ -218,8 +207,7 @@ bool evaluate_controllers_io(object* o, void* backlight)
 
 bool evaluate_user(object* o, void* d)
 {
-//draw_ui();
-  log_write(object_property(user, "viewing:time"));
+  draw_ui();
   return true;
 }
 
@@ -239,13 +227,47 @@ bool evaluate_user(object* o, void* d)
 #define VALUE_BG        GFX_RGB256(245,222,255)
 #define VALUE_COLOUR    GFX_RGB256(51,51,100)
 
+void draw_area_and_ready(lv_disp_drv_t * disp, const lv_area_t* area, lv_color_t* color_p)
+{
+  gfx_draw_area(area->x1, area->x2, area->y1, area->y2, (uint16_t*)color_p);
+  lv_disp_flush_ready(disp);
+}
+
+static lv_disp_buf_t disp_buf;
+static lv_color_t lv_buffer[LV_HOR_RES_MAX * 10];
+static lv_obj_t* big_time;
+
+void init_ui()
+{
+  lv_init();
+  lv_disp_buf_init(&disp_buf, lv_buffer, NULL, LV_HOR_RES_MAX * 10);
+  lv_disp_drv_t disp_drv;
+  lv_disp_drv_init(&disp_drv);
+  disp_drv.flush_cb = draw_area_and_ready;
+  disp_drv.buffer = &disp_buf;
+  lv_disp_drv_register(&disp_drv);
+
+  big_time=lv_label_create(lv_scr_act(), 0);
+  lv_label_set_long_mode(big_time, LV_LABEL_LONG_BREAK);
+  lv_obj_set_width(big_time, 240);
+  lv_obj_set_height(big_time, 200);
+  lv_label_set_align(big_time, LV_LABEL_ALIGN_CENTER);
+  lv_obj_align(big_time, lv_scr_act(), LV_ALIGN_CENTER, 0, -30);
+
+  lv_style_t st;
+  lv_style_copy(&st, &lv_style_plain);
+  st.body.main_color = LV_COLOR_BLACK;
+  st.body.grad_color = LV_COLOR_BLACK;
+  st.image.color     = LV_COLOR_WHITE;
+  st.text.color      = LV_COLOR_BLACK;
+  st.text.font = &noto_sans_numeric_60;
+  lv_label_set_style(big_time, LV_LABEL_STYLE_MAIN, &st);
+}
+
 void draw_ui()
 {
-  lv_obj_t* btn = lv_btn_create(lv_scr_act(), NULL);
-  lv_obj_set_pos(btn, 10, 10);
-  lv_obj_set_size(btn, 100, 50);
-  lv_obj_t* label = lv_label_create(btn, NULL);
-  lv_label_set_text(label, "Button");
+  char* t=object_property(user, "viewing:time");
+  if(t) lv_label_set_text(big_time, t);
 /*
   gfx_rect_line(0,0, SCREEN_WIDTH,SCREEN_HEIGHT, GFX_GREY_F, PADDING);
 
