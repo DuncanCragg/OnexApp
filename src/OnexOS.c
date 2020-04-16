@@ -9,6 +9,7 @@
 #include <onex-kernel/touch.h>
 #include <onf.h>
 #include <onr.h>
+#include <lvgl/lvgl.h>
 
 object* sensors;
 object* controllers;
@@ -21,6 +22,7 @@ char* controllersuid;
 char* clockuid;
 char* useruid;
 
+static volatile bool event_tick_10ms=false;
 static volatile bool event_tick_sec=false;
 static volatile bool event_tick_min=false;
 static volatile bool event_button=false;
@@ -29,6 +31,7 @@ static volatile bool event_touch=false;
 static volatile bool         pressed;
 static volatile touch_info_t touchinfo;
 
+static void every_10ms(){             event_tick_10ms=true; }
 static void every_second(){           event_tick_sec=true; }
 static void every_minute(){           event_tick_min=true; }
 static void button_changed(int p){    event_button=true; pressed=p; }
@@ -67,12 +70,40 @@ void draw_log(char* s)
   gfx_pop();
 }
 
+static lv_disp_buf_t disp_buf;
+static lv_color_t lv_buffer[LV_HOR_RES_MAX * 10];
+
+void set_pixel(int x, int y, lv_color_t c)
+{
+  gfx_pixel(x,y, c.full);
+}
+
+void gfx_draw_area(lv_disp_drv_t * disp, const lv_area_t* area, lv_color_t* color_p)
+{
+  int32_t x, y;
+  for(y = area->y1; y <= area->y2; y++) {
+    for(x = area->x1; x <= area->x2; x++) {
+      set_pixel(x, y, *color_p);
+      color_p++;
+    }
+  }
+  lv_disp_flush_ready(disp);
+}
+
 int main()
 {
   log_init();
   time_init();
   gpio_init();
   blenus_init(0);
+
+  lv_init();
+  lv_disp_buf_init(&disp_buf, lv_buffer, NULL, LV_HOR_RES_MAX * 10);
+  lv_disp_drv_t disp_drv;
+  lv_disp_drv_init(&disp_drv);
+  disp_drv.flush_cb = gfx_draw_area;
+  disp_drv.buffer = &disp_buf;
+  lv_disp_drv_register(&disp_drv);
 
   gfx_init();
   gfx_screen_colour(GFX_BLACK);
@@ -127,6 +158,7 @@ int main()
   onex_run_evaluators(sensorsuid, false);
   onex_run_evaluators(controllersuid, 0);
 
+  time_ticker(every_10ms,     10);
   time_ticker(every_second, 1000);
   time_ticker(every_minute, 60000);
 
@@ -136,6 +168,10 @@ int main()
 
     onex_loop();
 
+    if(event_tick_10ms){
+      event_tick_10ms=false;
+      lv_task_handler();
+    }
     if(event_tick_sec){
       event_tick_sec=false;
       onex_run_evaluators(clockuid, 0);
@@ -198,7 +234,6 @@ bool evaluate_user(object* o, void* d)
   return true;
 }
 
-
 #define PADDING 2
 #define L_PADDING 5
 #define T_PADDING 5
@@ -217,6 +252,12 @@ bool evaluate_user(object* o, void* d)
 
 void draw_ui()
 {
+  lv_obj_t* btn = lv_btn_create(lv_scr_act(), NULL);
+  lv_obj_set_pos(btn, 10, 10);
+  lv_obj_set_size(btn, 100, 50);
+  lv_obj_t* label = lv_label_create(btn, NULL);
+  lv_label_set_text(label, "Button");
+/*
   gfx_rect_line(0,0, SCREEN_WIDTH,SCREEN_HEIGHT, GFX_GREY_F, PADDING);
 
   gfx_screen_colour(ACTION_BG);
@@ -224,5 +265,6 @@ void draw_ui()
   gfx_pos(PADDING+L_PADDING, PADDING+T_PADDING);
   gfx_text_colour(ACTION_COLOUR);
   gfx_text("user");
+*/
 }
 

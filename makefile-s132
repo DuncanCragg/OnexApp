@@ -11,6 +11,7 @@ $(OUTPUT_DIRECTORY)/OnexOS.out: \
 
 
 NRF5_INCLUDES = \
+./external \
 ./OnexLang/include \
 ./OnexKernel/include \
 ./OnexKernel/src/ \
@@ -36,6 +37,125 @@ NRF5_C_SOURCE_FILES = \
 ./OnexKernel/src/platforms/nRF5/blenus.c \
 ./OnexKernel/src/platforms/nRF5/log.c \
 ./OnexKernel/src/platforms/nRF5/channel-serial.c \
+
+
+EXTERNAL_SOURCES = \
+./external/lvgl/src/lv_core/lv_group.c \
+./external/lvgl/src/lv_core/lv_indev.c \
+./external/lvgl/src/lv_core/lv_obj.c \
+./external/lvgl/src/lv_core/lv_refr.c \
+./external/lvgl/src/lv_core/lv_style.c \
+./external/lvgl/src/lv_core/lv_disp.c \
+./external/lvgl/src/lv_draw/lv_draw.c \
+./external/lvgl/src/lv_draw/lv_draw_img.c \
+./external/lvgl/src/lv_draw/lv_draw_img.c \
+./external/lvgl/src/lv_draw/lv_draw_rect.c \
+./external/lvgl/src/lv_draw/lv_img_cache.c \
+./external/lvgl/src/lv_draw/lv_img_decoder.c \
+./external/lvgl/src/lv_font/lv_font_fmt_txt.c \
+./external/lvgl/src/lv_font/lv_font_roboto_28.c \
+./external/lvgl/src/lv_hal/lv_hal_disp.c \
+./external/lvgl/src/lv_hal/lv_hal_indev.c \
+./external/lvgl/src/lv_hal/lv_hal_tick.c \
+./external/lvgl/src/lv_misc/lv_anim.c \
+./external/lvgl/src/lv_misc/lv_area.c \
+./external/lvgl/src/lv_misc/lv_ll.c \
+./external/lvgl/src/lv_misc/lv_mem.c \
+./external/lvgl/src/lv_misc/lv_task.c \
+./external/lvgl/src/lv_misc/lv_utils.c \
+./external/lvgl/src/lv_themes/lv_theme.c \
+./external/lvgl/porting/lv_port_disp_template.c \
+./external/lvgl/porting/lv_port_indev_template.c \
+./external/lvgl/porting/lv_port_fs_template.c \
+./external/lvgl/src/lv_misc/lv_area.c \
+./external/lvgl/src/lv_misc/lv_mem.c \
+./external/lvgl/src/lv_misc/lv_task.c \
+./external/lvgl/src/lv_misc/lv_bidi.c \
+./external/lvgl/src/lv_misc/lv_async.c \
+./external/lvgl/src/lv_misc/lv_anim.c \
+./external/lvgl/src/lv_misc/lv_gc.c \
+./external/lvgl/src/lv_misc/lv_fs.c \
+./external/lvgl/src/lv_misc/lv_templ.c \
+./external/lvgl/src/lv_misc/lv_log.c \
+./external/lvgl/src/lv_misc/lv_math.c \
+./external/lvgl/src/lv_misc/lv_txt.c \
+./external/lvgl/src/lv_misc/lv_ll.c \
+./external/lvgl/src/lv_misc/lv_utils.c \
+./external/lvgl/src/lv_misc/lv_color.c \
+./external/lvgl/src/lv_misc/lv_circ.c \
+./external/lvgl/src/lv_misc/lv_printf.c \
+./external/lvgl/src/lv_font/lv_font_fmt_txt.c \
+./external/lvgl/src/lv_font/lv_font_unscii_8.c \
+./external/lvgl/src/lv_font/lv_font_roboto_12.c \
+./external/lvgl/src/lv_font/lv_font_roboto_28_compressed.c \
+./external/lvgl/src/lv_font/lv_font.c \
+./external/lvgl/src/lv_font/lv_font_roboto_12_subpx.c \
+./external/lvgl/src/lv_font/lv_font_roboto_28.c \
+./external/lvgl/src/lv_font/lv_font_roboto_16.c \
+./external/lvgl/src/lv_font/lv_font_roboto_22.c \
+./external/lvgl/src/lv_hal/lv_hal_tick.c \
+./external/lvgl/src/lv_hal/lv_hal_indev.c \
+./external/lvgl/src/lv_hal/lv_hal_disp.c \
+./external/lvgl/src/lv_core/lv_debug.c \
+./external/lvgl/src/lv_core/lv_style.c \
+./external/lvgl/src/lv_core/lv_group.c \
+./external/lvgl/src/lv_core/lv_disp.c \
+./external/lvgl/src/lv_core/lv_refr.c \
+./external/lvgl/src/lv_core/lv_obj.c \
+./external/lvgl/src/lv_core/lv_indev.c \
+./external/lvgl/src/lv_draw/lv_draw_img.c \
+./external/lvgl/src/lv_draw/lv_img_cache.c \
+./external/lvgl/src/lv_draw/lv_draw_label.c \
+./external/lvgl/src/lv_draw/lv_draw_arc.c \
+./external/lvgl/src/lv_draw/lv_draw_basic.c \
+./external/lvgl/src/lv_draw/lv_img_decoder.c \
+./external/lvgl/src/lv_draw/lv_draw_triangle.c \
+./external/lvgl/src/lv_draw/lv_draw.c \
+./external/lvgl/src/lv_draw/lv_draw_rect.c \
+./external/lvgl/src/lv_draw/lv_draw_line.c \
+./external/lvgl/src/lv_objx/lv_label.c \
+./external/lvgl/src/lv_objx/lv_imgbtn.c \
+./external/lvgl/src/lv_objx/lv_canvas.c \
+./external/lvgl/src/lv_objx/lv_roller.c \
+./external/lvgl/src/lv_objx/lv_btnm.c \
+./external/lvgl/src/lv_objx/lv_ddlist.c \
+./external/lvgl/src/lv_objx/lv_page.c \
+./external/lvgl/src/lv_objx/lv_cont.c \
+./external/lvgl/src/lv_objx/lv_bar.c \
+./external/lvgl/src/lv_objx/lv_btn.c \
+./external/lvgl/src/lv_objx/lv_arc.c \
+./external/lvgl/src/lv_objx/lv_slider.c \
+./external/lvgl/src/lv_objx/lv_tileview.c \
+./external/lvgl/src/lv_objx/lv_spinbox.c \
+./external/lvgl/src/lv_objx/lv_img.c \
+./external/lvgl/src/lv_objx/lv_calendar.c \
+./external/lvgl/src/lv_objx/lv_preload.c \
+./external/lvgl/src/lv_objx/lv_kb.c \
+./external/lvgl/src/lv_objx/lv_list.c \
+./external/lvgl/src/lv_objx/lv_cb.c \
+./external/lvgl/src/lv_objx/lv_sw.c \
+./external/lvgl/src/lv_objx/lv_cpicker.c \
+./external/lvgl/src/lv_objx/lv_table.c \
+./external/lvgl/src/lv_objx/lv_line.c \
+./external/lvgl/src/lv_objx/lv_ta.c \
+./external/lvgl/src/lv_objx/lv_led.c \
+./external/lvgl/src/lv_objx/lv_lmeter.c \
+./external/lvgl/src/lv_objx/lv_objx_templ.c \
+./external/lvgl/src/lv_objx/lv_chart.c \
+./external/lvgl/src/lv_objx/lv_gauge.c \
+./external/lvgl/src/lv_objx/lv_tabview.c \
+./external/lvgl/src/lv_objx/lv_win.c \
+./external/lvgl/src/lv_objx/lv_mbox.c \
+./external/lvgl/src/lv_themes/lv_theme_default.c \
+./external/lvgl/src/lv_themes/lv_theme.c \
+./external/lvgl/src/lv_themes/lv_theme_mono.c \
+./external/lvgl/src/lv_themes/lv_theme_alien.c \
+./external/lvgl/src/lv_themes/lv_theme_templ.c \
+./external/lvgl/src/lv_themes/lv_theme_zen.c \
+./external/lvgl/src/lv_themes/lv_theme_material.c \
+./external/lvgl/src/lv_themes/lv_theme_night.c \
+./external/lvgl/src/lv_themes/lv_theme_nemo.c \
+
 
 
 ONEXOS_OBJECTS = \
@@ -107,7 +227,7 @@ SRC_FILES += \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh.c \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh_ble.c \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh_soc.c \
-  $(NRF5_C_SOURCE_FILES) $(LIB_OBJECTS) $(ONEXOS_OBJECTS)
+  $(NRF5_C_SOURCE_FILES) $(LIB_OBJECTS) $(EXTERNAL_SOURCES) $(ONEXOS_OBJECTS)
 
 # Include folders common to all targets
 INC_FOLDERS += \
