@@ -136,8 +136,8 @@ int main()
   onex_run_evaluators(sensorsuid, false);
   onex_run_evaluators(controllersuid, 0);
 
-  time_ticker(every_10ms,     10);
-  time_ticker(every_second, 1000);
+  time_ticker(every_10ms,      10);
+  time_ticker(every_second,  1000);
   time_ticker(every_minute, 60000);
 
   draw_ui();
@@ -264,7 +264,7 @@ void init_ui()
   bg.body.grad_color = LV_COLOR_BLACK;
   bg.image.color     = LV_COLOR_WHITE;
   bg.text.color      = LV_COLOR_WHITE;
-  bg.text.font       = &noto_sans_numeric_60;
+  bg.text.font       = &noto_sans_numeric_80;
   lv_label_set_style(lv_scr_act(), LV_LABEL_STYLE_MAIN, &bg);
 
   lv_style_t lb;
