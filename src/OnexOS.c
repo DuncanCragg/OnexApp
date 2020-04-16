@@ -234,13 +234,17 @@ void draw_area_and_ready(lv_disp_drv_t * disp, const lv_area_t* area, lv_color_t
 }
 
 static lv_disp_buf_t disp_buf;
-static lv_color_t lv_buffer[LV_HOR_RES_MAX * 10];
+
+#define LV_BUF_SIZE (LV_HOR_RES_MAX * 6)
+static lv_color_t lv_buf1[LV_BUF_SIZE];
+static lv_color_t lv_buf2[LV_BUF_SIZE];
+
 static lv_obj_t* big_time;
 
 void init_ui()
 {
   lv_init();
-  lv_disp_buf_init(&disp_buf, lv_buffer, NULL, LV_HOR_RES_MAX * 10);
+  lv_disp_buf_init(&disp_buf, lv_buf1, lv_buf2, LV_BUF_SIZE);
   lv_disp_drv_t disp_drv;
   lv_disp_drv_init(&disp_drv);
   disp_drv.flush_cb = draw_area_and_ready;
