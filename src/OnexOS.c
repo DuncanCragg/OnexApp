@@ -73,17 +73,6 @@ void draw_log(char* s)
 static lv_disp_buf_t disp_buf;
 static lv_color_t lv_buffer[LV_HOR_RES_MAX * 10];
 
-void gfx_draw_area(uint16_t x1, uint16_t x2, uint16_t y1, uint16_t y2, uint16_t* colours)
-{
-  int32_t x, y;
-  for(y = y1; y <= y2; y++) {
-    for(x = x1; x <= x2; x++) {
-      gfx_pixel(x,y, *colours);
-      colours++;
-    }
-  }
-}
-
 void draw_area_and_ready(lv_disp_drv_t * disp, const lv_area_t* area, lv_color_t* color_p)
 {
   gfx_draw_area(area->x1, area->x2, area->y1, area->y2, (uint16_t*)color_p);
