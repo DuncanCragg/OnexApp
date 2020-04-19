@@ -13,16 +13,18 @@
 #include <noto_sans_numeric_60.h>
 #include <noto_sans_numeric_80.h>
 
+object* user;
 object* sensors;
 object* controllers;
 object* oclock;
-object* user;
+object* home;
 
 char* deviceuid;
+char* useruid;
 char* sensorsuid;
 char* controllersuid;
 char* clockuid;
-char* useruid;
+char* homeuid;
 
 static volatile bool event_tick_10ms=false;
 static volatile bool event_tick_sec=false;
@@ -60,12 +62,12 @@ void draw_log(char* s)
     *nl=0;
     s2=nl+1;
   }
-  if(strlen(s)>9) s[9]=0;
-  if(nl && strlen(s2)>9) s2[9]=0;
-  gfx_push(10,150);
+  if(strlen(s)>16) s[16]=0;
+  if(nl && strlen(s2)>16) s2[16]=0;
+  gfx_push(10,200);
   gfx_text(s);
   if(nl){
-    gfx_push(10,190);
+    gfx_push(10,220);
     gfx_text(s2);
     gfx_pop();
   }
@@ -105,6 +107,7 @@ int main()
   onex_set_evaluators("sensors",     evaluate_sensors_io, 0);
   onex_set_evaluators("controllers", evaluate_edit_rule, evaluate_controllers_io, 0);
   onex_set_evaluators("clock",       evaluate_clock_sync, evaluate_clock, 0);
+  onex_set_evaluators("editable",    evaluate_edit_rule, 0);
 
   object_set_evaluator(onex_device_object, "device");
 
@@ -112,12 +115,14 @@ int main()
   sensors    =object_new(0, "sensors",     "sensors", 8);
   controllers=object_new(0, "controllers", "editable controllers", 4);
   oclock     =object_new(0, "clock",       "clock event", 12);
+  home       =object_new(0, "editable",    "editable", 4);
 
   deviceuid     =object_property(onex_device_object, "UID");
   useruid       =object_property(user, "UID");
   sensorsuid    =object_property(sensors, "UID");
   controllersuid=object_property(controllers, "UID");
   clockuid      =object_property(oclock, "UID");
+  homeuid       =object_property(home, "UID");
 
   object_property_set(oclock, "title", "Clock");
   object_property_set(oclock, "timezone", "GMT");
@@ -129,8 +134,12 @@ int main()
   object_property_add(onex_device_object, (char*)"io",   controllersuid);
   object_property_add(onex_device_object, (char*)"io",   clockuid);
 
-  object_property_set(user, "viewing", clockuid);
+  object_property_set(home, (char*)"sensors", sensorsuid);
+  object_property_set(home, (char*)"clock", clockuid);
+
   object_property_set(controllers, "backlight", "on");
+
+  object_property_set(user, "viewing", homeuid);
 
   onex_run_evaluators(useruid, 0);
   onex_run_evaluators(sensorsuid, false);
@@ -274,10 +283,12 @@ void init_ui()
 
 void draw_ui()
 {
-  char* t=object_property(user, "viewing:time");
+  char* p=object_property(user, "viewing:sensors:battery-percent");
+  char* c=object_property(user, "viewing:sensors:battery-charge");
+  char* t=object_property(user, "viewing:clock:time");
   if(t){
     lv_label_set_text(big_time, t);
-    log_write((time_es()%2)? "\n/": "\n\\");
+    log_write((time_es()%2)? "%s%% %s\n/": "%s%% %s\n\\", p, c);
   }
 /*
   gfx_rect_line(0,0, SCREEN_WIDTH,SCREEN_HEIGHT, GFX_GREY_F, PADDING);
