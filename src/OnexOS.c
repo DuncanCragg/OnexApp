@@ -256,7 +256,7 @@ void init_ui()
   lv_obj_set_width(big_time, 240);
   lv_obj_set_height(big_time, 200);
   lv_label_set_align(big_time, LV_LABEL_ALIGN_CENTER);
-  lv_obj_align(big_time, lv_scr_act(), LV_ALIGN_CENTER, 0, -30);
+  lv_obj_align(big_time, lv_scr_act(), LV_ALIGN_CENTER, -5, -10);
 
   lv_style_t bg;
   lv_style_copy(&bg, &lv_style_plain);
