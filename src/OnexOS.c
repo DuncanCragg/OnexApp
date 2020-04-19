@@ -275,7 +275,10 @@ void init_ui()
 void draw_ui()
 {
   char* t=object_property(user, "viewing:time");
-  if(t) lv_label_set_text(big_time, t);
+  if(t){
+    lv_label_set_text(big_time, t);
+    log_write((time_es()%2)? "\n/": "\n\\");
+  }
 /*
   gfx_rect_line(0,0, SCREEN_WIDTH,SCREEN_HEIGHT, GFX_GREY_F, PADDING);
 
