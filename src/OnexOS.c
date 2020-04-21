@@ -129,6 +129,7 @@ int main()
 
   object_property_set(oclock, "title", "OnexOS Clock");
   object_property_set(oclock, "ts", "%unknown");
+  object_property_set(oclock, "tz", "%unknown");
   object_property_set(oclock, "device", deviceuid);
 
   object_property_add(onex_device_object, (char*)"user", useruid);
@@ -283,15 +284,22 @@ void init_lv()
 
 void draw_ui()
 {
-  char* ts=object_property(user,        "viewing:clock:ts");
-  char* tz=object_property_values(user, "viewing:clock:tz");
-  char* pc=object_property(user,        "viewing:sensors:battery-percent");
-  char* ch=object_property(user,        "viewing:sensors:battery-charge");
+  char* ts=object_property(user, "viewing:clock:ts");
+  char* tz=object_property(user, "viewing:clock:tz:2");
+  char* pc=object_property(user, "viewing:sensors:battery-percent");
+  char* ch=object_property(user, "viewing:sensors:battery-charge");
 
   if(!ts) return;
-  char* e; uint64_t es=strtoull(ts,&e,10);
+
+  char* e;
+
+  uint64_t tsnum=strtoull(ts,&e,10);
   if(*e) return;
-  time_t est=(time_t)es;
+
+  uint32_t tznum=strtoul(tz?tz:"0",&e,10);
+  if(*e) tznum=0;
+
+  time_t est=(time_t)(tsnum+tznum);
   struct tm tms={0};
   localtime_r(&est, &tms);
 
@@ -303,7 +311,7 @@ void draw_ui()
   lv_label_set_text(big_time, t);
 
   strftime(t, 32, "%d/%m", &tms);
-  log_write((time_es()%2)? "%s/%s\n%s %s": "%s\\%s\n%s %s", pc? pc: "-", ch? ch: "-", t, tz? tz: "-");
+  log_write((time_es()%2)? "%s/%s\n%s": "%s\\%s\n%s", pc? pc: "-", ch? ch: "-", t);
 }
 
 /*
