@@ -1,4 +1,6 @@
 
+#include <time.h>
+#include <stdlib.h>
 #include <string.h>
 #include <boards.h>
 #include <onex-kernel/log.h>
@@ -46,6 +48,7 @@ static bool evaluate_sensors_io(object* o, void* d);
 static bool evaluate_controllers_io(object* o, void* d);
 
 static void draw_ui();
+//static void draw_obj();
 
 #define ADC_CHANNEL 0
 
@@ -74,7 +77,7 @@ void draw_log(char* s)
   gfx_pop();
 }
 
-static void init_ui();
+static void init_lv();
 
 int main()
 {
@@ -83,7 +86,7 @@ int main()
   gpio_init();
   blenus_init(0);
 
-  init_ui();
+  init_lv();
 
   gfx_init();
   gfx_screen_colour(GFX_BLACK);
@@ -124,9 +127,8 @@ int main()
   clockuid      =object_property(oclock, "UID");
   homeuid       =object_property(home, "UID");
 
-  object_property_set(oclock, "title", "Clock");
-  object_property_set(oclock, "timezone", "GMT");
-  object_property_add(oclock, "timezone", "BST");
+  object_property_set(oclock, "title", "OnexOS Clock");
+  object_property_set(oclock, "ts", "%unknown");
   object_property_set(oclock, "device", deviceuid);
 
   object_property_add(onex_device_object, (char*)"user", useruid);
@@ -148,8 +150,6 @@ int main()
   time_ticker(every_10ms,      10);
   time_ticker(every_second,  1000);
   time_ticker(every_minute, 60000);
-
-  draw_ui();
 
   while(1){
 
@@ -250,7 +250,7 @@ static lv_color_t lv_buf2[LV_BUF_SIZE];
 
 static lv_obj_t* big_time;
 
-void init_ui()
+void init_lv()
 {
   lv_init();
   lv_disp_buf_init(&disp_buf, lv_buf1, lv_buf2, LV_BUF_SIZE);
@@ -283,14 +283,32 @@ void init_ui()
 
 void draw_ui()
 {
-  char* p=object_property(user, "viewing:sensors:battery-percent");
-  char* c=object_property(user, "viewing:sensors:battery-charge");
-  char* t=object_property(user, "viewing:clock:time");
-  if(t){
-    lv_label_set_text(big_time, t);
-    log_write((time_es()%2)? "%s%% %s\n/": "%s%% %s\n\\", p, c);
-  }
+  char* ts=object_property(user,        "viewing:clock:ts");
+  char* tz=object_property_values(user, "viewing:clock:tz");
+  char* pc=object_property(user,        "viewing:sensors:battery-percent");
+  char* ch=object_property(user,        "viewing:sensors:battery-charge");
+
+  if(!ts) return;
+  char* e; uint64_t es=strtoull(ts,&e,10);
+  if(*e) return;
+  time_t est=(time_t)es;
+  struct tm tms={0};
+  localtime_r(&est, &tms);
+
+  char t[32];
+
+  bool hr24 = false;
+  strftime(t, 32, hr24? "%H:%M": "%I:%M %p", &tms);
+
+  lv_label_set_text(big_time, t);
+
+  strftime(t, 32, "%d/%m", &tms);
+  log_write((time_es()%2)? "%s/%s\n%s %s": "%s\\%s\n%s %s", pc? pc: "-", ch? ch: "-", t, tz? tz: "-");
+}
+
 /*
+void draw_obj()
+{
   gfx_rect_line(0,0, SCREEN_WIDTH,SCREEN_HEIGHT, GFX_GREY_F, PADDING);
 
   gfx_screen_colour(ACTION_BG);
@@ -298,6 +316,6 @@ void draw_ui()
   gfx_pos(PADDING+L_PADDING, PADDING+T_PADDING);
   gfx_text_colour(ACTION_COLOUR);
   gfx_text("user");
-*/
 }
+*/
 
