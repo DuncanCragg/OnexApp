@@ -19,6 +19,7 @@ object* user;
 object* sensors;
 object* controllers;
 object* oclock;
+object* watchface;
 object* home;
 
 char* deviceuid;
@@ -26,6 +27,7 @@ char* useruid;
 char* sensorsuid;
 char* controllersuid;
 char* clockuid;
+char* watchfaceuid;
 char* homeuid;
 
 static volatile bool event_tick_10ms=false;
@@ -118,6 +120,7 @@ int main()
   sensors    =object_new(0, "sensors",     "sensors", 8);
   controllers=object_new(0, "controllers", "editable controllers", 4);
   oclock     =object_new(0, "clock",       "clock event", 12);
+  watchface  =object_new(0, "editable",    "editable watchface", 6);
   home       =object_new(0, "editable",    "editable", 4);
 
   deviceuid     =object_property(onex_device_object, "UID");
@@ -125,24 +128,28 @@ int main()
   sensorsuid    =object_property(sensors, "UID");
   controllersuid=object_property(controllers, "UID");
   clockuid      =object_property(oclock, "UID");
+  watchfaceuid  =object_property(watchface, "UID");
   homeuid       =object_property(home, "UID");
+
+  object_property_set(controllers, "backlight", "on");
 
   object_property_set(oclock, "title", "OnexOS Clock");
   object_property_set(oclock, "ts", "%unknown");
   object_property_set(oclock, "tz", "%unknown");
   object_property_set(oclock, "device", deviceuid);
 
+  object_property_set(watchface, "clock", clockuid);
+  object_property_set(watchface, "ampm-24hr", "ampm");
+
+  object_property_set(home, (char*)"sensors", sensorsuid);
+  object_property_set(home, (char*)"watchface", watchfaceuid);
+
+  object_property_set(user, "viewing", homeuid);
+
   object_property_add(onex_device_object, (char*)"user", useruid);
   object_property_add(onex_device_object, (char*)"io",   sensorsuid);
   object_property_add(onex_device_object, (char*)"io",   controllersuid);
   object_property_add(onex_device_object, (char*)"io",   clockuid);
-
-  object_property_set(home, (char*)"sensors", sensorsuid);
-  object_property_set(home, (char*)"clock", clockuid);
-
-  object_property_set(controllers, "backlight", "on");
-
-  object_property_set(user, "viewing", homeuid);
 
   onex_run_evaluators(useruid, 0);
   onex_run_evaluators(sensorsuid, false);
@@ -284,10 +291,11 @@ void init_lv()
 
 void draw_ui()
 {
-  char* ts=object_property(user, "viewing:clock:ts");
-  char* tz=object_property(user, "viewing:clock:tz:2");
-  char* pc=object_property(user, "viewing:sensors:battery-percent");
-  char* ch=object_property(user, "viewing:sensors:battery-charge");
+  char* pc=object_property(   user, "viewing:sensors:battery-percent");
+  char* ch=object_property(   user, "viewing:sensors:battery-charge");
+  char* ts=object_property(   user, "viewing:watchface:clock:ts");
+  char* tz=object_property(   user, "viewing:watchface:clock:tz:2");
+  bool h24=object_property_is(user, "viewing:watchface:ampm-24hr", "24hr");
 
   if(!ts) return;
 
@@ -305,12 +313,11 @@ void draw_ui()
 
   char t[32];
 
-  bool hr24 = false;
-  strftime(t, 32, hr24? "%H:%M": "%I:%M %p", &tms);
+  strftime(t, 32, h24? "%H:%M": "%I:%M %p", &tms);
 
   lv_label_set_text(big_time, t);
 
-  strftime(t, 32, "%d/%m", &tms);
+  strftime(t, 32, h24? "24 %d/%m": "%p %d/%m", &tms);
   log_write((time_es()%2)? "%s/%s\n%s": "%s\\%s\n%s", pc? pc: "-", ch? ch: "-", t);
 }
 
