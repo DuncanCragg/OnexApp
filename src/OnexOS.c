@@ -256,7 +256,8 @@ static lv_disp_buf_t disp_buf;
 static lv_color_t lv_buf1[LV_BUF_SIZE];
 static lv_color_t lv_buf2[LV_BUF_SIZE];
 
-static lv_obj_t* big_time;
+static lv_obj_t* time_label;
+static lv_obj_t* date_label;
 
 void init_lv()
 {
@@ -268,25 +269,35 @@ void init_lv()
   disp_drv.buffer = &disp_buf;
   lv_disp_drv_register(&disp_drv);
 
-  big_time=lv_label_create(lv_scr_act(), 0);
-  lv_label_set_long_mode(big_time, LV_LABEL_LONG_BREAK);
-  lv_obj_set_width(big_time, 240);
-  lv_obj_set_height(big_time, 200);
-  lv_label_set_align(big_time, LV_LABEL_ALIGN_CENTER);
-  lv_obj_align(big_time, lv_scr_act(), LV_ALIGN_CENTER, -5, -10);
+  time_label=lv_label_create(lv_scr_act(), 0);
+  lv_label_set_long_mode(time_label, LV_LABEL_LONG_BREAK);
+  lv_obj_set_width(time_label, 240);
+  lv_obj_set_height(time_label, 200);
+  lv_label_set_align(time_label, LV_LABEL_ALIGN_CENTER);
+  lv_obj_align(time_label, lv_scr_act(), LV_ALIGN_CENTER, -5, -10);
+
+  date_label=lv_label_create(lv_scr_act(), 0);
+  lv_label_set_long_mode(date_label, LV_LABEL_LONG_BREAK);
+  lv_obj_set_width(date_label, 200);
+  lv_obj_set_height(date_label, 200);
+  lv_label_set_align(date_label, LV_LABEL_ALIGN_CENTER);
+  lv_obj_align(date_label, lv_scr_act(), LV_ALIGN_CENTER, -5, 60);
 
   lv_style_t bg;
   lv_style_copy(&bg, &lv_style_plain);
   bg.body.main_color = LV_COLOR_BLACK;
   bg.body.grad_color = LV_COLOR_BLACK;
-  bg.image.color     = LV_COLOR_WHITE;
   bg.text.color      = LV_COLOR_WHITE;
-  bg.text.font       = &noto_sans_numeric_80;
+  bg.image.color     = LV_COLOR_WHITE;
   lv_label_set_style(lv_scr_act(), LV_LABEL_STYLE_MAIN, &bg);
 
   lv_style_t lb;
   lv_style_copy(&lb, &bg);
-  lv_label_set_style(big_time, LV_LABEL_STYLE_MAIN, &lb);
+  lb.text.font= &noto_sans_numeric_80;
+  lv_label_set_style(time_label, LV_LABEL_STYLE_MAIN, &lb);
+
+  lv_label_set_text(time_label, "00:00");
+  lv_label_set_text(date_label, "Onex");
 }
 
 void draw_ui()
@@ -314,11 +325,12 @@ void draw_ui()
   char t[32];
 
   strftime(t, 32, h24? "%H:%M": "%I:%M %p", &tms);
+  lv_label_set_text(time_label, t);
 
-  lv_label_set_text(big_time, t);
+  strftime(t, 32, h24? "24 %d %h": "%p %d %h", &tms);
+  lv_label_set_text(date_label, t);
 
-  strftime(t, 32, h24? "24 %d/%m": "%p %d/%m", &tms);
-  log_write((time_es()%2)? "%s/%s\n%s": "%s\\%s\n%s", pc? pc: "-", ch? ch: "-", t);
+  log_write((time_es()%2)? "%s/%s": "%s\\%s", pc? pc: "-", ch? ch: "-");
 }
 
 /*
