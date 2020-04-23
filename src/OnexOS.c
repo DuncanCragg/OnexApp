@@ -116,7 +116,7 @@ int main()
   onex_set_evaluators("user",      evaluate_user, 0);
   onex_set_evaluators("sensors",   evaluate_sensors_io, 0);
   onex_set_evaluators("button",    evaluate_button_io, 0);
-  onex_set_evaluators("backlight", evaluate_edit_rule, evaluate_backlight_io, 0);
+  onex_set_evaluators("backlight", evaluate_edit_rule, evaluate_light_logic, evaluate_backlight_io, 0);
   onex_set_evaluators("clock",     evaluate_clock_sync, evaluate_clock, 0);
   onex_set_evaluators("editable",  evaluate_edit_rule, 0);
 
