@@ -17,6 +17,7 @@
 
 object* user;
 object* sensors;
+object* button;
 object* backlight;
 object* oclock;
 object* watchface;
@@ -25,6 +26,7 @@ object* home;
 char* deviceuid;
 char* useruid;
 char* sensorsuid;
+char* buttonuid;
 char* backlightuid;
 char* clockuid;
 char* watchfaceuid;
@@ -47,6 +49,7 @@ static void touched(touch_info_t ti){ event_touch=true;  touchinfo=ti; }
 
 static bool evaluate_user(object* o, void* d);
 static bool evaluate_sensors_io(object* o, void* d);
+static bool evaluate_button_io(object* o, void* d);
 static bool evaluate_backlight_io(object* o, void* d);
 
 static void draw_ui();
@@ -112,6 +115,7 @@ int main()
   onex_set_evaluators("device",    evaluate_device_logic, 0);
   onex_set_evaluators("user",      evaluate_user, 0);
   onex_set_evaluators("sensors",   evaluate_sensors_io, 0);
+  onex_set_evaluators("button",    evaluate_button_io, 0);
   onex_set_evaluators("backlight", evaluate_edit_rule, evaluate_backlight_io, 0);
   onex_set_evaluators("clock",     evaluate_clock_sync, evaluate_clock, 0);
   onex_set_evaluators("editable",  evaluate_edit_rule, 0);
@@ -120,6 +124,7 @@ int main()
 
   user     =object_new(0, "user",      "user", 8);
   sensors  =object_new(0, "sensors",   "sensors", 8);
+  button   =object_new(0, "button",    "button", 4);
   backlight=object_new(0, "backlight", "editable light", 5);
   oclock   =object_new(0, "clock",     "clock event", 12);
   watchface=object_new(0, "editable",  "editable watchface", 6);
@@ -128,6 +133,7 @@ int main()
   deviceuid   =object_property(onex_device_object, "UID");
   useruid     =object_property(user, "UID");
   sensorsuid  =object_property(sensors, "UID");
+  buttonuid   =object_property(button, "UID");
   backlightuid=object_property(backlight, "UID");
   clockuid    =object_property(oclock, "UID");
   watchfaceuid=object_property(watchface, "UID");
@@ -151,11 +157,12 @@ int main()
 
   object_property_add(onex_device_object, (char*)"user", useruid);
   object_property_add(onex_device_object, (char*)"io",   sensorsuid);
+  object_property_add(onex_device_object, (char*)"io",   buttonuid);
   object_property_add(onex_device_object, (char*)"io",   backlightuid);
   object_property_add(onex_device_object, (char*)"io",   clockuid);
 
   onex_run_evaluators(useruid, 0);
-  onex_run_evaluators(sensorsuid, false);
+  onex_run_evaluators(sensorsuid, 0);
   onex_run_evaluators(backlightuid, 0);
 
   time_ticker(every_10ms,      10);
@@ -180,7 +187,7 @@ int main()
     }
     if(event_button){
       event_button=false;
-      onex_run_evaluators(sensorsuid, pressed? "down": "up");
+      onex_run_evaluators(buttonuid, (void*)pressed);
     }
     if(event_touch){
       event_touch=false;
@@ -208,8 +215,12 @@ bool evaluate_sensors_io(object* o, void* pressed)
   snprintf(b, 16, "%s", batt? "battery": "charging");
   object_property_set(sensors, "battery-charge", b);
 
-  if(pressed) object_property_set(sensors, "button", pressed);
+  return true;
+}
 
+bool evaluate_button_io(object* o, void* pressed)
+{
+  object_property_set(button, "state", pressed? "down": "up");
   return true;
 }
 
