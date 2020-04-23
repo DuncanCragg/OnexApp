@@ -328,7 +328,7 @@ void draw_ui()
 
   char t[32];
 
-  strftime(t, 32, h24? "%H:%M": "%I:%M %p", &tms);
+  strftime(t, 32, h24? "%H:%M": "%l:%M %p", &tms);
   lv_label_set_text(time_label, t);
 
   strftime(t, 32, h24? "24 %d %h": "%p %d %h", &tms);
