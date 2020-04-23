@@ -17,6 +17,7 @@
 
 object* user;
 object* sensors;
+object* touch;
 object* button;
 object* backlight;
 object* oclock;
@@ -26,6 +27,7 @@ object* home;
 char* deviceuid;
 char* useruid;
 char* sensorsuid;
+char* touchuid;
 char* buttonuid;
 char* backlightuid;
 char* clockuid;
@@ -35,20 +37,21 @@ char* homeuid;
 static volatile bool event_tick_10ms=false;
 static volatile bool event_tick_sec=false;
 static volatile bool event_tick_min=false;
-static volatile bool event_button=false;
 static volatile bool event_touch=false;
+static volatile bool event_button=false;
 
-static volatile bool         pressed;
-static volatile touch_info_t touchinfo;
+static volatile touch_info_t touch_info;
+static volatile bool         button_pressed;
 
 static void every_10ms(){             event_tick_10ms=true; }
 static void every_second(){           event_tick_sec=true; }
 static void every_minute(){           event_tick_min=true; }
-static void button_changed(int p){    event_button=true; pressed=p; }
-static void touched(touch_info_t ti){ event_touch=true;  touchinfo=ti; }
+static void touched(touch_info_t ti){ event_touch=true;  touch_info=ti; }
+static void button_changed(int p){    event_button=true; button_pressed=p; }
 
 static bool evaluate_user(object* o, void* d);
 static bool evaluate_sensors_io(object* o, void* d);
+static bool evaluate_touch_io(object* o, void* d);
 static bool evaluate_button_io(object* o, void* d);
 static bool evaluate_backlight_io(object* o, void* d);
 
@@ -115,6 +118,7 @@ int main()
   onex_set_evaluators("device",    evaluate_device_logic, 0);
   onex_set_evaluators("user",      evaluate_user, 0);
   onex_set_evaluators("sensors",   evaluate_sensors_io, 0);
+  onex_set_evaluators("touch",     evaluate_touch_io, 0);
   onex_set_evaluators("button",    evaluate_button_io, 0);
   onex_set_evaluators("backlight", evaluate_edit_rule, evaluate_light_logic, evaluate_backlight_io, 0);
   onex_set_evaluators("clock",     evaluate_clock_sync, evaluate_clock, 0);
@@ -124,6 +128,7 @@ int main()
 
   user     =object_new(0, "user",      "user", 8);
   sensors  =object_new(0, "sensors",   "sensors", 8);
+  touch    =object_new(0, "touch",     "touch", 8);
   button   =object_new(0, "button",    "button", 4);
   backlight=object_new(0, "backlight", "editable light", 5);
   oclock   =object_new(0, "clock",     "clock event", 12);
@@ -133,6 +138,7 @@ int main()
   deviceuid   =object_property(onex_device_object, "UID");
   useruid     =object_property(user, "UID");
   sensorsuid  =object_property(sensors, "UID");
+  touchuid    =object_property(touch, "UID");
   buttonuid   =object_property(button, "UID");
   backlightuid=object_property(backlight, "UID");
   clockuid    =object_property(oclock, "UID");
@@ -157,6 +163,7 @@ int main()
 
   object_property_add(onex_device_object, (char*)"user", useruid);
   object_property_add(onex_device_object, (char*)"io",   sensorsuid);
+  object_property_add(onex_device_object, (char*)"io",   touchuid);
   object_property_add(onex_device_object, (char*)"io",   buttonuid);
   object_property_add(onex_device_object, (char*)"io",   backlightuid);
   object_property_add(onex_device_object, (char*)"io",   clockuid);
@@ -185,13 +192,13 @@ int main()
       event_tick_min=false;
       onex_run_evaluators(sensorsuid, 0);
     }
-    if(event_button){
-      event_button=false;
-      onex_run_evaluators(buttonuid, (void*)pressed);
-    }
     if(event_touch){
       event_touch=false;
-      onex_run_evaluators(backlightuid, 0);
+      onex_run_evaluators(touchuid, 0);
+    }
+    if(event_button){
+      event_button=false;
+      onex_run_evaluators(buttonuid, 0);
     }
     if(event_log_buffer){
       draw_log((char*)event_log_buffer);
@@ -200,7 +207,7 @@ int main()
   }
 }
 
-bool evaluate_sensors_io(object* o, void* pressed)
+bool evaluate_sensors_io(object* o, void* d)
 {
   char b[16];
 
@@ -218,9 +225,21 @@ bool evaluate_sensors_io(object* o, void* pressed)
   return true;
 }
 
-bool evaluate_button_io(object* o, void* pressed)
+
+bool evaluate_touch_io(object* o, void* d)
 {
-  object_property_set(button, "state", pressed? "down": "up");
+  // touch_info.gesture==TOUCH_GESTURE_TAP_LONG;
+  char buf[64];
+  snprintf(buf, 64, "%03d %03d", touch_info.x, touch_info.y);
+  object_property_set(touch, "coords", buf);
+  snprintf(buf, 64, "%02d %02d", touch_info.action, touch_info.gesture);
+  object_property_set(touch, "action", buf);
+  return true;
+}
+
+bool evaluate_button_io(object* o, void* d)
+{
+  object_property_set(button, "state", button_pressed? "down": "up");
   return true;
 }
 
