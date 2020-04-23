@@ -234,8 +234,8 @@ bool evaluate_user(object* o, void* d)
 #define ROW_HEIGHT 26
 #define PROPERTY_WIDTH 100
 #define VALUE_WIDTH 130
-#define SCREEN_WIDTH 240
-#define SCREEN_HEIGHT 240
+#define SCREEN_WIDTH 235
+#define SCREEN_HEIGHT 235
 
 #define ACTION_BG       GFX_RGB256(245,245,100)
 #define ACTION_COLOUR   GFX_RGB256(128,26,51)
@@ -278,14 +278,14 @@ void init_lv()
   lv_obj_set_width(time_label, 240);
   lv_obj_set_height(time_label, 200);
   lv_label_set_align(time_label, LV_LABEL_ALIGN_CENTER);
-  lv_obj_align(time_label, lv_scr_act(), LV_ALIGN_CENTER, -5, -10);
+  lv_obj_align(time_label, lv_scr_act(), LV_ALIGN_CENTER, -5, -20);
 
   date_label=lv_label_create(lv_scr_act(), 0);
   lv_label_set_long_mode(date_label, LV_LABEL_LONG_BREAK);
   lv_obj_set_width(date_label, 200);
   lv_obj_set_height(date_label, 200);
   lv_label_set_align(date_label, LV_LABEL_ALIGN_CENTER);
-  lv_obj_align(date_label, lv_scr_act(), LV_ALIGN_CENTER, -5, 60);
+  lv_obj_align(date_label, lv_scr_act(), LV_ALIGN_CENTER, -5, 50);
 
   lv_style_t bg;
   lv_style_copy(&bg, &lv_style_plain);
@@ -335,7 +335,7 @@ void draw_ui()
   lv_label_set_text(date_label, t);
 
   int8_t pcnum=(int8_t)strtol(pc,&e,10);
-  if(pcnum<0) pcnum=0;
+  if(pcnum<5) pcnum=5;
   if(pcnum>100) pcnum=100;
 
   uint16_t batt_col;
@@ -346,9 +346,10 @@ void draw_ui()
   if(pcnum>33) batt_col=BATTERY_MED;
   else         batt_col=BATTERY_LOW;
 
-  uint16_t w=((SCREEN_WIDTH-10)*pcnum)/100+5;
-  gfx_rect_fill(5,0, SCREEN_WIDTH-5,2, GFX_GREY_3);
-  gfx_rect_fill(5,0, w,             2, batt_col);
+  #define BATTERY_PAD 2
+  #define BATTERY_WIDTH (SCREEN_WIDTH-2*BATTERY_PAD)
+  gfx_rect_fill(BATTERY_PAD,0, BATTERY_PAD+ BATTERY_WIDTH,            2, GFX_GREY_3);
+  gfx_rect_fill(BATTERY_PAD,0, BATTERY_PAD+(BATTERY_WIDTH*pcnum)/100, 2, batt_col);
 
   log_write((time_es()%2)? "\n%s/": "\n%s\\", pc? pc: "-");
 }
