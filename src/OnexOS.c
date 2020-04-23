@@ -17,7 +17,7 @@
 
 object* user;
 object* sensors;
-object* controllers;
+object* backlight;
 object* oclock;
 object* watchface;
 object* home;
@@ -25,7 +25,7 @@ object* home;
 char* deviceuid;
 char* useruid;
 char* sensorsuid;
-char* controllersuid;
+char* backlightuid;
 char* clockuid;
 char* watchfaceuid;
 char* homeuid;
@@ -47,7 +47,7 @@ static void touched(touch_info_t ti){ event_touch=true;  touchinfo=ti; }
 
 static bool evaluate_user(object* o, void* d);
 static bool evaluate_sensors_io(object* o, void* d);
-static bool evaluate_controllers_io(object* o, void* d);
+static bool evaluate_backlight_io(object* o, void* d);
 
 static void draw_ui();
 //static void draw_obj();
@@ -103,35 +103,38 @@ int main()
   gpio_mode(CHARGE_SENSE, INPUT);
   gpio_adc_init(BATTERY_V, ADC_CHANNEL);
 
+  gpio_mode(LCD_BACKLIGHT_LOW, OUTPUT);
+  gpio_mode(LCD_BACKLIGHT_MID, OUTPUT);
   gpio_mode(LCD_BACKLIGHT_HIGH, OUTPUT);
 
   onex_init("");
 
-  onex_set_evaluators("device",      evaluate_device_logic, 0);
-  onex_set_evaluators("user",        evaluate_user, 0);
-  onex_set_evaluators("sensors",     evaluate_sensors_io, 0);
-  onex_set_evaluators("controllers", evaluate_edit_rule, evaluate_controllers_io, 0);
-  onex_set_evaluators("clock",       evaluate_clock_sync, evaluate_clock, 0);
-  onex_set_evaluators("editable",    evaluate_edit_rule, 0);
+  onex_set_evaluators("device",    evaluate_device_logic, 0);
+  onex_set_evaluators("user",      evaluate_user, 0);
+  onex_set_evaluators("sensors",   evaluate_sensors_io, 0);
+  onex_set_evaluators("backlight", evaluate_edit_rule, evaluate_backlight_io, 0);
+  onex_set_evaluators("clock",     evaluate_clock_sync, evaluate_clock, 0);
+  onex_set_evaluators("editable",  evaluate_edit_rule, 0);
 
   object_set_evaluator(onex_device_object, "device");
 
-  user       =object_new(0, "user",        "user", 8);
-  sensors    =object_new(0, "sensors",     "sensors", 8);
-  controllers=object_new(0, "controllers", "editable controllers", 4);
-  oclock     =object_new(0, "clock",       "clock event", 12);
-  watchface  =object_new(0, "editable",    "editable watchface", 6);
-  home       =object_new(0, "editable",    "editable", 4);
+  user     =object_new(0, "user",      "user", 8);
+  sensors  =object_new(0, "sensors",   "sensors", 8);
+  backlight=object_new(0, "backlight", "editable light", 5);
+  oclock   =object_new(0, "clock",     "clock event", 12);
+  watchface=object_new(0, "editable",  "editable watchface", 6);
+  home     =object_new(0, "editable",  "editable", 4);
 
-  deviceuid     =object_property(onex_device_object, "UID");
-  useruid       =object_property(user, "UID");
-  sensorsuid    =object_property(sensors, "UID");
-  controllersuid=object_property(controllers, "UID");
-  clockuid      =object_property(oclock, "UID");
-  watchfaceuid  =object_property(watchface, "UID");
-  homeuid       =object_property(home, "UID");
+  deviceuid   =object_property(onex_device_object, "UID");
+  useruid     =object_property(user, "UID");
+  sensorsuid  =object_property(sensors, "UID");
+  backlightuid=object_property(backlight, "UID");
+  clockuid    =object_property(oclock, "UID");
+  watchfaceuid=object_property(watchface, "UID");
+  homeuid     =object_property(home, "UID");
 
-  object_property_set(controllers, "backlight", "on");
+  object_property_set(backlight, "light", "on");
+  object_property_set(backlight, "level", "high");
 
   object_property_set(oclock, "title", "OnexOS Clock");
   object_property_set(oclock, "ts", "%unknown");
@@ -148,12 +151,12 @@ int main()
 
   object_property_add(onex_device_object, (char*)"user", useruid);
   object_property_add(onex_device_object, (char*)"io",   sensorsuid);
-  object_property_add(onex_device_object, (char*)"io",   controllersuid);
+  object_property_add(onex_device_object, (char*)"io",   backlightuid);
   object_property_add(onex_device_object, (char*)"io",   clockuid);
 
   onex_run_evaluators(useruid, 0);
   onex_run_evaluators(sensorsuid, false);
-  onex_run_evaluators(controllersuid, 0);
+  onex_run_evaluators(backlightuid, 0);
 
   time_ticker(every_10ms,      10);
   time_ticker(every_second,  1000);
@@ -181,7 +184,7 @@ int main()
     }
     if(event_touch){
       event_touch=false;
-      onex_run_evaluators(controllersuid, (touchinfo.gesture==TOUCH_GESTURE_TAP_LONG)? "off": "on");
+      onex_run_evaluators(backlightuid, 0);
     }
     if(event_log_buffer){
       draw_log((char*)event_log_buffer);
@@ -210,13 +213,17 @@ bool evaluate_sensors_io(object* o, void* pressed)
   return true;
 }
 
-bool evaluate_controllers_io(object* o, void* backlight)
+bool evaluate_backlight_io(object* o, void* d)
 {
-  if(backlight) object_property_set(controllers, "backlight", (char*)backlight);
-
-  if(object_property_is(controllers, "backlight", "on")){
-    gpio_set(LCD_BACKLIGHT_HIGH, LEDS_ACTIVE_STATE);
+  if(object_property_is(backlight, "light", "on")){
+    bool mid =object_property_is(backlight, "level", "mid");
+    bool high=object_property_is(backlight, "level", "high");
+    gpio_set(LCD_BACKLIGHT_LOW,               LEDS_ACTIVE_STATE);
+    gpio_set(LCD_BACKLIGHT_MID,  (mid||high)? LEDS_ACTIVE_STATE: !LEDS_ACTIVE_STATE);
+    gpio_set(LCD_BACKLIGHT_HIGH, (high)?      LEDS_ACTIVE_STATE: !LEDS_ACTIVE_STATE);
   } else {
+    gpio_set(LCD_BACKLIGHT_LOW,  !LEDS_ACTIVE_STATE);
+    gpio_set(LCD_BACKLIGHT_MID,  !LEDS_ACTIVE_STATE);
     gpio_set(LCD_BACKLIGHT_HIGH, !LEDS_ACTIVE_STATE);
   }
   return true;
