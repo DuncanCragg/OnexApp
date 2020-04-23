@@ -16,7 +16,7 @@
 #include <noto_sans_numeric_80.h>
 
 object* user;
-object* sensors;
+object* battery;
 object* touch;
 object* button;
 object* backlight;
@@ -26,7 +26,7 @@ object* home;
 
 char* deviceuid;
 char* useruid;
-char* sensorsuid;
+char* batteryuid;
 char* touchuid;
 char* buttonuid;
 char* backlightuid;
@@ -50,7 +50,7 @@ static void touched(touch_info_t ti){ event_touch=true;  touch_info=ti; }
 static void button_changed(int p){    event_button=true; button_pressed=p; }
 
 static bool evaluate_user(object* o, void* d);
-static bool evaluate_sensors_io(object* o, void* d);
+static bool evaluate_battery_io(object* o, void* d);
 static bool evaluate_touch_io(object* o, void* d);
 static bool evaluate_button_io(object* o, void* d);
 static bool evaluate_backlight_io(object* o, void* d);
@@ -117,7 +117,7 @@ int main()
 
   onex_set_evaluators("device",    evaluate_device_logic, 0);
   onex_set_evaluators("user",      evaluate_user, 0);
-  onex_set_evaluators("sensors",   evaluate_sensors_io, 0);
+  onex_set_evaluators("battery",   evaluate_battery_io, 0);
   onex_set_evaluators("touch",     evaluate_touch_io, 0);
   onex_set_evaluators("button",    evaluate_button_io, 0);
   onex_set_evaluators("backlight", evaluate_edit_rule, evaluate_light_logic, evaluate_backlight_io, 0);
@@ -127,7 +127,7 @@ int main()
   object_set_evaluator(onex_device_object, "device");
 
   user     =object_new(0, "user",      "user", 8);
-  sensors  =object_new(0, "sensors",   "sensors", 8);
+  battery  =object_new(0, "battery",   "battery", 8);
   touch    =object_new(0, "touch",     "touch", 8);
   button   =object_new(0, "button",    "button", 4);
   backlight=object_new(0, "backlight", "editable light", 5);
@@ -137,7 +137,7 @@ int main()
 
   deviceuid   =object_property(onex_device_object, "UID");
   useruid     =object_property(user, "UID");
-  sensorsuid  =object_property(sensors, "UID");
+  batteryuid  =object_property(battery, "UID");
   touchuid    =object_property(touch, "UID");
   buttonuid   =object_property(button, "UID");
   backlightuid=object_property(backlight, "UID");
@@ -156,20 +156,20 @@ int main()
   object_property_set(watchface, "clock", clockuid);
   object_property_set(watchface, "ampm-24hr", "ampm");
 
-  object_property_set(home, (char*)"sensors", sensorsuid);
+  object_property_set(home, (char*)"battery", batteryuid);
   object_property_set(home, (char*)"watchface", watchfaceuid);
 
   object_property_set(user, "viewing", homeuid);
 
   object_property_add(onex_device_object, (char*)"user", useruid);
-  object_property_add(onex_device_object, (char*)"io",   sensorsuid);
+  object_property_add(onex_device_object, (char*)"io",   batteryuid);
   object_property_add(onex_device_object, (char*)"io",   touchuid);
   object_property_add(onex_device_object, (char*)"io",   buttonuid);
   object_property_add(onex_device_object, (char*)"io",   backlightuid);
   object_property_add(onex_device_object, (char*)"io",   clockuid);
 
   onex_run_evaluators(useruid, 0);
-  onex_run_evaluators(sensorsuid, 0);
+  onex_run_evaluators(batteryuid, 0);
   onex_run_evaluators(backlightuid, 0);
 
   time_ticker(every_10ms,      10);
@@ -190,7 +190,7 @@ int main()
     }
     if(event_tick_min){
       event_tick_min=false;
-      onex_run_evaluators(sensorsuid, 0);
+      onex_run_evaluators(batteryuid, 0);
     }
     if(event_touch){
       event_touch=false;
@@ -207,7 +207,7 @@ int main()
   }
 }
 
-bool evaluate_sensors_io(object* o, void* d)
+bool evaluate_battery_io(object* o, void* d)
 {
   char b[16];
 
@@ -216,11 +216,11 @@ bool evaluate_sensors_io(object* o, void* d)
   int8_t  pc = ((mv-3520)*100/5200)*10;
   snprintf(b, 16, "%d%%(%d)", pc, mv);
 
-  object_property_set(sensors, "battery-percent", b);
+  object_property_set(battery, "percent", b);
 
   int batt=gpio_get(CHARGE_SENSE);
   snprintf(b, 16, "%s", batt? "battery": "charging");
-  object_property_set(sensors, "battery-charge", b);
+  object_property_set(battery, "charge", b);
 
   return true;
 }
@@ -343,8 +343,8 @@ void init_lv()
 
 void draw_ui()
 {
-  char* pc=object_property(   user, "viewing:sensors:battery-percent");
-  bool  ch=object_property_is(user, "viewing:sensors:battery-charge", "charging");
+  char* pc=object_property(   user, "viewing:battery:percent");
+  bool  ch=object_property_is(user, "viewing:battery:charge", "charging");
   char* ts=object_property(   user, "viewing:watchface:clock:ts");
   char* tz=object_property(   user, "viewing:watchface:clock:tz:2");
   bool h24=object_property_is(user, "viewing:watchface:ampm-24hr", "24hr");
