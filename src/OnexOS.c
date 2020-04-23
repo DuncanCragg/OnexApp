@@ -243,6 +243,10 @@ bool evaluate_user(object* o, void* d)
 #define PROPERTY_COLOUR GFX_RGB256(51,128,77)
 #define VALUE_BG        GFX_RGB256(245,222,255)
 #define VALUE_COLOUR    GFX_RGB256(51,51,100)
+#define BATTERY_LOW     GFX_RGB256(200,0,0)
+#define BATTERY_MED     GFX_RGB256(200,200,0)
+#define BATTERY_HIGH    GFX_RGB256(0,200,0)
+#define BATTERY_CHG     GFX_RGB256(200,200,200)
 
 void draw_area_and_ready(lv_disp_drv_t * disp, const lv_area_t* area, lv_color_t* color_p)
 {
@@ -303,7 +307,7 @@ void init_lv()
 void draw_ui()
 {
   char* pc=object_property(   user, "viewing:sensors:battery-percent");
-  char* ch=object_property(   user, "viewing:sensors:battery-charge");
+  bool  ch=object_property_is(user, "viewing:sensors:battery-charge", "charging");
   char* ts=object_property(   user, "viewing:watchface:clock:ts");
   char* tz=object_property(   user, "viewing:watchface:clock:tz:2");
   bool h24=object_property_is(user, "viewing:watchface:ampm-24hr", "24hr");
@@ -330,7 +334,23 @@ void draw_ui()
   strftime(t, 32, h24? "24 %d %h": "%p %d %h", &tms);
   lv_label_set_text(date_label, t);
 
-  log_write((time_es()%2)? "%s/%s": "%s\\%s", pc? pc: "-", ch? ch: "-");
+  int8_t pcnum=(int8_t)strtol(pc,&e,10);
+  if(pcnum<0) pcnum=0;
+  if(pcnum>100) pcnum=100;
+
+  uint16_t batt_col;
+  if(ch)       batt_col=BATTERY_CHG;
+  else
+  if(pcnum>67) batt_col=BATTERY_HIGH;
+  else
+  if(pcnum>33) batt_col=BATTERY_MED;
+  else         batt_col=BATTERY_LOW;
+
+  uint16_t w=((SCREEN_WIDTH-10)*pcnum)/100+5;
+  gfx_rect_fill(5,0, SCREEN_WIDTH-5,2, GFX_GREY_3);
+  gfx_rect_fill(5,0, w,             2, batt_col);
+
+  log_write((time_es()%2)? "\n%s/": "\n%s\\", pc? pc: "-");
 }
 
 /*
