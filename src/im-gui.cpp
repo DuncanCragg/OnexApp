@@ -193,6 +193,7 @@ void init_onex()
     oclock=onex_get_from_cache(clockUID);
   }
   time_ticker(every_second, 1000);
+  draw_window();
 }
 
 void init_imgui(float width, float height)

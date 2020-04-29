@@ -24,7 +24,6 @@ void GUI::prepare()
 {
   device = app->vulkanDevice;
   init_imgui((float)app->width, (float)app->height);
-  init_onex();
   get_font_info();
   createFontImage();
   setUpKeyMap();
@@ -35,6 +34,7 @@ void GUI::prepare()
   setupDescriptorSets();
   createPipelineCache();
   createPipelines(app->renderPass);
+  init_onex();
 }
 
 // ---------------------------------------------------------------------------------------------
