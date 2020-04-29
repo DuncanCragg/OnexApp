@@ -147,6 +147,7 @@ int main()
 
   object_property_set(backlight, "light", "on");
   object_property_set(backlight, "level", "high");
+  object_property_set(backlight, "touch", touchuid);
 
   object_property_set(oclock, "title", "OnexOS Clock");
   object_property_set(oclock, "ts", "%unknown");
@@ -170,6 +171,7 @@ int main()
 
   onex_run_evaluators(useruid, 0);
   onex_run_evaluators(batteryuid, 0);
+  onex_run_evaluators(clockuid, 0);
   onex_run_evaluators(backlightuid, 0);
 
   time_ticker(every_10ms,      10);
