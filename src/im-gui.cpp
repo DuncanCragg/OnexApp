@@ -887,6 +887,7 @@ void draw_property(char* key, char* path, bool isEditable, int16_t width, int16_
   char pathkey[128]; snprintf(pathkey, 128, "%s:%s", path, key);
   if(!key) log_write("key=null: path=%s pathkey=%s value=%s values=%s\n", path, pathkey, object_property(user, pathkey), object_property_values(user, pathkey));
   uint16_t ln = object_property_length(user, pathkey);
+  if(!ln) return;
   uint32_t wid=0;
   for(int j=1; j<=ln; j++){
     char* val=object_property_get_n(user, pathkey, j);
@@ -907,9 +908,14 @@ void draw_property(char* key, char* path, bool isEditable, int16_t width, int16_
 void draw_object_properties(char* path, bool isEditable, int16_t width, int16_t height, int8_t depth)
 {
   draw_object_header(path, isEditable, width, depth);
+
   if(strcmp(path, "viewing-l") && !is_open(path)) return;
+
   int16_t scrollerheight=calculate_scroller_height(path, height);
   int16_t keyWidth=calculate_key_width(path);
+
+  draw_property((char*)"Timer", path, isEditable, width, height, depth, scrollerheight, keyWidth);
+
   char pathcolon[128]; snprintf(pathcolon, 128, "%s:", path);
   int8_t sz = object_property_size(user, pathcolon);
   for(int i=1; i<=sz; i++){

@@ -362,6 +362,7 @@ int filter_and_autocomplete_default(ImGuiTextEditCallbackData* data)
 
 static const char* propertyNameChoices[] = {
   "is",
+  "Timer",
   "title",
   "description",
   "text",
