@@ -882,6 +882,28 @@ void draw_property_list(char* path, char* key, bool isEditable, int16_t width, i
   draw_nested_object_properties_list(path, isEditable, width-keyWidth, height, depth);
 }
 
+void draw_property(char* key, char* path, bool isEditable, int16_t width, int16_t height, int8_t depth, int16_t scrollerheight, int16_t keyWidth)
+{
+  char pathkey[128]; snprintf(pathkey, 128, "%s:%s", path, key);
+  if(!key) log_write("key=null: path=%s pathkey=%s value=%s values=%s\n", path, pathkey, object_property(user, pathkey), object_property_values(user, pathkey));
+  uint16_t ln = object_property_length(user, pathkey);
+  uint32_t wid=0;
+  for(int j=1; j<=ln; j++){
+    char* val=object_property_get_n(user, pathkey, j);
+    if(is_uid(val)){ wid=0; break; }
+    wid += strlen(val)+1;
+  }
+  int hgt;
+  if(wid >0) hgt=(wid/40+1)*buttonHeight;
+  else       hgt=scrollerheight;
+  if(hgt>=buttonHeight) draw_property_list(pathkey, key, isEditable, width, hgt, keyWidth, depth);
+  else{
+    char blnId[256]; snprintf(blnId, 256, "##filler %d %d %s", width, hgt, pathkey);
+    ImGui::Button(blnId, ImVec2(width, paddingHeight));
+    track_drag(blnId, true);
+  }
+}
+
 void draw_object_properties(char* path, bool isEditable, int16_t width, int16_t height, int8_t depth)
 {
   draw_object_header(path, isEditable, width, depth);
@@ -892,24 +914,7 @@ void draw_object_properties(char* path, bool isEditable, int16_t width, int16_t 
   int8_t sz = object_property_size(user, pathcolon);
   for(int i=1; i<=sz; i++){
     char* key=object_property_key(user, pathcolon, i);
-    char pathkey[128]; snprintf(pathkey, 128, "%s:%s", path, key);
-    if(!key) log_write("key=null: path=%s pathkey=%s i=%d sz=%d values: %s value: %s\n", path, pathkey, i, sz, object_property(user, pathkey), object_property_val(user, path, i));
-    uint16_t ln = object_property_length(user, pathkey);
-    uint32_t wid=0;
-    for(int j=1; j<=ln; j++){
-      char* val=object_property_get_n(user, pathkey, j);
-      if(is_uid(val)){ wid=0; break; }
-      wid += strlen(val)+1;
-    }
-    int hgt;
-    if(wid >0) hgt=(wid/40+1)*buttonHeight;
-    else       hgt=scrollerheight;
-    if(hgt>=buttonHeight) draw_property_list(pathkey, key, isEditable, width, hgt, keyWidth, depth);
-    else{
-      char blnId[256]; snprintf(blnId, 256, "##filler %d %d %s", width, hgt, pathkey);
-      ImGui::Button(blnId, ImVec2(width, paddingHeight));
-      track_drag(blnId, true);
-    }
+    draw_property(key, path, isEditable, width, height, depth, scrollerheight, keyWidth);
   }
   draw_object_footer(path, isEditable, width, keyWidth, depth);
 }
