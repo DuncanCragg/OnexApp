@@ -403,6 +403,16 @@ void draw_obj()
   gfx_pos(PADDING+L_PADDING, PADDING+T_PADDING);
   gfx_text_colour(ACTION_COLOUR);
   gfx_text("user");
+
+  gfx_rect_fill(PADDING,PADDING+ROW_HEIGHT, PADDING+PROPERTY_WIDTH,PADDING+ROW_HEIGHT*2, PROPERTY_BG);
+  gfx_pos(PADDING+L_PADDING, PADDING+T_PADDING);
+  gfx_text_colour(PROPERTY_COLOUR);
+  gfx_text("is");
+
+  gfx_rect_fill(PADDING,PADDING+ROW_HEIGHT, PADDING+PROPERTY_WIDTH,PADDING+ROW_HEIGHT*2, VALUE_BG);
+  gfx_pos(PADDING+L_PADDING, PADDING+T_PADDING);
+  gfx_text_colour(VALUE_COLOUR);
+  gfx_text("list");
 }
 */
 
