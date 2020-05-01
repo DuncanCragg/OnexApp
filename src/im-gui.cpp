@@ -884,8 +884,8 @@ void draw_property_list(char* path, char* key, bool isEditable, int16_t width, i
 
 void draw_property(char* key, char* path, bool isEditable, int16_t width, int16_t height, int8_t depth, int16_t scrollerheight, int16_t keyWidth)
 {
+  if(!key){ log_write("key==null: path=%s\n", path); return; }
   char pathkey[128]; snprintf(pathkey, 128, "%s:%s", path, key);
-  if(!key) log_write("key=null: path=%s pathkey=%s value=%s values=%s\n", path, pathkey, object_property(user, pathkey), object_property_values(user, pathkey));
   uint16_t ln = object_property_length(user, pathkey);
   if(!ln) return;
   uint32_t wid=0;
