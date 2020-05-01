@@ -130,7 +130,7 @@ int main()
   battery  =object_new(0, "battery",   "battery", 8);
   touch    =object_new(0, "touch",     "touch", 8);
   button   =object_new(0, "button",    "button", 4);
-  backlight=object_new(0, "backlight", "editable light", 5);
+  backlight=object_new(0, "backlight", "editable light", 7);
   oclock   =object_new(0, "clock",     "clock event", 12);
   watchface=object_new(0, "editable",  "editable watchface", 6);
   home     =object_new(0, "editable",  "editable", 4);
@@ -147,7 +147,9 @@ int main()
 
   object_property_set(backlight, "light", "on");
   object_property_set(backlight, "level", "high");
+  object_property_set(backlight, "timeout", "4000");
   object_property_set(backlight, "touch", touchuid);
+  object_property_set(backlight, "button", buttonuid);
 
   object_property_set(oclock, "title", "OnexOS Clock");
   object_property_set(oclock, "ts", "%unknown");
@@ -230,11 +232,10 @@ bool evaluate_battery_io(object* o, void* d)
 
 bool evaluate_touch_io(object* o, void* d)
 {
-  // touch_info.gesture==TOUCH_GESTURE_TAP_LONG;
   char buf[64];
   snprintf(buf, 64, "%03d %03d", touch_info.x, touch_info.y);
   object_property_set(touch, "coords", buf);
-  snprintf(buf, 64, "%02d %02d", touch_info.action, touch_info.gesture);
+  snprintf(buf, 64, "%s %s", touch_info.action==TOUCH_ACTION_CONTACT? "down": "up", touch_gestures[touch_info.gesture]);
   object_property_set(touch, "action", buf);
   return true;
 }
