@@ -460,11 +460,12 @@ $(foreach target, $(TARGETS), $(call define_target, $(target)))
 
 .PHONY: flash flash_softdevice erase
 
+PRIVATE_PEM = ../OnexKernel/doc/local/private.pem
+
 # Flash the program
 flash: default
 	@echo Flashing: $(OUTPUT_DIRECTORY)/OnexOS.hex
-	nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/OnexOS.hex --sectorerase
-	nrfjprog -f nrf52 --reset
+	nrfutil pkg generate --hw-version 52 --sd-req 0xCA --application-version 1 --application _build/OnexOS.hex --key-file $(PRIVATE_PEM) _build/OnexOS.zip
 
 # Flash softdevice
 flash_softdevice:
