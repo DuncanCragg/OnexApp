@@ -235,6 +235,7 @@ SRC_FILES += \
 
 # Include folders common to all targets
 INC_FOLDERS += \
+  $(SDK_ROOT)/components/libraries/bootloader/ \
   $(SDK_ROOT)/modules/nrfx/soc/ \
   $(SDK_ROOT)/components/drivers_ext/st7789 \
   $(SDK_ROOT)/external/thedotfactory_fonts \
@@ -463,7 +464,7 @@ $(foreach target, $(TARGETS), $(call define_target, $(target)))
 PRIVATE_PEM = /home/duncan/priv.pem
 
 APPLICATION_VERSION = --application-version 1
-BOOTLOADER_VERSION = --bootloader-version 7
+BOOTLOADER_VERSION = --bootloader-version 8
 SETTINGS_VERSIONS = $(APPLICATION_VERSION) $(BOOTLOADER_VERSION) --bl-settings-version 2
 
 flash: default
