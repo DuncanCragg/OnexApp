@@ -458,16 +458,41 @@ include $(TEMPLATE_PATH)/Makefile.common
 
 $(foreach target, $(TARGETS), $(call define_target, $(target)))
 
-.PHONY: flash flash_softdevice erase
+.PHONY: flash flash_ble flash_bootloader flash_softdevice erase
 
-PRIVATE_PEM = ../OnexKernel/doc/local/private.pem
+PRIVATE_PEM = /home/duncan/priv.pem
 
-# Flash the program
+APPLICATION_VERSION = --application-version 1
+BOOTLOADER_VERSION = --bootloader-version 7
+SETTINGS_VERSIONS = $(APPLICATION_VERSION) $(BOOTLOADER_VERSION) --bl-settings-version 2
+
 flash: default
 	@echo Flashing: $(OUTPUT_DIRECTORY)/OnexOS.hex
-	nrfutil pkg generate --hw-version 52 --sd-req 0xCA --application-version 1 --application _build/OnexOS.hex --key-file $(PRIVATE_PEM) _build/OnexOS.zip
+	nrfutil settings generate --family NRF52 --application $(OUTPUT_DIRECTORY)/OnexOS.hex $(SETTINGS_VERSIONS) $(OUTPUT_DIRECTORY)/settings.hex
+	mergehex --merge $(OUTPUT_DIRECTORY)/OnexOS.hex $(OUTPUT_DIRECTORY)/settings.hex --output $(OUTPUT_DIRECTORY)/OnexOS+settings.hex
+	nrfjprog -f NRF52 --program $(OUTPUT_DIRECTORY)/OnexOS+settings.hex --sectorerase
+	nrfjprog -r
 
-# Flash softdevice
+# set MTU if fails, but do MSDDisable in JLinkExe
+# https://github.com/NordicSemiconductor/pc-nrfutil/issues/147
+# nrfutil dfu ble -p /dev/ttyACM0 -mtu 23 -ic NRF52 -f -pkg $(OUTPUT_DIRECTORY)/OnexOS.zip
+flash_ble: default
+	@echo Flashing: $(OUTPUT_DIRECTORY)/OnexOS.hex
+	nrfutil pkg generate --hw-version 52 --application $(OUTPUT_DIRECTORY)/OnexOS.hex $(APPLICATION_VERSION) --sd-req 0xCB --key-file $(PRIVATE_PEM) $(OUTPUT_DIRECTORY)/OnexOS.zip
+	nrfutil dfu ble -p /dev/ttyACM0 -ic NRF52 -n "Onex DFU" -f -pkg $(OUTPUT_DIRECTORY)/OnexOS.zip
+
+flash_bootloader: OnexKernel/$(OUTPUT_DIRECTORY)/onex-bl.hex
+	@echo Flashing bootloader
+	nrfutil settings generate --family NRF52 --application $(OUTPUT_DIRECTORY)/OnexOS.hex $(SETTINGS_VERSIONS) $(OUTPUT_DIRECTORY)/settings.hex
+	mergehex --merge OnexKernel/$(OUTPUT_DIRECTORY)/onex-bl.hex $(OUTPUT_DIRECTORY)/settings.hex --output $(OUTPUT_DIRECTORY)/onex-bl+settings.hex
+	nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/onex-bl+settings.hex --sectorerase # --sectoranduicrerase
+	nrfjprog -f nrf52 --reset
+
+flash_bootloader_ble: OnexKernel/$(OUTPUT_DIRECTORY)/onex-bl.hex
+	@echo Flashing bootloader
+	nrfutil pkg generate --hw-version 52 --bootloader OnexKernel/$(OUTPUT_DIRECTORY)/onex-bl.hex $(BOOTLOADER_VERSION) --sd-req 0xCB --key-file $(PRIVATE_PEM) $(OUTPUT_DIRECTORY)/onex-bl.zip
+	nrfutil dfu ble -p /dev/ttyACM0 -ic NRF52 -n "Onex DFU" -f -pkg $(OUTPUT_DIRECTORY)/onex-bl.zip
+
 flash_softdevice:
 	@echo Flashing: s132_nrf52_7.0.1_softdevice.hex
 	nrfjprog -f nrf52 --program $(SDK_ROOT)/components/softdevice/s132/hex/s132_nrf52_7.0.1_softdevice.hex --sectorerase
