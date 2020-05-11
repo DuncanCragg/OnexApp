@@ -429,6 +429,8 @@ LDFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
 LDFLAGS += -Wl,--gc-sections
 # use newlib in nano version
 LDFLAGS += --specs=nano.specs
+LDFLAGS += -Xlinker --defsym -Xlinker __BUILD_TIMESTAMP=$$(date +'%y%m%d%H%M')
+LDFLAGS += -Xlinker --defsym -Xlinker __BOOTLOADER_NUMBER=$$(cat OnexKernel/bootloader-number.txt)
 
 OnexOS: CFLAGS += -D__HEAP_SIZE=8192
 OnexOS: CFLAGS += -D__STACK_SIZE=8192
@@ -464,7 +466,7 @@ $(foreach target, $(TARGETS), $(call define_target, $(target)))
 PRIVATE_PEM = /home/duncan/priv.pem
 
 APPLICATION_VERSION = --application-version 1
-BOOTLOADER_VERSION = --bootloader-version 8
+BOOTLOADER_VERSION = --bootloader-version $(shell cat OnexKernel/bootloader-number.txt)
 SETTINGS_VERSIONS = $(APPLICATION_VERSION) $(BOOTLOADER_VERSION) --bl-settings-version 2
 
 flash: default

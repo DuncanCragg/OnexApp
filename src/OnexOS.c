@@ -353,6 +353,9 @@ void init_lv()
   lv_label_set_text(date_label, "Onex");
 }
 
+extern char __BUILD_TIMESTAMP;
+extern char __BOOTLOADER_NUMBER;
+
 void draw_ui()
 {
   char* pc=object_property(   user, "viewing:battery:percent");
@@ -400,7 +403,7 @@ void draw_ui()
   gfx_rect_fill(BATTERY_PAD,0, BATTERY_PAD+ BATTERY_WIDTH,            2, GFX_GREY_3);
   gfx_rect_fill(BATTERY_PAD,0, BATTERY_PAD+(BATTERY_WIDTH*pcnum)/100, 2, batt_col);
 
-  log_write((time_es()%2)? "\n%s/": "\n%s\\", pc? pc: "-");
+  log_write((time_es()%2)? "%u %u\n%s/": "%u %u\n%s\\", (unsigned long)&__BOOTLOADER_NUMBER, (unsigned long)&__BUILD_TIMESTAMP, pc? pc: "-");
 }
 
 /*
