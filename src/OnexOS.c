@@ -37,6 +37,7 @@ char* watchfaceuid;
 char* homeuid;
 char* aboutuid;
 
+static volatile bool event_dfu=false;
 static volatile bool event_tick_10ms=false;
 static volatile bool event_tick_sec=false;
 static volatile bool event_tick_min=false;
@@ -199,6 +200,10 @@ int main()
 
     onex_loop();
 
+    if(event_dfu){
+      clear_screen();
+      boot_dfu_start();
+    }
     if(event_tick_10ms){
       event_tick_10ms=false;
       lv_task_handler();
@@ -254,10 +259,6 @@ bool evaluate_touch_io(object* o, void* d)
 bool evaluate_button_io(object* o, void* d)
 {
   object_property_set(button, "state", button_pressed? "down": "up");
-
-  // FOR TESTING
-  // if(button_pressed) boot_dfu_start();
-
   return true;
 }
 
@@ -288,6 +289,10 @@ bool evaluate_user(object* o, void* touchevent)
     if(touch_info.gesture==TOUCH_GESTURE_RIGHT && object_property_is(user, "viewing", aboutuid)){
       clear_screen();
       object_property_set(user, "viewing", homeuid);
+    }
+    else
+    if(touch_info.gesture==TOUCH_GESTURE_TAP_LONG && object_property_is(user, "viewing", aboutuid)){
+      event_dfu=true;
     }
   }
   draw_ui();
