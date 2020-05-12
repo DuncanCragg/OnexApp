@@ -45,7 +45,7 @@ static volatile touch_info_t touch_info;
 static volatile bool         button_pressed;
 
 static void every_10ms(){             event_tick_10ms=true; }
-static void every_second(){           event_tick_sec=true; }
+static void every_second(){           event_tick_sec=true; if(!button_pressed) boot_feed_watchdog(); }
 static void every_minute(){           event_tick_min=true; }
 static void touched(touch_info_t ti){ event_touch=true;  touch_info=ti; }
 static void button_changed(int p){    event_button=true; button_pressed=p; }
@@ -90,6 +90,7 @@ static void init_lv();
 
 int main()
 {
+  boot_init();
   log_init();
   time_init();
   gpio_init();
@@ -148,7 +149,7 @@ int main()
 
   object_property_set(backlight, "light", "on");
   object_property_set(backlight, "level", "high");
-  object_property_set(backlight, "timeout", "4000");
+  object_property_set(backlight, "timeout", "15000");
   object_property_set(backlight, "touch", touchuid);
   object_property_set(backlight, "button", buttonuid);
 
@@ -246,7 +247,7 @@ bool evaluate_button_io(object* o, void* d)
   object_property_set(button, "state", button_pressed? "down": "up");
 
   // FOR TESTING
-  if(button_pressed) boot_dfu_start();
+  // if(button_pressed) boot_dfu_start();
 
   return true;
 }
@@ -399,7 +400,7 @@ void draw_ui()
   gfx_rect_fill(BATTERY_PAD,0, BATTERY_PAD+ BATTERY_WIDTH,            2, GFX_GREY_3);
   gfx_rect_fill(BATTERY_PAD,0, BATTERY_PAD+(BATTERY_WIDTH*pcnum)/100, 2, batt_col);
 
-  log_write((time_es()%2)? "%u %u\n%s/": "%u %u\n%s\\", (unsigned long)&__BOOTLOADER_NUMBER, (unsigned long)&__BUILD_TIMESTAMP, pc? pc: "-");
+  log_write((time_es()%2)? "%u %u\n%s/": "%u %u\n%s\\", (unsigned long)&__BUILD_TIMESTAMP, (unsigned long)&__BOOTLOADER_NUMBER, pc? pc: "-");
 }
 
 /*
