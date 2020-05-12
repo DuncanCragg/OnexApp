@@ -86,6 +86,12 @@ void draw_log(char* s)
   gfx_pop();
 }
 
+static void clear_screen()
+{
+  gfx_screen_colour(GFX_BLACK);
+  gfx_screen_fill();
+}
+
 static void init_lv();
 
 int main()
@@ -99,9 +105,8 @@ int main()
   init_lv();
 
   gfx_init();
-  gfx_screen_colour(GFX_BLACK);
   gfx_text_colour(GFX_BLUE);
-  gfx_screen_fill();
+  clear_screen();
 
   touch_init(touched);
 
