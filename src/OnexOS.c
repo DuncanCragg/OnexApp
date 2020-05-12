@@ -24,6 +24,7 @@ object* backlight;
 object* oclock;
 object* watchface;
 object* home;
+object* about;
 
 char* deviceuid;
 char* useruid;
@@ -34,6 +35,7 @@ char* backlightuid;
 char* clockuid;
 char* watchfaceuid;
 char* homeuid;
+char* aboutuid;
 
 static volatile bool event_tick_10ms=false;
 static volatile bool event_tick_sec=false;
@@ -50,6 +52,7 @@ static void touched(touch_info_t ti)
 {
   touch_info=ti;
   onex_run_evaluators(touchuid, 0);
+  onex_run_evaluators(useruid, (void*)1);
 }
 static void button_changed(int p){    event_button=true; button_pressed=p; }
 
@@ -144,6 +147,7 @@ int main()
   oclock   =object_new(0, "clock",     "clock event", 12);
   watchface=object_new(0, "editable",  "editable watchface", 6);
   home     =object_new(0, "editable",  "editable", 4);
+  about    =object_new(0, "editable",  "editable", 4);
 
   deviceuid   =object_property(onex_device_object, "UID");
   useruid     =object_property(user, "UID");
@@ -154,6 +158,7 @@ int main()
   clockuid    =object_property(oclock, "UID");
   watchfaceuid=object_property(watchface, "UID");
   homeuid     =object_property(home, "UID");
+  aboutuid    =object_property(about, "UID");
 
   object_property_set(backlight, "light", "on");
   object_property_set(backlight, "level", "high");
@@ -272,8 +277,19 @@ bool evaluate_backlight_io(object* o, void* d)
   return true;
 }
 
-bool evaluate_user(object* o, void* d)
+bool evaluate_user(object* o, void* touchevent)
 {
+  if(touchevent){
+    if(touch_info.gesture==TOUCH_GESTURE_LEFT  && object_property_is(user, "viewing", homeuid )){
+      clear_screen();
+      object_property_set(user, "viewing", aboutuid);
+    }
+    else
+    if(touch_info.gesture==TOUCH_GESTURE_RIGHT && object_property_is(user, "viewing", aboutuid)){
+      clear_screen();
+      object_property_set(user, "viewing", homeuid);
+    }
+  }
   draw_ui();
   return true;
 }
@@ -357,7 +373,16 @@ void init_lv()
 extern char __BUILD_TIMESTAMP;
 extern char __BOOTLOADER_NUMBER;
 
+static void draw_home();
+static void draw_about();
+
 void draw_ui()
+{
+  if(object_property_is(user, "viewing", homeuid))  draw_home();
+  if(object_property_is(user, "viewing", aboutuid)) draw_about();
+}
+
+void draw_home()
 {
   char* pc=object_property(   user, "viewing:battery:percent");
   bool  ch=object_property_is(user, "viewing:battery:charge", "charging");
@@ -404,7 +429,14 @@ void draw_ui()
   gfx_rect_fill(BATTERY_PAD,0, BATTERY_PAD+ BATTERY_WIDTH,            2, GFX_GREY_3);
   gfx_rect_fill(BATTERY_PAD,0, BATTERY_PAD+(BATTERY_WIDTH*pcnum)/100, 2, batt_col);
 
-  log_write((time_es()%2)? "%u %u\n%s/": "%u %u\n%s\\", (unsigned long)&__BUILD_TIMESTAMP, (unsigned long)&__BOOTLOADER_NUMBER, pc? pc: "-");
+  gfx_text_colour(GFX_BLUE);
+  log_write((time_es()%2)? "\n%s/": "\n%s\\", pc? pc: "-");
+}
+
+void draw_about()
+{
+  gfx_text_colour(GFX_WHITE);
+  log_write((time_es()%2)? "\n%u %u/": "\n%u %u\\", (unsigned long)&__BUILD_TIMESTAMP, (unsigned long)&__BOOTLOADER_NUMBER);
 }
 
 /*
