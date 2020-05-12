@@ -411,7 +411,7 @@ flash: default
 flash_ble: default
 	@echo Flashing: $(OUTPUT_DIRECTORY)/OnexOS.hex
 	nrfutil pkg generate --hw-version 52 --application $(OUTPUT_DIRECTORY)/OnexOS.hex $(APPLICATION_VERSION) --sd-req 0xCB --key-file $(PRIVATE_PEM) $(OUTPUT_DIRECTORY)/OnexOS.zip
-	nrfutil dfu ble -p /dev/ttyACM0 -ic NRF52 -n "Onex DFU" -f -pkg $(OUTPUT_DIRECTORY)/OnexOS.zip
+	nrfutil dfu ble -p /dev/ttyACM0 -ic NRF52 -n "OnexOS Update" -f -pkg $(OUTPUT_DIRECTORY)/OnexOS.zip
 
 flash_bootloader: OnexKernel/$(OUTPUT_DIRECTORY)/onex-bl.hex
 	@echo Flashing bootloader
@@ -423,7 +423,7 @@ flash_bootloader: OnexKernel/$(OUTPUT_DIRECTORY)/onex-bl.hex
 flash_bootloader_ble: OnexKernel/$(OUTPUT_DIRECTORY)/onex-bl.hex
 	@echo Flashing bootloader
 	nrfutil pkg generate --hw-version 52 --bootloader OnexKernel/$(OUTPUT_DIRECTORY)/onex-bl.hex $(BOOTLOADER_VERSION) --sd-req 0xCB --key-file $(PRIVATE_PEM) $(OUTPUT_DIRECTORY)/onex-bl.zip
-	nrfutil dfu ble -p /dev/ttyACM0 -ic NRF52 -n "Onex DFU" -f -pkg $(OUTPUT_DIRECTORY)/onex-bl.zip
+	nrfutil dfu ble -p /dev/ttyACM0 -ic NRF52 -n "OnexOS Update" -f -pkg $(OUTPUT_DIRECTORY)/onex-bl.zip
 
 flash_softdevice:
 	@echo Flashing: s132_nrf52_7.0.1_softdevice.hex
