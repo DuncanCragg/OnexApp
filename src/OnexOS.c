@@ -38,7 +38,6 @@ char* homeuid;
 static volatile bool event_tick_10ms=false;
 static volatile bool event_tick_sec=false;
 static volatile bool event_tick_min=false;
-static volatile bool event_touch=false;
 static volatile bool event_button=false;
 
 static volatile touch_info_t touch_info;
@@ -47,7 +46,11 @@ static volatile bool         button_pressed;
 static void every_10ms(){             event_tick_10ms=true; }
 static void every_second(){           event_tick_sec=true; if(!button_pressed) boot_feed_watchdog(); }
 static void every_minute(){           event_tick_min=true; }
-static void touched(touch_info_t ti){ event_touch=true;  touch_info=ti; }
+static void touched(touch_info_t ti)
+{
+  touch_info=ti;
+  onex_run_evaluators(touchuid, 0);
+}
 static void button_changed(int p){    event_button=true; button_pressed=p; }
 
 static bool evaluate_user(object* o, void* d);
@@ -202,10 +205,6 @@ int main()
     if(event_tick_min){
       event_tick_min=false;
       onex_run_evaluators(batteryuid, 0);
-    }
-    if(event_touch){
-      event_touch=false;
-      onex_run_evaluators(touchuid, 0);
     }
     if(event_button){
       event_button=false;
