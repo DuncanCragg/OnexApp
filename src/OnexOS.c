@@ -201,7 +201,6 @@ int main()
     onex_loop();
 
     if(event_dfu){
-      clear_screen();
       boot_dfu_start();
     }
     if(event_tick_10ms){
@@ -333,6 +332,7 @@ static lv_color_t lv_buf2[LV_BUF_SIZE];
 
 static lv_obj_t* time_label;
 static lv_obj_t* date_label;
+static lv_obj_t* boot_label;
 
 void init_lv()
 {
@@ -357,6 +357,13 @@ void init_lv()
   lv_obj_set_height(date_label, 200);
   lv_label_set_align(date_label, LV_LABEL_ALIGN_CENTER);
   lv_obj_align(date_label, lv_scr_act(), LV_ALIGN_CENTER, -5, 50);
+
+  boot_label=lv_label_create(lv_scr_act(), 0);
+  lv_label_set_long_mode(boot_label, LV_LABEL_LONG_BREAK);
+  lv_obj_set_width(boot_label, 200);
+  lv_obj_set_height(boot_label, 200);
+  lv_label_set_align(boot_label, LV_LABEL_ALIGN_CENTER);
+  lv_obj_align(boot_label, lv_scr_act(), LV_ALIGN_CENTER, -5, -50);
 
   lv_style_t bg;
   lv_style_copy(&bg, &lv_style_plain);
@@ -441,6 +448,7 @@ void draw_home()
 void draw_about()
 {
   gfx_text_colour(GFX_WHITE);
+  lv_label_set_text(boot_label, "OnexOS Update");
   log_write((time_es()%2)? "\n%u %u/": "\n%u %u\\", (unsigned long)&__BUILD_TIMESTAMP, (unsigned long)&__BOOTLOADER_NUMBER);
 }
 
