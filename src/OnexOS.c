@@ -37,25 +37,35 @@ char* watchfaceuid;
 char* homeuid;
 char* aboutuid;
 
-static volatile bool event_dfu=false;
-static volatile bool event_tick_10ms=false;
-static volatile bool event_tick_sec=false;
-static volatile bool event_tick_min=false;
-static volatile bool event_button=false;
-
+static volatile bool         event_dfu=false;
+static volatile bool         event_tick_10ms=false;
 static volatile touch_info_t touch_info;
 static volatile bool         button_pressed;
 
-static void every_10ms(){             event_tick_10ms=true; }
-static void every_second(){           event_tick_sec=true; if(!button_pressed) boot_feed_watchdog(); }
-static void every_minute(){           event_tick_min=true; }
+static void every_10ms(){
+  event_tick_10ms=true;
+}
+
+static void every_second(){
+  if(!button_pressed) boot_feed_watchdog();
+  onex_run_evaluators(clockuid, 0);
+}
+
+static void every_10s(){
+  onex_run_evaluators(batteryuid, 0);
+}
+
 static void touched(touch_info_t ti)
 {
   touch_info=ti;
   onex_run_evaluators(touchuid, 0);
   onex_run_evaluators(useruid, (void*)1);
 }
-static void button_changed(int p){    event_button=true; button_pressed=p; }
+
+static void button_changed(int p){
+  button_pressed=p;
+  onex_run_evaluators(buttonuid, 0);
+}
 
 static bool evaluate_user(object* o, void* d);
 static bool evaluate_battery_io(object* o, void* d);
@@ -194,7 +204,7 @@ int main()
 
   time_ticker(every_10ms,      10);
   time_ticker(every_second,  1000);
-  time_ticker(every_minute, 60000);
+  time_ticker(every_10s,    10000);
 
   while(1){
 
@@ -206,18 +216,6 @@ int main()
     if(event_tick_10ms){
       event_tick_10ms=false;
       lv_task_handler();
-    }
-    if(event_tick_sec){
-      event_tick_sec=false;
-      onex_run_evaluators(clockuid, 0);
-    }
-    if(event_tick_min){
-      event_tick_min=false;
-      onex_run_evaluators(batteryuid, 0);
-    }
-    if(event_button){
-      event_button=false;
-      onex_run_evaluators(buttonuid, 0);
     }
     if(event_log_buffer){
       draw_log((char*)event_log_buffer);
