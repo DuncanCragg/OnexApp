@@ -208,7 +208,9 @@ int main()
 
   while(1){
 
-    onex_loop();
+    if(!onex_loop()){
+      boot_sleep();
+    }
 
     if(event_dfu){
       boot_dfu_start();
