@@ -10,6 +10,7 @@
 #include <onex-kernel/blenus.h>
 #include <onex-kernel/gfx.h>
 #include <onex-kernel/touch.h>
+#include <onex-kernel/motion.h>
 #include <onf.h>
 #include <onr.h>
 #include <lvgl.h>
@@ -19,6 +20,7 @@
 object* user;
 object* battery;
 object* touch;
+object* motion;
 object* button;
 object* backlight;
 object* oclock;
@@ -30,6 +32,7 @@ char* deviceuid;
 char* useruid;
 char* batteryuid;
 char* touchuid;
+char* motionuid;
 char* buttonuid;
 char* backlightuid;
 char* clockuid;
@@ -37,10 +40,11 @@ char* watchfaceuid;
 char* homeuid;
 char* aboutuid;
 
-static volatile bool         event_dfu=false;
-static volatile bool         event_tick_10ms=false;
-static volatile touch_info_t touch_info;
-static volatile bool         button_pressed;
+static volatile bool          event_dfu=false;
+static volatile bool          event_tick_10ms=false;
+static volatile touch_info_t  touch_info;
+static volatile motion_info_t motion_info;
+static volatile bool          button_pressed;
 
 static void every_10ms(){
   event_tick_10ms=true;
@@ -62,6 +66,12 @@ static void touched(touch_info_t ti)
   onex_run_evaluators(useruid, (void*)1);
 }
 
+static void moved(motion_info_t mi)
+{
+  motion_info=mi;
+  onex_run_evaluators(motionuid, 0);
+}
+
 static void button_changed(int p){
   button_pressed=p;
   onex_run_evaluators(buttonuid, 0);
@@ -70,6 +80,7 @@ static void button_changed(int p){
 static bool evaluate_user(object* o, void* d);
 static bool evaluate_battery_io(object* o, void* d);
 static bool evaluate_touch_io(object* o, void* d);
+static bool evaluate_motion_io(object* o, void* d);
 static bool evaluate_button_io(object* o, void* d);
 static bool evaluate_backlight_io(object* o, void* d);
 
@@ -126,6 +137,7 @@ int main()
   clear_screen();
 
   touch_init(touched);
+  motion_init(moved);
 
   gpio_mode_cb(BUTTON_1, INPUT_PULLDOWN, button_changed);
   gpio_mode(   BUTTON_ENABLE, OUTPUT);
@@ -143,6 +155,7 @@ int main()
   onex_set_evaluators("user",      evaluate_user, 0);
   onex_set_evaluators("battery",   evaluate_battery_io, 0);
   onex_set_evaluators("touch",     evaluate_touch_io, 0);
+  onex_set_evaluators("motion",    evaluate_motion_io, 0);
   onex_set_evaluators("button",    evaluate_button_io, 0);
   onex_set_evaluators("backlight", evaluate_edit_rule, evaluate_light_logic, evaluate_backlight_io, 0);
   onex_set_evaluators("clock",     evaluate_clock_sync, evaluate_clock, 0);
@@ -153,8 +166,9 @@ int main()
   user     =object_new(0, "user",      "user", 8);
   battery  =object_new(0, "battery",   "battery", 8);
   touch    =object_new(0, "touch",     "touch", 8);
+  motion   =object_new(0, "motion",    "motion", 8);
   button   =object_new(0, "button",    "button", 4);
-  backlight=object_new(0, "backlight", "editable light", 7);
+  backlight=object_new(0, "backlight", "editable light", 9);
   oclock   =object_new(0, "clock",     "clock event", 12);
   watchface=object_new(0, "editable",  "editable watchface", 6);
   home     =object_new(0, "editable",  "editable", 4);
@@ -164,6 +178,7 @@ int main()
   useruid     =object_property(user, "UID");
   batteryuid  =object_property(battery, "UID");
   touchuid    =object_property(touch, "UID");
+  motionuid   =object_property(motion, "UID");
   buttonuid   =object_property(button, "UID");
   backlightuid=object_property(backlight, "UID");
   clockuid    =object_property(oclock, "UID");
@@ -175,6 +190,7 @@ int main()
   object_property_set(backlight, "level", "high");
   object_property_set(backlight, "timeout", "15000");
   object_property_set(backlight, "touch", touchuid);
+  object_property_set(backlight, "motion", motionuid);
   object_property_set(backlight, "button", buttonuid);
 
   object_property_set(oclock, "title", "OnexOS Clock");
@@ -193,6 +209,7 @@ int main()
   object_property_add(onex_device_object, (char*)"user", useruid);
   object_property_add(onex_device_object, (char*)"io",   batteryuid);
   object_property_add(onex_device_object, (char*)"io",   touchuid);
+  object_property_add(onex_device_object, (char*)"io",   motionuid);
   object_property_add(onex_device_object, (char*)"io",   buttonuid);
   object_property_add(onex_device_object, (char*)"io",   backlightuid);
   object_property_add(onex_device_object, (char*)"io",   clockuid);
@@ -226,20 +243,25 @@ int main()
   }
 }
 
+#define BATTERY_ZERO_PERCENT 3400
+#define BATTERY_100_PERCENT 4100
+#define BATTERY_PERCENT_STEPS 5
 bool evaluate_battery_io(object* o, void* d)
 {
   char b[16];
 
-  int16_t bv = gpio_read(ADC_CHANNEL);
-  int16_t mv = bv*2000/(1024/(33/10));
-  int8_t  pc = ((mv-3520)*100/5200)*10;
-  snprintf(b, 16, "%d%%(%d)", pc, mv);
+  int32_t bv = gpio_read(ADC_CHANNEL);
+  int32_t mv = bv*2000/(1024/(33/10));
+  int8_t pc = ((mv-BATTERY_ZERO_PERCENT)*100/((BATTERY_100_PERCENT-BATTERY_ZERO_PERCENT)*BATTERY_PERCENT_STEPS))*BATTERY_PERCENT_STEPS;
+  if(pc<0) pc=0;
+  if(pc>100) pc=100;
+  snprintf(b, 16, "%d%%(%ld)", pc, mv);
 
   object_property_set(battery, "percent", b);
 
   int batt=gpio_get(CHARGE_SENSE);
-  snprintf(b, 16, "%s", batt? "battery": "charging");
-  object_property_set(battery, "charge", b);
+  snprintf(b, 16, "%s", batt? "powering": "charging");
+  object_property_set(battery, "status", b);
 
   return true;
 }
@@ -248,10 +270,21 @@ bool evaluate_battery_io(object* o, void* d)
 bool evaluate_touch_io(object* o, void* d)
 {
   char buf[64];
-  snprintf(buf, 64, "%03d %03d", touch_info.x, touch_info.y);
+  snprintf(buf, 64, "%3d %3d", touch_info.x, touch_info.y);
   object_property_set(touch, "coords", buf);
   snprintf(buf, 64, "%s %s", touch_info.action==TOUCH_ACTION_CONTACT? "down": "up", touch_gestures[touch_info.gesture]);
   object_property_set(touch, "action", buf);
+  return true;
+}
+
+bool evaluate_motion_io(object* o, void* d)
+{
+  static uint32_t ticks=0;
+  ticks++;
+  if(ticks%50) return true;
+  char buf[64];
+  snprintf(buf, 64, "%3d %3d %3d", motion_info.x, motion_info.y, motion_info.z);
+  object_property_set(motion, "x-y-z", buf);
   return true;
 }
 
@@ -442,7 +475,7 @@ void draw_home()
   gfx_rect_fill(BATTERY_PAD,0, BATTERY_PAD+(BATTERY_WIDTH*pcnum)/100, 2, batt_col);
 
   gfx_text_colour(GFX_BLUE);
-  log_write((time_es()%2)? "\n%s/": "\n%s\\", pc? pc: "-");
+  log_write((time_es()%2)? "\n/": "\n\\");
 }
 
 void draw_about()
