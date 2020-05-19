@@ -37,8 +37,8 @@ NRF5_C_SOURCE_FILES = \
 ./OnexKernel/src/platforms/nRF5/gpio.c \
 ./OnexKernel/src/platforms/nRF5/i2c.c \
 ./OnexKernel/src/platforms/nRF5/gfx.c \
-./OnexKernel/src/platforms/nRF5/touch.c \
-./OnexKernel/src/platforms/nRF5/motion.c \
+./OnexKernel/src/platforms/nRF5/touch-cst816s.c \
+./OnexKernel/src/platforms/nRF5/motion-bma421.c \
 ./OnexKernel/src/platforms/nRF5/blenus.c \
 ./OnexKernel/src/platforms/nRF5/log.c \
 ./OnexKernel/src/platforms/nRF5/channel-serial.c \

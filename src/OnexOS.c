@@ -430,7 +430,7 @@ void draw_ui()
 void draw_home()
 {
   char* pc=object_property(   user, "viewing:battery:percent");
-  bool  ch=object_property_is(user, "viewing:battery:charge", "charging");
+  bool  ch=object_property_is(user, "viewing:battery:status", "charging");
   char* ts=object_property(   user, "viewing:watchface:clock:ts");
   char* tz=object_property(   user, "viewing:watchface:clock:tz:2");
   bool h24=object_property_is(user, "viewing:watchface:ampm-24hr", "24hr");
