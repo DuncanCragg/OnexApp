@@ -432,6 +432,11 @@ flash_softdevice:
 	nrfjprog -f nrf52 --program $(SDK_ROOT)/components/softdevice/s132/hex/s132_nrf52_7.0.1_softdevice.hex --sectorerase
 	nrfjprog -f nrf52 --reset
 
+flash_sd_bl:
+	nrfutil settings generate --family NRF52 --application $(OUTPUT_DIRECTORY)/OnexOS.hex $(APPLICATION_VERSION) --bootloader-version 65537 --bl-settings-version 2 $(OUTPUT_DIRECTORY)/settings.hex
+	mergehex --merge OnexKernel/$(OUTPUT_DIRECTORY)/onex-bl.hex $(OUTPUT_DIRECTORY)/settings.hex --output $(OUTPUT_DIRECTORY)/onex-bl+settings.hex
+	nrfutil pkg generate --sd-req 0x88,0xCB --hw-version 52 --softdevice $(SDK_ROOT)/components/softdevice/s132/hex/s132_nrf52_7.0.1_softdevice.hex --sd-id 0xCB --bootloader-version 65537 --bootloader $(OUTPUT_DIRECTORY)/onex-bl+settings.hex $(OUTPUT_DIRECTORY)/sd+bl.zip
+
 erase:
 	nrfjprog -f nrf52 --eraseall
 
