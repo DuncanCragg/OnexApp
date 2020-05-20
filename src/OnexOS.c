@@ -280,12 +280,14 @@ bool evaluate_touch_io(object* o, void* d)
 bool evaluate_motion_io(object* o, void* d)
 {
   static int16_t prevx=0;
+  static int16_t prevm=0;
   bool viewscreen=(prevx < -300 &&
                    motion_info.x < -700 &&
                    motion_info.x > -1200 &&
                    abs(motion_info.y) < 600 &&
-                   abs(motion_info.m) > 70);
+                   abs(prevm) > 70);
   prevx=motion_info.x;
+  prevm=motion_info.m;
 
   static uint32_t ticks=0;
   ticks++;
