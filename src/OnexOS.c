@@ -272,7 +272,7 @@ bool evaluate_touch_io(object* o, void* d)
   char buf[64];
   snprintf(buf, 64, "%3d %3d", touch_info.x, touch_info.y);
   object_property_set(touch, "coords", buf);
-  snprintf(buf, 64, "%s %s", touch_info.action==TOUCH_ACTION_CONTACT? "down": "up", touch_gestures[touch_info.gesture]);
+  snprintf(buf, 64, "%s %s", touch_actions[touch_info.action], touch_gestures[touch_info.gesture]);
   object_property_set(touch, "action", buf);
   return true;
 }
