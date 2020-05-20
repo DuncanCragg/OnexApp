@@ -279,14 +279,23 @@ bool evaluate_touch_io(object* o, void* d)
 
 bool evaluate_motion_io(object* o, void* d)
 {
-  bool viewscreen=(motion_info.x < -700 && motion_info.m > 100);
+  static int16_t prevx=0;
+  bool viewscreen=(prevx < -300 &&
+                   motion_info.x < -700 &&
+                   motion_info.x > -1200 &&
+                   abs(motion_info.y) < 600 &&
+                   abs(motion_info.m) > 70);
+  prevx=motion_info.x;
+
   static uint32_t ticks=0;
   ticks++;
   if(ticks%5 && !viewscreen) return true;
+
   char buf[64];
   snprintf(buf, 64, "%d %d %d %d", motion_info.x, motion_info.y, motion_info.z, motion_info.m);
   object_property_set(motion, "x-y-z-m", buf);
   object_property_set(motion, "gesture", viewscreen? "view-screen": "none");
+
   return true;
 }
 
@@ -483,7 +492,7 @@ void draw_home()
 void draw_about()
 {
   gfx_text_colour(GFX_WHITE);
-  lv_label_set_text(boot_label, "OnexOS Update");
+  lv_label_set_text(boot_label, "OnexOS update");
   log_write((time_es()%2)? "\n%u %u/": "\n%u %u\\", (unsigned long)&__BUILD_TIMESTAMP, (unsigned long)&__BOOTLOADER_NUMBER);
 }
 
