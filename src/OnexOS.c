@@ -279,12 +279,14 @@ bool evaluate_touch_io(object* o, void* d)
 
 bool evaluate_motion_io(object* o, void* d)
 {
+  bool viewscreen=(motion_info.x < -700 && motion_info.m > 100);
   static uint32_t ticks=0;
   ticks++;
-  if(ticks%50) return true;
+  if(ticks%5 && !viewscreen) return true;
   char buf[64];
-  snprintf(buf, 64, "%3d %3d %3d", motion_info.x, motion_info.y, motion_info.z);
-  object_property_set(motion, "x-y-z", buf);
+  snprintf(buf, 64, "%d %d %d %d", motion_info.x, motion_info.y, motion_info.z, motion_info.m);
+  object_property_set(motion, "x-y-z-m", buf);
+  object_property_set(motion, "gesture", viewscreen? "view-screen": "none");
   return true;
 }
 
