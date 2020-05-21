@@ -323,16 +323,19 @@ bool evaluate_backlight_io(object* o, void* d)
   return true;
 }
 
+static lv_obj_t* home_screen;
+static lv_obj_t* about_screen;
+
 bool evaluate_user(object* o, void* touchevent)
 {
   if(touchevent){
     if(touch_info.gesture==TOUCH_GESTURE_LEFT  && object_property_is(user, "viewing", homeuid )){
-      clear_screen();
+      lv_scr_load(about_screen); // switching screens should be by viewing:is detection, and knowing what you're on
       object_property_set(user, "viewing", aboutuid);
     }
     else
     if(touch_info.gesture==TOUCH_GESTURE_RIGHT && object_property_is(user, "viewing", aboutuid)){
-      clear_screen();
+      lv_scr_load(home_screen);
       object_property_set(user, "viewing", homeuid);
     }
     else
@@ -390,26 +393,29 @@ void init_lv()
   disp_drv.buffer = &disp_buf;
   lv_disp_drv_register(&disp_drv);
 
-  time_label=lv_label_create(lv_scr_act(), 0);
+  home_screen  = lv_obj_create(0,0);
+  about_screen = lv_obj_create(0,0);
+
+  time_label=lv_label_create(home_screen, 0);
   lv_label_set_long_mode(time_label, LV_LABEL_LONG_BREAK);
   lv_obj_set_width(time_label, 240);
   lv_obj_set_height(time_label, 200);
   lv_label_set_align(time_label, LV_LABEL_ALIGN_CENTER);
-  lv_obj_align(time_label, lv_scr_act(), LV_ALIGN_CENTER, -5, -20);
+  lv_obj_align(time_label, home_screen, LV_ALIGN_CENTER, -5, -20);
 
-  date_label=lv_label_create(lv_scr_act(), 0);
+  date_label=lv_label_create(home_screen, 0);
   lv_label_set_long_mode(date_label, LV_LABEL_LONG_BREAK);
   lv_obj_set_width(date_label, 200);
   lv_obj_set_height(date_label, 200);
   lv_label_set_align(date_label, LV_LABEL_ALIGN_CENTER);
-  lv_obj_align(date_label, lv_scr_act(), LV_ALIGN_CENTER, -5, 50);
+  lv_obj_align(date_label, home_screen, LV_ALIGN_CENTER, -5, 50);
 
-  boot_label=lv_label_create(lv_scr_act(), 0);
+  boot_label=lv_label_create(about_screen, 0);
   lv_label_set_long_mode(boot_label, LV_LABEL_LONG_BREAK);
   lv_obj_set_width(boot_label, 200);
   lv_obj_set_height(boot_label, 200);
   lv_label_set_align(boot_label, LV_LABEL_ALIGN_CENTER);
-  lv_obj_align(boot_label, lv_scr_act(), LV_ALIGN_CENTER, -5, -50);
+  lv_obj_align(boot_label, about_screen, LV_ALIGN_CENTER, -5, -50);
 
   lv_style_t bg;
   lv_style_copy(&bg, &lv_style_plain);
@@ -417,7 +423,8 @@ void init_lv()
   bg.body.grad_color = LV_COLOR_BLACK;
   bg.text.color      = LV_COLOR_WHITE;
   bg.image.color     = LV_COLOR_WHITE;
-  lv_label_set_style(lv_scr_act(), LV_LABEL_STYLE_MAIN, &bg);
+  lv_label_set_style(home_screen, LV_LABEL_STYLE_MAIN, &bg);
+  lv_label_set_style(about_screen, LV_LABEL_STYLE_MAIN, &bg);
 
   lv_style_t lb;
   lv_style_copy(&lb, &bg);
@@ -426,6 +433,8 @@ void init_lv()
 
   lv_label_set_text(time_label, "00:00");
   lv_label_set_text(date_label, "Onex");
+
+  lv_scr_load(home_screen);
 }
 
 extern char __BUILD_TIMESTAMP;
