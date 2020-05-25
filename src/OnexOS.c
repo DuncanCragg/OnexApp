@@ -51,7 +51,8 @@ static void every_10ms(){
 }
 
 static void every_second(){
-  if(!button_pressed) boot_feed_watchdog();
+  // don't rely on button_pressed for this in case interrupt was missed
+  if(gpio_get(BUTTON_1)!=BUTTONS_ACTIVE_STATE) boot_feed_watchdog();
   onex_run_evaluators(clockuid, 0);
 }
 
@@ -72,8 +73,8 @@ static void moved(motion_info_t mi)
   onex_run_evaluators(motionuid, 0);
 }
 
-static void button_changed(int p){
-  button_pressed=p;
+static void button_changed(uint8_t pin, uint8_t type){
+  button_pressed=(gpio_get(pin)==BUTTONS_ACTIVE_STATE);
   onex_run_evaluators(buttonuid, 0);
 }
 
@@ -139,7 +140,7 @@ int main()
   touch_init(touched);
   motion_init(moved);
 
-  gpio_mode_cb(BUTTON_1, INPUT_PULLDOWN, button_changed);
+  gpio_mode_cb(BUTTON_1, INPUT_PULLDOWN, RISING_AND_FALLING, button_changed);
   gpio_mode(   BUTTON_ENABLE, OUTPUT);
   gpio_set(    BUTTON_ENABLE, 1);
   gpio_mode(CHARGE_SENSE, INPUT);
