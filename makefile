@@ -356,6 +356,9 @@ flash_softdevice:
 erase:
 	nrfjprog -f nrf52 --eraseall
 
+reset:
+	nrfjprog -f nrf52 --reset
+
 SDK_CONFIG_FILE := ./OnexKernel/src/platforms/nRF5/sdk_config.h
 CMSIS_CONFIG_TOOL := $(SDK_ROOT)/external_tools/cmsisconfig/CMSIS_Configuration_Wizard.jar
 sdk_config:
