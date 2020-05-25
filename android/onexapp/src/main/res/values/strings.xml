@@ -22,7 +22,7 @@
   -->
 <resources>
 
-    <string name="device_list_name">ONEX Bluetooth devices</string>
+    <string name="device_list_name">Onex devices</string>
     <string name="scan">Scan</string>
     <string name="cancel">Cancel</string>
     <string name="paired">paired</string>

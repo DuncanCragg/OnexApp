@@ -142,6 +142,7 @@ public class DeviceListActivity extends Activity {
     private BluetoothAdapter.LeScanCallback leScanCallback = new BluetoothAdapter.LeScanCallback() {
         @Override
         public void onLeScan(final BluetoothDevice device, final int rssi, byte[] scanRecord) {
+            if(device.getName()==null || !device.getName().contains("Onex")) return;
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() { addDevice(device,rssi); }
@@ -258,7 +259,7 @@ public class DeviceListActivity extends Activity {
             tvrssi.setVisibility(View.VISIBLE);
             byte rssival = (byte) devRssiValues.get(device.getAddress()).intValue();
             if (rssival != 0) {
-                tvrssi.setText("Rssi = " + String.valueOf(rssival));
+                tvrssi.setText(String.valueOf(rssival));
             }
 
             tvname.setText(device.getName());
