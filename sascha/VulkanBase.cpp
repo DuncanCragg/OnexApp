@@ -1962,9 +1962,6 @@ void VulkanBase::handleEvent(const xcb_generic_event_t *event)
       case KEY_D:
         camera.keys.right = false;
         break;
-      case KEY_ESCAPE:
-        quit = true;
-        break;
     }
     xkb_state_update_key(state, keyCode, XKB_KEY_UP);
     keyReleased(keyCode);

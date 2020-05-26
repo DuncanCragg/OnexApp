@@ -123,6 +123,7 @@ void GUI::keyPressed(uint32_t keyCode, char32_t u32key)
 #if defined(__ANDROID__) || defined(TEST_ANDROID_KEYBOARD)
   if(keyCode==BACK_BUTTON){ keyboardCancelled=true; return; }
 #endif
+  if(keyCode==KEY_ESCAPE){} // use as back button on Unix
   ImGuiIO& io = ImGui::GetIO();
   if(keyCode) io.KeysDown[keyCode] = true;
   io.KeyCtrl = io.KeysDown[KEY_CTRL_LEFT] || io.KeysDown[KEY_CTRL_RIGHT];
