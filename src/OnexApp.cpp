@@ -138,6 +138,7 @@ void setAlarm(time_t when, char* uid)
 static char* pendingAlarmUID=0;
 
 extern char* init_onex();
+extern void  loop_onex(bool focused);
 
 class OnexApp : public VulkanBase
 {
@@ -261,7 +262,7 @@ public:
       free(pendingAlarmUID);
       pendingAlarmUID=0;
     }
-    onex_loop(); // !focused=sleeping
+    loop_onex(focused);
   }
 
   virtual void viewChanged()

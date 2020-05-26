@@ -196,6 +196,11 @@ char* init_onex()
   return blemac;
 }
 
+void loop_onex(bool focused)
+{
+  onex_loop(); // !focused=sleeping
+}
+
 void set_blemac(char* blemac)
 {
   object_property_set(config, (char*)"blemac", blemac);
