@@ -59,7 +59,7 @@ public:
 
   GUI(VulkanBase *app);
 
-  void prepare();
+  char* prepare();
 
   void setUpKeyMap();
   void createFontImage();

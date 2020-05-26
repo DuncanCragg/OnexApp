@@ -53,6 +53,15 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
         self=this;
         setUpKeyboardView();
         System.loadLibrary("onexapp");
+    }
+
+    private String blemac=null;
+
+    public void onexInitialised(String blemac){
+
+        Log.i(LOGNAME, "onexInitialised "+ blemac);
+
+        this.blemac = blemac;
 
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if (bluetoothAdapter != null) {
@@ -64,8 +73,10 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
             startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
           }
           else {
-            Intent newIntent = new Intent(this, DeviceListActivity.class);
-            startActivityForResult(newIntent, REQUEST_SELECT_DEVICE);
+            if(blemac==null){
+              Intent newIntent = new Intent(this, DeviceListActivity.class);
+              startActivityForResult(newIntent, REQUEST_SELECT_DEVICE);
+            }
           }
         }
         else Toast.makeText(this, "Bluetooth is not available", Toast.LENGTH_LONG).show();
@@ -84,11 +95,13 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
     @Override
     public void onResume(){
         super.onResume(); System.out.println("onResume");
+/*
         if (!bluetoothAdapter.isEnabled()) {
             Log.i(LOGNAME, "BT not enabled yet");
             Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
         }
+*/
     }
 
     @Override
@@ -265,6 +278,7 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
             if (!uartService.initialize()) {
               Log.e(LOGNAME, "Unable to initialize UART service");
             }
+            else useBLEMac();
         }
 
         public void onServiceDisconnected(ComponentName classname) {
@@ -347,16 +361,20 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
             break;
         case REQUEST_SELECT_DEVICE:
             if (resultCode == Activity.RESULT_OK && data != null) {
-                String deviceAddress = data.getStringExtra(BluetoothDevice.EXTRA_DEVICE);
-                bluetoothDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(deviceAddress);
-                Log.d(LOGNAME, "device selected, address=" + bluetoothDevice);
-                uartService.connect(deviceAddress);
+                blemac = data.getStringExtra(BluetoothDevice.EXTRA_DEVICE);
+                useBLEMac();
             }
             break;
         default:
             Log.e(LOGNAME, "wrong request code");
             break;
       }
+    }
+
+    private void useBLEMac(){
+      if(blemac==null) return;
+      bluetoothDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(blemac);
+      uartService.connect(blemac);
     }
 
     // -----------------------------------------------------------

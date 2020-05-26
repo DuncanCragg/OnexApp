@@ -123,8 +123,10 @@ static bool evaluate_user(object* o, void* d)
 
 extern "C" void sprintExternalStorageDirectory(char* buf, int buflen, const char* format);
 
-void init_onex()
+char* init_onex()
 {
+  char* blemac=0;
+
   onex_set_evaluators((char*)"default", evaluate_object_setter, evaluate_default, 0);
   onex_set_evaluators((char*)"device",  evaluate_device_logic, 0);
   onex_set_evaluators((char*)"user",                            evaluate_user, 0);
@@ -190,6 +192,7 @@ void init_onex()
   }
   time_ticker(every_second, 1000);
   draw_window();
+  return blemac;
 }
 
 void init_imgui(float width, float height)

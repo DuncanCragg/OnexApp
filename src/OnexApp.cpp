@@ -12,6 +12,19 @@ bool keyboardUp = false;
 extern "C" {
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
 
+void onexInitialised(char* blemac)
+{
+  JNIEnv* env;
+  androidApp->activity->vm->AttachCurrentThread(&env, 0);
+  jobject nativeActivity = androidApp->activity->clazz;
+  jclass nativeActivityClass = env->GetObjectClass(nativeActivity);
+  jmethodID method = env->GetMethodID(nativeActivityClass, "onexInitialised", "(Ljava/lang/String;)V");
+  jstring jblemac  = env->NewStringUTF(blemac);
+  env->CallVoidMethod(nativeActivity, method, jblemac);
+  env->DeleteLocalRef(jblemac);
+  androidApp->activity->vm->DetachCurrentThread();
+}
+
 void showOrHideSoftKeyboard(bool show)
 {
   if(keyboardUp == show) return;
@@ -102,6 +115,10 @@ void sprintExternalStorageDirectory(char* buf, int buflen, const char* format)
 }
 
 #else
+void onexInitialised(char* blemac)
+{
+}
+
 void showOrHideSoftKeyboard(bool show)
 {
 }
@@ -164,9 +181,10 @@ public:
   {
     log_write("OnexApp----------------------\n");
     VulkanBase::prepare();
-    gui->prepare();
+    char* blemac=gui->prepare();
     buildCommandBuffers();
     prepared = true;
+    onexInitialised(blemac);
     if(keyboardUp){ keyboardUp = false; showOrHideSoftKeyboard(true); }
   }
 

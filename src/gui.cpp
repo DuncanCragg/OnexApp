@@ -20,7 +20,7 @@ GUI::GUI(VulkanBase* a)
   app = a;
 };
 
-void GUI::prepare()
+char* GUI::prepare()
 {
   device = app->vulkanDevice;
   init_imgui((float)app->width, (float)app->height);
@@ -34,7 +34,7 @@ void GUI::prepare()
   setupDescriptorSets();
   createPipelineCache();
   createPipelines(app->renderPass);
-  init_onex();
+  return init_onex();
 }
 
 // ---------------------------------------------------------------------------------------------
