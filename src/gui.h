@@ -59,8 +59,7 @@ public:
 
   GUI(VulkanBase *app);
 
-  char* prepare();
-
+  void prepare();
   void setUpKeyMap();
   void createFontImage();
   void setupImageBuffer(VkQueue copyQueue);

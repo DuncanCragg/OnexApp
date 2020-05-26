@@ -68,8 +68,6 @@ extern ImVec4 schemeLightPurple;
 extern ImVec4 schemeDarkerPurple;
 extern ImVec4 schemePlum;
 
-char* init_onex();
-
 void init_imgui(float width, float height);
 void get_font_info();
 void set_scaling();

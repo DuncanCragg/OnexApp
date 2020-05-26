@@ -137,9 +137,12 @@ void setAlarm(time_t when, char* uid)
 
 static char* pendingAlarmUID=0;
 
+extern char* init_onex();
+
 class OnexApp : public VulkanBase
 {
   GUI* gui;
+  bool onex_initialised=false;
 
 public:
 
@@ -181,10 +184,17 @@ public:
   {
     log_write("OnexApp----------------------\n");
     VulkanBase::prepare();
-    char* blemac=gui->prepare();
+    gui->prepare();
+    char* blemac=0;
+    if(!onex_initialised){
+      blemac=init_onex();
+    }
     buildCommandBuffers();
     prepared = true;
-    onexInitialised(blemac);
+    if(!onex_initialised){
+      onexInitialised(blemac);
+      onex_initialised=true;
+    }
     if(keyboardUp){ keyboardUp = false; showOrHideSoftKeyboard(true); }
   }
 
