@@ -240,8 +240,6 @@ public:
 
   virtual void render()
   {
-    loop();
-
     gui->render();
 
     reBuildCommandBuffers(); // rebuild all cmdbufs every frame!!
@@ -256,15 +254,14 @@ public:
     VulkanBase::submitFrame();
   }
 
-
-  virtual void loop()
+  virtual void loop(bool focused)
   {
     if(pendingAlarmUID){
       onex_run_evaluators(pendingAlarmUID, 0);
       free(pendingAlarmUID);
       pendingAlarmUID=0;
     }
-    onex_loop();
+    onex_loop(); // !focused=sleeping
   }
 
   virtual void viewChanged()
@@ -432,7 +429,6 @@ JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onAlarmRec
   const char* uid = env->GetStringUTFChars(juid, 0);
   log_write("onAlarmRecv=%s\n",uid);
   pendingAlarmUID=strdup(uid);
-  if(!vulkanApp->focused) vulkanApp->alarm=true;
   env->ReleaseStringUTFChars(juid, uid);
 }
 

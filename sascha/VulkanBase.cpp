@@ -269,7 +269,7 @@ void VulkanBase::renderLoop()
     struct android_poll_source* source;
     bool destroy = false;
 
-    while ((ident = ALooper_pollAll(focused ? 0 : 500, NULL, &events, (void**)&source)) >= 0)
+    while ((ident = ALooper_pollAll(0, NULL, &events, (void**)&source)) >= 0)
     {
       if (source != NULL)
       {
@@ -283,14 +283,11 @@ void VulkanBase::renderLoop()
       }
     }
 
+    loop(focused);
+
     if(!focused){
-      if(alarm){
-        alarm=false;
-        loop();
-      }
       if(ident==ALOOPER_POLL_TIMEOUT) continue;
     }
-
 
     // App destruction requested
     // Exit loop, example will be destroyed in application main
@@ -303,7 +300,9 @@ void VulkanBase::renderLoop()
     if (prepared)
     {
       auto tStart = std::chrono::high_resolution_clock::now();
+
       render();
+
       frameCounter++;
       auto tEnd = std::chrono::high_resolution_clock::now();
       auto tDiff = std::chrono::duration<double, std::milli>(tEnd - tStart).count();
@@ -474,7 +473,10 @@ void VulkanBase::renderLoop()
       handleEvent(event);
       free(event);
     }
+
+    loop();
     render();
+
     frameCounter++;
     auto tEnd = std::chrono::high_resolution_clock::now();
     auto tDiff = std::chrono::duration<double, std::milli>(tEnd - tStart).count();

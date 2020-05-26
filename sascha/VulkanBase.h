@@ -314,7 +314,7 @@ public:
 
   // Pure virtual render function (override in derived class)
   virtual void render() = 0;
-  virtual void loop() = 0;
+  virtual void loop(bool focused) = 0;
   // Called when view change occurs
   // Can be overriden in derived class to e.g. update uniform buffers 
   // Containing view dependant matrices
