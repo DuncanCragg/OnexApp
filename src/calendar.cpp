@@ -11,8 +11,6 @@ extern "C" {
 #include "ux-features.h"
 #include "calendar.h"
 
-#pragma GCC diagnostic ignored "-Wformat-truncation"
-
 #define UPPER_SCROLL_JUMP 20
 #define COLUMN_WIDTH 225
 

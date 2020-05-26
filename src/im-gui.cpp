@@ -8,10 +8,6 @@
 #include "calendar.h"
 #include "ux-features.h"
 
-
-#pragma GCC diagnostic ignored "-Wformat-truncation"
-
-
 GUI* static_gui;
 
 VulkanBase *app;

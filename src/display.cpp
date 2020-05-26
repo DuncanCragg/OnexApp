@@ -11,8 +11,6 @@ extern "C" {
 #include "ux-features.h"
 #include "display.h"
 
-#pragma GCC diagnostic ignored "-Wformat-truncation"
-
 #define OUTER_PADDING 20
 
 extern void draw_padding(char* path, int16_t width, int16_t height, int8_t depth);
