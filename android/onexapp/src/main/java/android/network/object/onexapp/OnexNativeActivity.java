@@ -45,7 +45,6 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
  // showMessage("nRFUART running in background.\nDisconnect to exit");
 
     private BluetoothAdapter bluetoothAdapter = null;
-    private BluetoothDevice bluetoothDevice = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState){
@@ -376,7 +375,6 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
 
     private void useBLEMac(){
       if(blemac==null) return;
-      bluetoothDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(blemac);
       uartService.connect(blemac);
     }
 
