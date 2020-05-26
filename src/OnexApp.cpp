@@ -393,6 +393,8 @@ int main(const int argc, const char *argv[])                              \
 
 VULKAN_EXAMPLE_MAIN()
 
+extern void set_blemac(char*);
+
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
 extern "C" {
 
@@ -422,6 +424,13 @@ JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onAlarmRec
   pendingAlarmUID=strdup(uid);
   if(!vulkanApp->focused) vulkanApp->alarm=true;
   env->ReleaseStringUTFChars(juid, uid);
+}
+
+JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_setBLEMac(JNIEnv* env, jobject thiz, jstring jblemac)
+{
+  char* blemac = (char*)env->GetStringUTFChars(jblemac, 0);
+  set_blemac(blemac);
+  env->ReleaseStringUTFChars(jblemac, blemac);
 }
 
 }

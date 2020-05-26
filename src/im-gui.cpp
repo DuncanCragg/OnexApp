@@ -187,12 +187,18 @@ char* init_onex()
   else{
     userUID=object_property(config, (char*)"user");
     clockUID=object_property(config, (char*)"clock");
+    blemac=object_property(config, (char*)"blemac");
     user=onex_get_from_cache(userUID);
     oclock=onex_get_from_cache(clockUID);
   }
   time_ticker(every_second, 1000);
   draw_window();
   return blemac;
+}
+
+void set_blemac(char* blemac)
+{
+  object_property_set(config, (char*)"blemac", blemac);
 }
 
 void init_imgui(float width, float height)

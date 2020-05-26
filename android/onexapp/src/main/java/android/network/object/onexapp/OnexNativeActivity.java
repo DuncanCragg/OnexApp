@@ -55,6 +55,8 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
         System.loadLibrary("onexapp");
     }
 
+    public static native void setBLEMac(String uid);
+
     private String blemac=null;
 
     public void onexInitialised(String blemac){
@@ -362,6 +364,7 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
         case REQUEST_SELECT_DEVICE:
             if (resultCode == Activity.RESULT_OK && data != null) {
                 blemac = data.getStringExtra(BluetoothDevice.EXTRA_DEVICE);
+                setBLEMac(blemac);
                 useBLEMac();
             }
             break;
