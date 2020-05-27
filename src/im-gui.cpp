@@ -106,10 +106,6 @@ static void every_second()
 
 void draw_gui()
 {
-  if(ticked){
-    ticked=false;
-    onex_run_evaluators(clockUID, 0);
-  }
   if(userUID) onex_run_evaluators(userUID, 0);
 }
 
@@ -198,6 +194,10 @@ char* init_onex()
 
 void loop_onex(bool focused)
 {
+  if(ticked){
+    ticked=false;
+    onex_run_evaluators(clockUID, 0);
+  }
   onex_loop(); // !focused=sleeping
 }
 
