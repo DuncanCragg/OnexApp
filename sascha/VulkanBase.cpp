@@ -474,7 +474,7 @@ void VulkanBase::renderLoop()
       free(event);
     }
 
-    loop();
+    loop(true);
     render();
 
     frameCounter++;
