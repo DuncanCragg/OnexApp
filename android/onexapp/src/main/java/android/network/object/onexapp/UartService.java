@@ -68,7 +68,6 @@ public class UartService extends Service {
     public final static String ACTION_DATA_AVAILABLE = "com.nordicsemi.nrfUART.ACTION_DATA_AVAILABLE";
     public final static String ACTION_UART_CONNECTED = "com.nordicsemi.nrfUART.ACTION_UART_CONNECTED";
     public final static String EXTRA_DATA = "com.nordicsemi.nrfUART.EXTRA_DATA";
-    public final static String DEVICE_DOES_NOT_SUPPORT_UART = "com.nordicsemi.nrfUART.DEVICE_DOES_NOT_SUPPORT_UART";
 
     public static final UUID TX_POWER_UUID = UUID.fromString("00001804-0000-1000-8000-00805f9b34fb");
     public static final UUID TX_POWER_LEVEL_UUID = UUID.fromString("00002a07-0000-1000-8000-00805f9b34fb");
@@ -96,8 +95,8 @@ public class UartService extends Service {
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 intentAction = ACTION_GATT_DISCONNECTED;
                 connectionState = STATE_DISCONNECTED;
-                Log.i(LOGNAME, "Disconnected from GATT server.");
                 broadcastUpdate(intentAction);
+                Log.i(LOGNAME, "Disconnected from GATT server.");
             }
         }
 
@@ -228,7 +227,6 @@ public class UartService extends Service {
             return false;
         }
 
-        // Previously connected device.  Try to reconnect.
         if (bluetoothDeviceAddress != null && address.equals(bluetoothDeviceAddress) && bluetoothGATT != null) {
             Log.d(LOGNAME, "Trying to use an existing bluetoothGATT for connection.");
             if (bluetoothGATT.connect()) {
@@ -244,8 +242,7 @@ public class UartService extends Service {
             Log.w(LOGNAME, "Device not found.  Unable to connect.");
             return false;
         }
-        // We want to directly connect to the device, so we are setting the autoConnect
-        // parameter to false.
+        // We want to directly connect to the device, so we are setting the autoConnect parameter to false.
         bluetoothGATT = device.connectGatt(this, false, gattCallback);
         Log.d(LOGNAME, "Trying to create a new connection.");
         bluetoothDeviceAddress = address;
@@ -365,7 +362,7 @@ public class UartService extends Service {
         writesInProgress=true;
       }
       else{
-        Log.d(LOGNAME, "can't send "+new String(slice));
+        Log.d(LOGNAME, "Can't send "+new String(slice));
         writesInProgress=false;
       }
     }
@@ -386,6 +383,7 @@ public class UartService extends Service {
             Log.e(LOGNAME, "Rx characteristic not found!");
             return false;
         }
+
         RxChar.setValue(value);
         boolean status = bluetoothGATT.writeCharacteristic(RxChar);
 

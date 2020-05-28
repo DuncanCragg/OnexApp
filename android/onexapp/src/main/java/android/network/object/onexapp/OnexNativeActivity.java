@@ -36,8 +36,6 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
 
     private static final int REQUEST_SELECT_DEVICE = 1;
     private static final int REQUEST_ENABLE_BT = 2;
-    private static final int UART_PROFILE_CONNECTED = 20;
-    private static final int UART_PROFILE_DISCONNECTED = 21;
 
     private UartService uartService = null;
 
@@ -296,7 +294,6 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
         intentFilter.addAction(UartService.ACTION_GATT_SERVICES_DISCOVERED);
         intentFilter.addAction(UartService.ACTION_UART_CONNECTED);
         intentFilter.addAction(UartService.ACTION_DATA_AVAILABLE);
-        intentFilter.addAction(UartService.DEVICE_DOES_NOT_SUPPORT_UART);
         LocalBroadcastManager.getInstance(this).registerReceiver(UARTStatusChangeReceiver, intentFilter);
     }
 
@@ -307,12 +304,8 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
 
-            if (action.equals(UartService.ACTION_GATT_CONNECTED)) {
-                Log.d(LOGNAME, "gatt connected");
-            }
-
             if (action.equals(UartService.ACTION_UART_CONNECTED)) {
-                Log.d(LOGNAME, "uart connected");
+                Log.d(LOGNAME, "UART connected");
                 asyncConnected();
             }
 
@@ -338,11 +331,12 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
                     Log.e(LOGNAME, e.toString());
                 }
             }
+            // ---------
 
-            if (action.equals(UartService.DEVICE_DOES_NOT_SUPPORT_UART)){
-              showMessage("Device doesn't support UART. Disconnecting");
-              uartService.disconnect();
+            if (action.equals(UartService.ACTION_GATT_CONNECTED)) {
+                Log.d(LOGNAME, "GATT connected");
             }
+
         }
     };
 
