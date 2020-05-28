@@ -370,6 +370,10 @@ public class UartService extends Service {
 
     public boolean writeRXCharacteristic(byte[] value)
     {
+        if(connectionState!=STATE_CONNECTED){
+            Log.d(LOGNAME, "writeRXCharacteristic when disconnected ");
+            return false;
+        }
         if (bluetoothGATT == null) {
             Log.e(LOGNAME, "UART GATT not there");
             return false;
