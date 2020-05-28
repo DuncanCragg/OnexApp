@@ -83,6 +83,7 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
           Intent newIntent = new Intent(this, DeviceListActivity.class);
           startActivityForResult(newIntent, REQUEST_SELECT_DEVICE);
         }
+        else useBLEMac();
       }
     }
 
@@ -318,15 +319,6 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
                 asyncConnected();
             }
 
-            if (action.equals(UartService.ACTION_GATT_DISCONNECTED)) {
-                runOnUiThread(new Runnable() {
-                  public void run() {
-                    Log.d(LOGNAME, "disconnected");
-                    uartService.close();
-                  }
-                });
-            }
-
             if (action.equals(UartService.ACTION_DATA_AVAILABLE)) {
                 try {
                     byte[] data = intent.getByteArrayExtra(UartService.EXTRA_DATA);
@@ -335,6 +327,12 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
                     Log.e(LOGNAME, e.toString());
                 }
             }
+
+            if (action.equals(UartService.ACTION_GATT_DISCONNECTED)) {
+                Log.d(LOGNAME, "GATT disconnected");
+                triggerBLE();
+            }
+
             // ---------
 
             if (action.equals(UartService.ACTION_GATT_CONNECTED)) {
