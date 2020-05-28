@@ -334,6 +334,11 @@ public class UartService extends Service {
     private boolean writesInProgress=false;
 
     public synchronized void write(byte[] value){
+      if(connectionState!=STATE_CONNECTED){
+        Log.d(LOGNAME, "write when not connected");
+        writesInProgress=false;
+        return;
+      }
       if(writeChunks.size() >100){
         Log.d(LOGNAME, "Write buffer full!");
         if(!writesInProgress) writeAChunk();
