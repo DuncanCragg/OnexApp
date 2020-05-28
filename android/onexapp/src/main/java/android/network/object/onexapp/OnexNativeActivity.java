@@ -277,6 +277,10 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
 
     private ServiceConnection serviceConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder rawBinder) {
+            if(uartService !=null){
+              Log.d(LOGNAME, "attempt to set uartService on top of existing");
+              return;
+            }
             uartService = ((UartService.LocalBinder)rawBinder).getService();
             Log.d(LOGNAME, "UART Service= " + uartService);
             if(uartService.initialize()){
@@ -371,8 +375,8 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
     }
 
     private void useBLEMac(){
-      if(blemac==null) return;
-      uartService.connect(blemac);
+      if(uartService==null || blemac==null) return;
+      if(!uartService.connect(blemac)) Log.d(LOGNAME, "uartService.connect failed");
     }
 
     // -----------------------------------------------------------
