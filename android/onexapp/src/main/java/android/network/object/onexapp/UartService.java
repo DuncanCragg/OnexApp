@@ -103,7 +103,7 @@ public class UartService extends Service {
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                Log.w(LOGNAME, "bluetoothGATT = " + bluetoothGATT );
+                Log.w(LOGNAME, "services discovered");
                 broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED);
                 enableTXNotification();
             } else {

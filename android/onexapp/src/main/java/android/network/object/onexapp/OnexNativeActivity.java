@@ -39,9 +39,6 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
 
     private UartService uartService = null;
 
- // uartService.disconnect();
- // showMessage("nRFUART running in background.\nDisconnect to exit");
-
     private BluetoothAdapter bluetoothAdapter = null;
 
     @Override
@@ -232,17 +229,17 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
 
     public static native void serialOnRecv(String b);
 
-    ByteArrayOutputStream buff = new ByteArrayOutputStream();
+    ByteArrayOutputStream recvBuff = new ByteArrayOutputStream();
 
     private void dataRecv(byte[] data) {
       try{
-        buff.write(data);
-        String chars = buff.toString("UTF-8");
+        recvBuff.write(data);
+        String chars = recvBuff.toString("UTF-8");
         int x = chars.lastIndexOf('\n');
         if(x == -1) return;
         String newChars = chars.substring(0,x+1);
-        buff.reset();
-        buff.write(chars.substring(x+1).getBytes());
+        recvBuff.reset();
+        recvBuff.write(chars.substring(x+1).getBytes());
         if(logReadWrite) Log.d(LOGNAME, "read (" + newChars + ")" );
         serialOnRecv(newChars);
       }catch(Exception e){}
@@ -309,8 +306,6 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
 
     private final BroadcastReceiver UARTStatusChangeReceiver = new BroadcastReceiver() {
 
-        ByteArrayOutputStream buff = new ByteArrayOutputStream();
-
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
 
@@ -331,16 +326,6 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
             if (action.equals(UartService.ACTION_GATT_DISCONNECTED)) {
                 Log.d(LOGNAME, "GATT disconnected");
                 triggerBLE();
-            }
-
-            // ---------
-
-            if (action.equals(UartService.ACTION_GATT_CONNECTED)) {
-                Log.d(LOGNAME, "GATT connected");
-            }
-
-            if (action.equals(UartService.ACTION_GATT_SERVICES_DISCOVERED)) {
-                Log.d(LOGNAME, "services discovered");
             }
         }
     };
