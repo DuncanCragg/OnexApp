@@ -105,6 +105,7 @@ public class UartService extends Service {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 Log.w(LOGNAME, "bluetoothGATT = " + bluetoothGATT );
                 broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED);
+                enableTXNotification();
             } else {
                 Log.w(LOGNAME, "onServicesDiscovered received: " + status);
             }

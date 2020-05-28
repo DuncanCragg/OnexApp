@@ -323,11 +323,6 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
                 });
             }
 
-            if (action.equals(UartService.ACTION_GATT_SERVICES_DISCOVERED)) {
-                Log.d(LOGNAME, "services discovered");
-                uartService.enableTXNotification();
-            }
-
             if (action.equals(UartService.ACTION_DATA_AVAILABLE)) {
                 try {
                     byte[] data = intent.getByteArrayExtra(UartService.EXTRA_DATA);
@@ -342,6 +337,9 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
                 Log.d(LOGNAME, "GATT connected");
             }
 
+            if (action.equals(UartService.ACTION_GATT_SERVICES_DISCOVERED)) {
+                Log.d(LOGNAME, "services discovered");
+            }
         }
     };
 
