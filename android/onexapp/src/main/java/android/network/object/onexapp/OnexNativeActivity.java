@@ -67,18 +67,23 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
 
           bindToUARTService();
 
-          if (!bluetoothAdapter.isEnabled()) {
-            Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
-          }
-          else {
-            if(blemac==null){
-              Intent newIntent = new Intent(this, DeviceListActivity.class);
-              startActivityForResult(newIntent, REQUEST_SELECT_DEVICE);
-            }
-          }
+          triggerBLE();
         }
         else Toast.makeText(this, "Bluetooth is not available", Toast.LENGTH_LONG).show();
+    }
+
+
+    private void triggerBLE(){
+      if (!bluetoothAdapter.isEnabled()) {
+        Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+        startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
+      }
+      else {
+        if(blemac==null){
+          Intent newIntent = new Intent(this, DeviceListActivity.class);
+          startActivityForResult(newIntent, REQUEST_SELECT_DEVICE);
+        }
+      }
     }
 
     @Override
