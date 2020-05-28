@@ -279,10 +279,10 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
         public void onServiceConnected(ComponentName className, IBinder rawBinder) {
             uartService = ((UartService.LocalBinder)rawBinder).getService();
             Log.d(LOGNAME, "UART Service= " + uartService);
-            if (!uartService.initialize()) {
-              Log.e(LOGNAME, "Unable to initialize UART service");
+            if(uartService.initialize()){
+              useBLEMac();
             }
-            else useBLEMac();
+            else Log.e(LOGNAME, "Unable to initialize UART service");
         }
 
         public void onServiceDisconnected(ComponentName classname) {
