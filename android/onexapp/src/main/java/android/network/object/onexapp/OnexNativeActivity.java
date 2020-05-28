@@ -325,6 +325,7 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
 
             if (action.equals(UartService.ACTION_GATT_DISCONNECTED)) {
                 Log.d(LOGNAME, "GATT disconnected");
+                recvBuff.reset();
                 triggerBLE();
             }
         }
