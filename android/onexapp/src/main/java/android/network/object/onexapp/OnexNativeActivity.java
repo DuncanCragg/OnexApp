@@ -48,7 +48,7 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
         System.loadLibrary("onexapp");
     }
 
-    public static native void setBLEMac(String uid);
+    public static native void setBLEMac(String blemac);
 
     private String blemac=null;
 
