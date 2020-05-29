@@ -96,6 +96,7 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
     @Override
     public void onResume(){
         super.onResume(); System.out.println("onResume");
+        sendBroadcast(new Intent("network.object.onexapp.eternal.restart"));
     }
 
     @Override
