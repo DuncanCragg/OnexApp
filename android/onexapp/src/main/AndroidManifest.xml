@@ -17,7 +17,7 @@
   <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
   <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 
-  <application android:allowBackup="false"
+  <application android:allowBackup="true"
                android:label="onexapp"
                android:icon="@drawable/icon"
                android:hasCode="true">
