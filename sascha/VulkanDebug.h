@@ -31,11 +31,7 @@ namespace vks
     extern const char *validationLayerNames[];
 
     // Default debug callback
-#ifdef __ANDROID__
-    VkBool32 __attribute__((pcs("aapcs-vfp"))) messageCallback(
-#else
     VkBool32 messageCallback(
-#endif
       VkDebugReportFlagsEXT flags,
       VkDebugReportObjectTypeEXT objType,
       uint64_t srcObject,
