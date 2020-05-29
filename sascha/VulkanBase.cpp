@@ -781,6 +781,7 @@ void VulkanBase::startup()
 
 void VulkanBase::cleanup()
 {
+  if(!prepared) return;
   prepared = false;
   swapChain.cleanup();
   if (descriptorPool != VK_NULL_HANDLE)
