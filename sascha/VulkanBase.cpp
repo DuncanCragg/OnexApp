@@ -509,7 +509,7 @@ void VulkanBase::renderLoop()
   }
 #endif
   // Flush device to make sure all resources can be freed
-  vkDeviceWaitIdle(device);
+  if(prepared) vkDeviceWaitIdle(device);
 }
 
 #define VERTEX_BUFFER_BIND_ID 0
