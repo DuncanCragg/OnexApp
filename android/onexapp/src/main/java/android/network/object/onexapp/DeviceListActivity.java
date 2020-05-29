@@ -31,6 +31,7 @@ import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
+import android.bluetooth.le.*;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -124,29 +125,41 @@ public class DeviceListActivity extends Activity {
                 @Override
                 public void run() {
                     scanning = false;
-                    bluetoothAdapter.stopLeScan(leScanCallback);
+                    bluetoothAdapter.getBluetoothLeScanner().stopScan(leScanCallback);
                     cancelButton.setText(R.string.scan);
                 }
             }, SCAN_PERIOD);
 
             scanning = true;
-            bluetoothAdapter.startLeScan(leScanCallback);
+            bluetoothAdapter.getBluetoothLeScanner().startScan(leScanCallback);
             cancelButton.setText(R.string.cancel);
         } else {
             scanning = false;
-            bluetoothAdapter.stopLeScan(leScanCallback);
+            bluetoothAdapter.getBluetoothLeScanner().stopScan(leScanCallback);
             cancelButton.setText(R.string.scan);
         }
     }
 
-    private BluetoothAdapter.LeScanCallback leScanCallback = new BluetoothAdapter.LeScanCallback() {
+    private ScanCallback leScanCallback = new ScanCallback() {
         @Override
-        public void onLeScan(final BluetoothDevice device, final int rssi, byte[] scanRecord) {
+        public void onScanResult(int callbackType, final ScanResult result) {
+            super.onScanResult(callbackType, result);
+            final BluetoothDevice device=result.getDevice();
             if(device.getName()==null || !device.getName().contains("Onex")) return;
             runOnUiThread(new Runnable() {
                 @Override
-                public void run() { addDevice(device,rssi); }
+                public void run() { addDevice(device, result.getRssi()); }
             });
+        }
+
+        @Override
+        public void onBatchScanResults(List<ScanResult> results) {
+            super.onBatchScanResults(results);
+        }
+
+        @Override
+        public void onScanFailed(int errorCode) {
+            super.onScanFailed(errorCode);
         }
     };
 
@@ -181,15 +194,13 @@ public class DeviceListActivity extends Activity {
     @Override
     public void onStop() {
         super.onStop();
-        bluetoothAdapter.stopLeScan(leScanCallback);
-
+        bluetoothAdapter.getBluetoothLeScanner().stopScan(leScanCallback);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        bluetoothAdapter.stopLeScan(leScanCallback);
-
+        bluetoothAdapter.getBluetoothLeScanner().stopScan(leScanCallback);
     }
 
     private OnItemClickListener deviceClickListener = new OnItemClickListener() {
@@ -197,7 +208,7 @@ public class DeviceListActivity extends Activity {
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
             BluetoothDevice device = deviceList.get(position);
-            bluetoothAdapter.stopLeScan(leScanCallback);
+            bluetoothAdapter.getBluetoothLeScanner().stopScan(leScanCallback);
 
             Bundle b = new Bundle();
             b.putString(BluetoothDevice.EXTRA_DEVICE, deviceList.get(position).getAddress());

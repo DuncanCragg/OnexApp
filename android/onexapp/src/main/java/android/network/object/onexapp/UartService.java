@@ -36,7 +36,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import java.util.List;
@@ -152,7 +151,7 @@ public class UartService extends Service {
 
     private void broadcastUpdate(final String action) {
         final Intent intent = new Intent(action);
-        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+        sendBroadcast(intent);
     }
 
     private void broadcastUpdate(final String action,
@@ -162,7 +161,7 @@ public class UartService extends Service {
         if (TX_CHAR_UUID.equals(characteristic.getUuid())) {
             intent.putExtra(EXTRA_DATA, characteristic.getValue());
         }
-        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+        sendBroadcast(intent);
     }
 
     public class LocalBinder extends Binder {

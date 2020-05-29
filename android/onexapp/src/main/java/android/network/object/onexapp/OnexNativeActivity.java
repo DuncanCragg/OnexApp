@@ -16,7 +16,6 @@ import android.content.*;
 import android.util.Log;
 import android.app.*;
 
-import android.support.v4.content.LocalBroadcastManager;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 
@@ -121,7 +120,7 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
         super.onDestroy(); System.out.println("onDestroy");
         self=null;
         try {
-            LocalBroadcastManager.getInstance(this).unregisterReceiver(UARTStatusChangeReceiver);
+            unregisterReceiver(UARTStatusChangeReceiver);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -301,7 +300,7 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
         intentFilter.addAction(UartService.ACTION_GATT_SERVICES_DISCOVERED);
         intentFilter.addAction(UartService.ACTION_UART_CONNECTED);
         intentFilter.addAction(UartService.ACTION_DATA_AVAILABLE);
-        LocalBroadcastManager.getInstance(this).registerReceiver(UARTStatusChangeReceiver, intentFilter);
+        registerReceiver(UARTStatusChangeReceiver, intentFilter);
     }
 
     private final BroadcastReceiver UARTStatusChangeReceiver = new BroadcastReceiver() {
@@ -400,7 +399,7 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
 
     public void showNotification(String title, String text){
       PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, OnexNativeActivity.class), PendingIntent.FLAG_UPDATE_CURRENT);
-      Notification.Builder notifbuilder = new Notification.Builder(this);
+      Notification.Builder notifbuilder = new Notification.Builder(this, "Notification-Channel-ID");
       notifbuilder.setContentTitle(title)
                   .setContentText(text)
                   .setSmallIcon(R.drawable.icon)

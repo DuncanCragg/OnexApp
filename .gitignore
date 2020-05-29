@@ -14,7 +14,7 @@ android/doc
 .idea
 *.iml
 build/
-ndkBuild/
+.cxx/
 local.properties
 *.a
 *.o
