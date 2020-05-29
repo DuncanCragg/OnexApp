@@ -96,13 +96,6 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
     @Override
     public void onResume(){
         super.onResume(); System.out.println("onResume");
-/*
-        if (!bluetoothAdapter.isEnabled()) {
-            Log.i(LOGNAME, "BT not enabled yet");
-            Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
-        }
-*/
     }
 
     @Override
