@@ -350,12 +350,12 @@ public:
     }
   }
 
-  virtual void keyPressed(uint32_t keyCode, char32_t u32key)
+  virtual void keyPressed(int32_t keyCode, char32_t u32key)
   {
     gui->keyPressed(keyCode, u32key);
   }
 
-  virtual void keyReleased(uint32_t keyCode)
+  virtual void keyReleased(int32_t keyCode)
   {
     gui->keyReleased(keyCode);
   }

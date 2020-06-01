@@ -74,8 +74,8 @@ public:
   void buildCommandBuffers(int32_t i);
   void updateUniformBuffers(){}
   void addAnyKeySym();
-  void keyPressed(uint32_t keyCode, char32_t u32key);
-  void keyReleased(uint32_t keyCode);
+  void keyPressed(int32_t keyCode, char32_t u32key);
+  void keyReleased(int32_t keyCode);
   void render();
 
   ~GUI();

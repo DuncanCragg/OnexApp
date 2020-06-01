@@ -41,7 +41,7 @@ void GUI::prepare()
 static int framecount=0;
 static int framewhendown=0;
 #define KEY_UP_FRAME_DELAY 2
-static uint32_t pendingKeyCodeUp=0;
+static int32_t pendingKeyCodeUp=0;
 
 void GUI::render()
 {
@@ -116,7 +116,7 @@ void GUI::addAnyKeySym()
   }
 }
 
-void GUI::keyPressed(uint32_t keyCode, char32_t u32key)
+void GUI::keyPressed(int32_t keyCode, char32_t u32key)
 {
   framewhendown=framecount;
 #if defined(__ANDROID__) || defined(TEST_ANDROID_KEYBOARD)
@@ -124,7 +124,7 @@ void GUI::keyPressed(uint32_t keyCode, char32_t u32key)
 #endif
   if(keyCode==KEY_ESCAPE){} // use as back button on Unix
   ImGuiIO& io = ImGui::GetIO();
-  if(keyCode) io.KeysDown[keyCode] = true;
+  if(keyCode>0) io.KeysDown[keyCode] = true;
   io.KeyCtrl = io.KeysDown[KEY_CTRL_LEFT] || io.KeysDown[KEY_CTRL_RIGHT];
   io.KeyShift = io.KeysDown[KEY_SHIFT_LEFT] || io.KeysDown[KEY_SHIFT_RIGHT];
   io.KeyAlt = io.KeysDown[KEY_ALT_LEFT] || io.KeysDown[KEY_ALT_RIGHT];
@@ -132,14 +132,14 @@ void GUI::keyPressed(uint32_t keyCode, char32_t u32key)
   if(u32key) u32keyToAdd = u32key;
 }
 
-void GUI::keyReleased(uint32_t keyCode)
+void GUI::keyReleased(int32_t keyCode)
 {
   if(framecount<framewhendown+KEY_UP_FRAME_DELAY){ pendingKeyCodeUp=keyCode; return; }
 #if defined(__ANDROID__) || defined(TEST_ANDROID_KEYBOARD)
   if(keyCode==BACK_BUTTON){  keyboardCancelled=false; return; }
 #endif
   ImGuiIO& io = ImGui::GetIO();
-  if(keyCode) io.KeysDown[keyCode] = false;
+  if(keyCode>0) io.KeysDown[keyCode] = false;
   io.KeyCtrl = io.KeysDown[KEY_CTRL_LEFT] || io.KeysDown[KEY_CTRL_RIGHT];
   io.KeyShift = io.KeysDown[KEY_SHIFT_LEFT] || io.KeysDown[KEY_SHIFT_RIGHT];
   io.KeyAlt = io.KeysDown[KEY_ALT_LEFT] || io.KeysDown[KEY_ALT_RIGHT];
