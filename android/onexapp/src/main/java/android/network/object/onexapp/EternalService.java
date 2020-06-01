@@ -5,8 +5,9 @@ package network.object.onexapp;
 import android.content.Intent;
 import android.os.IBinder;
 import android.util.Log;
+import android.app.*;
 
-public class EternalService extends android.app.Service {
+public class EternalService extends Service {
     private static String LOGNAME = "EternalService";
 
     @Override
