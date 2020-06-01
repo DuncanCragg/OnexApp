@@ -1,8 +1,6 @@
 
 package network.object.onexapp;
 
-import java.io.ByteArrayOutputStream;
-
 import android.os.*;
 import android.view.inputmethod.*;
 import android.view.ViewGroup.LayoutParams;
@@ -11,7 +9,6 @@ import android.widget.*;
 import android.text.*;
 import android.content.Context;
 import android.app.NativeActivity;
-import android.hardware.usb.*;
 import android.content.*;
 import android.util.Log;
 import android.app.*;
@@ -19,68 +16,29 @@ import android.app.*;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 
-import com.felhr.usbserial.UsbSerialInterface;
-import com.felhr.usbserial.UsbSerialDevice;
-
 /**  NativeActivity wrapper to offer Java API functions not available in JNI land.
   */
 public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callback {
 
     static OnexNativeActivity self=null;
 
-    public static final boolean logReadWrite = true;
-    public static final String LOGNAME = "OnexApp";
-
-    private static UsbSerialDevice serialPort = null;
+    public static final String LOGNAME = "OnexNativeActivity";
 
     private static final int REQUEST_SELECT_DEVICE = 1;
     private static final int REQUEST_ENABLE_BT = 2;
-
-    private NUSService nusService = null;
-
-    private BluetoothAdapter bluetoothAdapter = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState); System.out.println("onCreate");
         self=this;
         setUpKeyboardView();
-        System.loadLibrary("onexapp");
     }
 
-    public static native void setBLEMac(String blemac);
-
-    private String blemac=null;
-
-    public void onexInitialised(String blemac){
-
-        Log.i(LOGNAME, "onexInitialised "+ blemac);
-
-        this.blemac = blemac;
-
-        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        if (bluetoothAdapter != null) {
-
-          bindToNUS();
-
-          triggerBLE();
-        }
-        else Toast.makeText(this, "Bluetooth is not available", Toast.LENGTH_LONG).show();
-    }
-
-
-    private void triggerBLE(){
-      if (!bluetoothAdapter.isEnabled()) {
-        Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-        startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
-      }
-      else {
-        if(blemac==null){
-          Intent newIntent = new Intent(this, DeviceListActivity.class);
-          startActivityForResult(newIntent, REQUEST_SELECT_DEVICE);
-        }
-        else useBLEMac();
-      }
+    @Override
+    public void onNewIntent(Intent intent){
+      super.onNewIntent(intent);
+      if(!"android.hardware.usb.action.USB_DEVICE_ATTACHED".equalsIgnoreCase(intent.getAction())) return;
+      EternalService.onUSBAttached(intent);
     }
 
     @Override
@@ -113,14 +71,54 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
     public void onDestroy(){
         super.onDestroy(); System.out.println("onDestroy");
         self=null;
-        try {
-            unregisterReceiver(NUSStatusChangeReceiver);
-        } catch (Exception e) {
-            e.printStackTrace();
+    }
+
+    // -----------------------------------------------------------
+
+    static private BluetoothAdapter bluetoothAdapter = null;
+
+    static public void getBLEMac(){
+        Log.i(LOGNAME, "getBLEMac ");
+
+        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (bluetoothAdapter == null) {
+          Toast.makeText(self, "Bluetooth is not available", Toast.LENGTH_LONG).show();
+          return;
         }
-        unbindService(serviceConnection);
-        nusService.stopSelf();
-        nusService= null;
+        if (!bluetoothAdapter.isEnabled()) {
+          Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+          self.startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
+        }
+        else {
+          Intent newIntent = new Intent(self, DeviceListActivity.class);
+          self.startActivityForResult(newIntent, REQUEST_SELECT_DEVICE);
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+      switch (requestCode) {
+
+        case REQUEST_ENABLE_BT:
+            if (resultCode == Activity.RESULT_OK) {
+                Toast.makeText(this, "Bluetooth enabled", Toast.LENGTH_SHORT).show();
+                Intent newIntent = new Intent(this, DeviceListActivity.class);
+                startActivityForResult(newIntent, REQUEST_SELECT_DEVICE);
+            } else {
+                Log.d(LOGNAME, "Bluetooth not enabled");
+                Toast.makeText(this, "Bluetooth not enabled", Toast.LENGTH_SHORT).show();
+            }
+            break;
+        case REQUEST_SELECT_DEVICE:
+            if (resultCode == Activity.RESULT_OK && data != null) {
+                String blemac = data.getStringExtra(BluetoothDevice.EXTRA_DEVICE);
+                EternalService.onBLEMac(blemac);
+            }
+            break;
+        default:
+            Log.e(LOGNAME, "wrong request code");
+            break;
+      }
     }
 
     // -----------------------------------------------------------
@@ -212,164 +210,6 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
         InputMethodManager imm=(InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(kbdView.getWindowToken(), 0);
         keyboardUp=false;
-    }
-
-    // -----------------------------------------------------------
-
-    private void asyncConnected(){
-        new Thread(){ public void run(){ serialOnRecv(null); }}.start();
-    }
-
-    public static native void serialOnRecv(String b);
-
-    ByteArrayOutputStream recvBuff = new ByteArrayOutputStream();
-
-    private void dataRecv(byte[] data) {
-      try{
-        recvBuff.write(data);
-        String chars = recvBuff.toString("UTF-8");
-        int x = chars.lastIndexOf('\n');
-        if(x == -1) return;
-        String newChars = chars.substring(0,x+1);
-        recvBuff.reset();
-        recvBuff.write(chars.substring(x+1).getBytes());
-        if(logReadWrite) Log.d(LOGNAME, "read (" + newChars + ")" );
-        serialOnRecv(newChars);
-      }catch(Exception e){}
-    }
-
-    private UsbSerialInterface.UsbReadCallback recvCB = new UsbSerialInterface.UsbReadCallback() {
-        @Override
-        public void onReceivedData(byte[] data) { dataRecv(data); }
-    };
-
-    @Override
-    protected void onNewIntent(Intent intent){
-      super.onNewIntent(intent);
-      if(!"android.hardware.usb.action.USB_DEVICE_ATTACHED".equalsIgnoreCase(intent.getAction())) return;
-      UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-      UsbManager usbManager = getSystemService(UsbManager.class);
-      final UsbDeviceConnection connection = usbManager.openDevice(device);
-      UsbInterface interf = device.getInterface(0);
-      connection.claimInterface(interf, true);
-      serialPort = UsbSerialDevice.createUsbSerialDevice(device, connection);
-      if(serialPort == null) { System.out.println("No serial port!"); return; }
-      if(!serialPort.open()) { System.out.println("Could not open serial port!"); return; }
-      serialPort.setBaudRate(9600);
-      serialPort.setDataBits(UsbSerialInterface.DATA_BITS_8);
-      serialPort.setStopBits(UsbSerialInterface.STOP_BITS_1);
-      serialPort.setParity(UsbSerialInterface.PARITY_NONE);
-      serialPort.setFlowControl(UsbSerialInterface.FLOW_CONTROL_OFF);
-      serialPort.read(recvCB);
-      asyncConnected();
-    }
-
-    // -----------------------------------------------------------
-
-    private ServiceConnection serviceConnection = new ServiceConnection() {
-        public void onServiceConnected(ComponentName className, IBinder rawBinder) {
-            if(nusService !=null){
-              Log.d(LOGNAME, "attempt to set nusService on top of existing");
-              return;
-            }
-            nusService = ((NUSService.LocalBinder)rawBinder).getService();
-            Log.d(LOGNAME, "NUS Service= " + nusService);
-            if(nusService.initialize()){
-              useBLEMac();
-            }
-            else Log.e(LOGNAME, "Unable to initialize NUS service");
-        }
-
-        public void onServiceDisconnected(ComponentName classname) {
-            nusService = null;
-        }
-    };
-
-    private void bindToNUS() {
-        Intent bindIntent = new Intent(this, NUSService.class);
-        bindService(bindIntent, serviceConnection, Context.BIND_AUTO_CREATE);
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(NUSService.ACTION_GATT_CONNECTED);
-        intentFilter.addAction(NUSService.ACTION_GATT_DISCONNECTED);
-        intentFilter.addAction(NUSService.ACTION_GATT_SERVICES_DISCOVERED);
-        intentFilter.addAction(NUSService.ACTION_NUS_CONNECTED);
-        intentFilter.addAction(NUSService.ACTION_DATA_AVAILABLE);
-        registerReceiver(NUSStatusChangeReceiver, intentFilter);
-    }
-
-    private final BroadcastReceiver NUSStatusChangeReceiver = new BroadcastReceiver() {
-
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-
-            if (action.equals(NUSService.ACTION_NUS_CONNECTED)) {
-                Log.d(LOGNAME, "NUS connected");
-                asyncConnected();
-            }
-
-            if (action.equals(NUSService.ACTION_DATA_AVAILABLE)) {
-                try {
-                    byte[] data = intent.getByteArrayExtra(NUSService.EXTRA_DATA);
-                    dataRecv(data);
-                } catch (Exception e) {
-                    Log.e(LOGNAME, e.toString());
-                }
-            }
-
-            if (action.equals(NUSService.ACTION_GATT_DISCONNECTED)) {
-                Log.d(LOGNAME, "GATT disconnected");
-                recvBuff.reset();
-                triggerBLE();
-            }
-        }
-    };
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-      switch (requestCode) {
-
-        case REQUEST_ENABLE_BT:
-            if (resultCode == Activity.RESULT_OK) {
-                Toast.makeText(this, "Bluetooth enabled", Toast.LENGTH_SHORT).show();
-                Intent newIntent = new Intent(this, DeviceListActivity.class);
-                startActivityForResult(newIntent, REQUEST_SELECT_DEVICE);
-            } else {
-                Log.d(LOGNAME, "BT not enabled");
-                Toast.makeText(this, "Bluetooth not enabled", Toast.LENGTH_SHORT).show();
-            }
-            break;
-        case REQUEST_SELECT_DEVICE:
-            if (resultCode == Activity.RESULT_OK && data != null) {
-                blemac = data.getStringExtra(BluetoothDevice.EXTRA_DEVICE);
-                setBLEMac(blemac);
-                useBLEMac();
-            }
-            break;
-        default:
-            Log.e(LOGNAME, "wrong request code");
-            break;
-      }
-    }
-
-    private void useBLEMac(){
-      if(nusService==null || blemac==null) return;
-      if(!nusService.connect(blemac)) Log.d(LOGNAME, "nusService.connect failed");
-    }
-
-    // -----------------------------------------------------------
-
-    public void serialSend(String chars){
-      if(logReadWrite) Log.d(LOGNAME, "write (" + chars + ")");
-      try {
-        if (nusService!=null){
-          nusService.write(chars.getBytes("UTF-8"));
-        }
-        if(serialPort!=null){
-          serialPort.write(chars.getBytes("UTF-8"));
-        }
-      }catch(Exception e){
-        e.printStackTrace();
-      }
     }
 
     // -----------------------------------------------------------

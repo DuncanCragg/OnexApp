@@ -9,21 +9,108 @@ bool keyboardUp = false;
 
 #define TEXTTYPE 1
 
+extern void set_blemac(char*);
+
+static char* pendingAlarmUID=0;
+
 extern "C" {
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
 
+extern void serial_on_recv(char*, int);
+
+static jclass eternalServiceClass;
+
+static JavaVM* javaVM;
+
+// or see https://stackoverflow.com/questions/13263340/findclass-from-any-thread-in-android-jni
+JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
+  JNIEnv* env;
+  javaVM=vm;
+  jint res = vm->GetEnv((void**)&env, JNI_VERSION_1_6);
+  bool attached=false;
+  if(res!=JNI_OK) {
+     res=vm->AttachCurrentThread(&env, 0);
+     if(res!=JNI_OK){
+         log_write("Failed to AttachCurrentThread, ErrorCode: %d", res);
+         return 0;
+     }
+     attached=true;
+  }
+  eternalServiceClass = (jclass)env->NewGlobalRef(env->FindClass("network/object/onexapp/EternalService"));
+  if(attached) vm->DetachCurrentThread();
+  return JNI_VERSION_1_6;
+}
+
+void sprintExternalStorageDirectory(char* buf, int buflen, const char* format)
+{
+  JavaVM* vm = javaVM;
+  JNIEnv* env; vm->AttachCurrentThread(&env, 0);
+
+  jclass osEnvClass = env->FindClass("android/os/Environment");
+  jmethodID getExternalStorageDirectoryMethod = env->GetStaticMethodID(osEnvClass, "getExternalStorageDirectory", "()Ljava/io/File;");
+  jobject extStorage = env->CallStaticObjectMethod(osEnvClass, getExternalStorageDirectoryMethod);
+
+  jclass extStorageClass = env->GetObjectClass(extStorage);
+  jmethodID getAbsolutePathMethod = env->GetMethodID(extStorageClass, "getAbsolutePath", "()Ljava/lang/String;");
+  jstring extStoragePath = (jstring)env->CallObjectMethod(extStorage, getAbsolutePathMethod);
+
+  const char* extStoragePathString=env->GetStringUTFChars(extStoragePath, 0);
+  snprintf(buf, buflen, format, extStoragePathString);
+  env->ReleaseStringUTFChars(extStoragePath, extStoragePathString);
+
+  vm->DetachCurrentThread();
+}
+
 void onexInitialised(char* blemac)
 {
+  JavaVM* vm = javaVM;
+  log_write("onexInitialised");
   JNIEnv* env;
-  androidApp->activity->vm->AttachCurrentThread(&env, 0);
-  jobject nativeActivity = androidApp->activity->clazz;
-  jclass nativeActivityClass = env->GetObjectClass(nativeActivity);
-  jmethodID method = env->GetMethodID(nativeActivityClass, "onexInitialised", "(Ljava/lang/String;)V");
+  vm->AttachCurrentThread(&env, 0);
+  jmethodID method = env->GetStaticMethodID(eternalServiceClass, "onexInitialised", "(Ljava/lang/String;)V");
   jstring jblemac  = env->NewStringUTF(blemac);
-  env->CallVoidMethod(nativeActivity, method, jblemac);
+  env->CallStaticVoidMethod(eternalServiceClass, method, jblemac);
   env->DeleteLocalRef(jblemac);
-  androidApp->activity->vm->DetachCurrentThread();
+  vm->DetachCurrentThread();
 }
+
+void serial_send(char* buff)
+{
+  log_write("serial_send");
+  JavaVM* vm = javaVM;
+  JNIEnv* env;
+  jint res = vm->GetEnv((void**)&env, JNI_VERSION_1_6);
+  bool attached=false;
+  if(res!=JNI_OK) {
+     res=vm->AttachCurrentThread(&env, 0);
+     if(res!=JNI_OK){
+         log_write("Failed to AttachCurrentThread, ErrorCode: %d sending: %s", res, buff);
+         return;
+     }
+     attached=true;
+  }
+  jmethodID method = env->GetStaticMethodID(eternalServiceClass, "serialSend", "(Ljava/lang/String;)V");
+  jstring jbuff = env->NewStringUTF(buff);
+  env->CallStaticVoidMethod(eternalServiceClass, method, jbuff);
+  env->DeleteLocalRef(jbuff);
+  if(attached) vm->DetachCurrentThread();
+}
+
+JNIEXPORT void JNICALL Java_network_object_onexapp_EternalService_setBLEMac(JNIEnv* env, jclass clazz, jstring jblemac)
+{
+  char* blemac = (char*)env->GetStringUTFChars(jblemac, 0);
+  set_blemac(blemac);
+  env->ReleaseStringUTFChars(jblemac, blemac);
+}
+
+JNIEXPORT void JNICALL Java_network_object_onexapp_EternalService_serialOnRecv(JNIEnv* env, jclass clazz, jstring b)
+{
+  const char* chars = b? env->GetStringUTFChars(b, 0): 0;
+  serial_on_recv((char*)chars, chars? strlen(chars): 0);
+  if(b) env->ReleaseStringUTFChars(b, chars);
+}
+
+// ----------------------------- Activity
 
 void showOrHideSoftKeyboard(bool show)
 {
@@ -41,29 +128,6 @@ void showOrHideSoftKeyboard(bool show)
   }
   androidApp->activity->vm->DetachCurrentThread();
   keyboardUp = show;
-}
-
-void serial_send(char* b)
-{
-  JavaVM* vm = androidApp->activity->vm;
-  JNIEnv* env;
-  jint res = vm->GetEnv((void**)&env, JNI_VERSION_1_6);
-  bool attached=false;
-  if(res!=JNI_OK) {
-     res=vm->AttachCurrentThread(&env, 0);
-     if(res!=JNI_OK){
-         log_write("Failed to AttachCurrentThread, ErrorCode: %d sending: %s", res, b);
-         return;
-     }
-     attached=true;
-  }
-  jobject nativeActivity = androidApp->activity->clazz;
-  jclass nativeActivityClass = env->GetObjectClass(nativeActivity);
-  jmethodID method = env->GetMethodID(nativeActivityClass, "serialSend", "(Ljava/lang/String;)V");
-  jstring buff = env->NewStringUTF(b);
-  env->CallVoidMethod(nativeActivity, method, buff);
-  env->DeleteLocalRef(buff);
-  if(attached) vm->DetachCurrentThread();
 }
 
 void showNotification(char* title, char* text)
@@ -95,23 +159,22 @@ void setAlarm(time_t when, char* uid)
   androidApp->activity->vm->DetachCurrentThread();
 }
 
-void sprintExternalStorageDirectory(char* buf, int buflen, const char* format)
+JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyPress(JNIEnv* env, jclass clazz, jint keyCode, jint u32key)
 {
-  JNIEnv* env; androidApp->activity->vm->AttachCurrentThread(&env, 0);
+  static_gui->keyPressed(keyCode, u32key);
+}
 
-  jclass osEnvClass = env->FindClass("android/os/Environment");
-  jmethodID getExternalStorageDirectoryMethod = env->GetStaticMethodID(osEnvClass, "getExternalStorageDirectory", "()Ljava/io/File;");
-  jobject extStorage = env->CallStaticObjectMethod(osEnvClass, getExternalStorageDirectoryMethod);
+JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyRelease(JNIEnv* env, jclass clazz, jint keyCode)
+{
+  static_gui->keyReleased(keyCode);
+}
 
-  jclass extStorageClass = env->GetObjectClass(extStorage);
-  jmethodID getAbsolutePathMethod = env->GetMethodID(extStorageClass, "getAbsolutePath", "()Ljava/lang/String;");
-  jstring extStoragePath = (jstring)env->CallObjectMethod(extStorage, getAbsolutePathMethod);
-
-  const char* extStoragePathString=env->GetStringUTFChars(extStoragePath, 0);
-  snprintf(buf, buflen, format, extStoragePathString);
-  env->ReleaseStringUTFChars(extStoragePath, extStoragePathString);
-
-  androidApp->activity->vm->DetachCurrentThread();
+JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onAlarmRecv(JNIEnv* env, jclass clazz, jstring juid)
+{
+  const char* uid = env->GetStringUTFChars(juid, 0);
+  log_write("onAlarmRecv=%s\n",uid);
+  pendingAlarmUID=strdup(uid);
+  env->ReleaseStringUTFChars(juid, uid);
 }
 
 #else
@@ -134,8 +197,6 @@ void setAlarm(time_t when, char* uid)
 }
 #endif
 }
-
-static char* pendingAlarmUID=0;
 
 extern char* init_onex();
 extern void  loop_onex(bool focused);
@@ -401,44 +462,3 @@ int main(const int argc, const char *argv[])                              \
 
 VULKAN_EXAMPLE_MAIN()
 
-extern void set_blemac(char*);
-
-#if defined(VK_USE_PLATFORM_ANDROID_KHR)
-extern "C" {
-
-JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyPress(JNIEnv* env, jobject thiz, jint keyCode, jint u32key)
-{
-  static_gui->keyPressed(keyCode, u32key);
-}
-
-JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyRelease(JNIEnv* env, jobject thiz, jint keyCode)
-{
-  static_gui->keyReleased(keyCode);
-}
-
-extern void serial_on_recv(char*, int);
-
-JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_serialOnRecv(JNIEnv* env, jobject thiz, jstring b)
-{
-  const char* chars = b? env->GetStringUTFChars(b, 0): 0;
-  serial_on_recv((char*)chars, chars? strlen(chars): 0);
-  if(b) env->ReleaseStringUTFChars(b, chars);
-}
-
-JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onAlarmRecv(JNIEnv* env, jobject thiz, jstring juid)
-{
-  const char* uid = env->GetStringUTFChars(juid, 0);
-  log_write("onAlarmRecv=%s\n",uid);
-  pendingAlarmUID=strdup(uid);
-  env->ReleaseStringUTFChars(juid, uid);
-}
-
-JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_setBLEMac(JNIEnv* env, jobject thiz, jstring jblemac)
-{
-  char* blemac = (char*)env->GetStringUTFChars(jblemac, 0);
-  set_blemac(blemac);
-  env->ReleaseStringUTFChars(jblemac, blemac);
-}
-
-}
-#endif
