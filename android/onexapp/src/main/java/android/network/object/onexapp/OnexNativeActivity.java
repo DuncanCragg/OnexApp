@@ -36,7 +36,7 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
     private static final int REQUEST_SELECT_DEVICE = 1;
     private static final int REQUEST_ENABLE_BT = 2;
 
-    private UartService uartService = null;
+    private NUSService nusService = null;
 
     private BluetoothAdapter bluetoothAdapter = null;
 
@@ -61,7 +61,7 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if (bluetoothAdapter != null) {
 
-          bindToUARTService();
+          bindToNUS();
 
           triggerBLE();
         }
@@ -114,13 +114,13 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
         super.onDestroy(); System.out.println("onDestroy");
         self=null;
         try {
-            unregisterReceiver(UARTStatusChangeReceiver);
+            unregisterReceiver(NUSStatusChangeReceiver);
         } catch (Exception e) {
             e.printStackTrace();
         }
         unbindService(serviceConnection);
-        uartService.stopSelf();
-        uartService= null;
+        nusService.stopSelf();
+        nusService= null;
     }
 
     // -----------------------------------------------------------
@@ -268,55 +268,55 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
 
     private ServiceConnection serviceConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder rawBinder) {
-            if(uartService !=null){
-              Log.d(LOGNAME, "attempt to set uartService on top of existing");
+            if(nusService !=null){
+              Log.d(LOGNAME, "attempt to set nusService on top of existing");
               return;
             }
-            uartService = ((UartService.LocalBinder)rawBinder).getService();
-            Log.d(LOGNAME, "UART Service= " + uartService);
-            if(uartService.initialize()){
+            nusService = ((NUSService.LocalBinder)rawBinder).getService();
+            Log.d(LOGNAME, "NUS Service= " + nusService);
+            if(nusService.initialize()){
               useBLEMac();
             }
-            else Log.e(LOGNAME, "Unable to initialize UART service");
+            else Log.e(LOGNAME, "Unable to initialize NUS service");
         }
 
         public void onServiceDisconnected(ComponentName classname) {
-            uartService = null;
+            nusService = null;
         }
     };
 
-    private void bindToUARTService() {
-        Intent bindIntent = new Intent(this, UartService.class);
+    private void bindToNUS() {
+        Intent bindIntent = new Intent(this, NUSService.class);
         bindService(bindIntent, serviceConnection, Context.BIND_AUTO_CREATE);
         IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(UartService.ACTION_GATT_CONNECTED);
-        intentFilter.addAction(UartService.ACTION_GATT_DISCONNECTED);
-        intentFilter.addAction(UartService.ACTION_GATT_SERVICES_DISCOVERED);
-        intentFilter.addAction(UartService.ACTION_UART_CONNECTED);
-        intentFilter.addAction(UartService.ACTION_DATA_AVAILABLE);
-        registerReceiver(UARTStatusChangeReceiver, intentFilter);
+        intentFilter.addAction(NUSService.ACTION_GATT_CONNECTED);
+        intentFilter.addAction(NUSService.ACTION_GATT_DISCONNECTED);
+        intentFilter.addAction(NUSService.ACTION_GATT_SERVICES_DISCOVERED);
+        intentFilter.addAction(NUSService.ACTION_NUS_CONNECTED);
+        intentFilter.addAction(NUSService.ACTION_DATA_AVAILABLE);
+        registerReceiver(NUSStatusChangeReceiver, intentFilter);
     }
 
-    private final BroadcastReceiver UARTStatusChangeReceiver = new BroadcastReceiver() {
+    private final BroadcastReceiver NUSStatusChangeReceiver = new BroadcastReceiver() {
 
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
 
-            if (action.equals(UartService.ACTION_UART_CONNECTED)) {
-                Log.d(LOGNAME, "UART connected");
+            if (action.equals(NUSService.ACTION_NUS_CONNECTED)) {
+                Log.d(LOGNAME, "NUS connected");
                 asyncConnected();
             }
 
-            if (action.equals(UartService.ACTION_DATA_AVAILABLE)) {
+            if (action.equals(NUSService.ACTION_DATA_AVAILABLE)) {
                 try {
-                    byte[] data = intent.getByteArrayExtra(UartService.EXTRA_DATA);
+                    byte[] data = intent.getByteArrayExtra(NUSService.EXTRA_DATA);
                     dataRecv(data);
                 } catch (Exception e) {
                     Log.e(LOGNAME, e.toString());
                 }
             }
 
-            if (action.equals(UartService.ACTION_GATT_DISCONNECTED)) {
+            if (action.equals(NUSService.ACTION_GATT_DISCONNECTED)) {
                 Log.d(LOGNAME, "GATT disconnected");
                 recvBuff.reset();
                 triggerBLE();
@@ -352,8 +352,8 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
     }
 
     private void useBLEMac(){
-      if(uartService==null || blemac==null) return;
-      if(!uartService.connect(blemac)) Log.d(LOGNAME, "uartService.connect failed");
+      if(nusService==null || blemac==null) return;
+      if(!nusService.connect(blemac)) Log.d(LOGNAME, "nusService.connect failed");
     }
 
     // -----------------------------------------------------------
@@ -361,8 +361,8 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
     public void serialSend(String chars){
       if(logReadWrite) Log.d(LOGNAME, "write (" + chars + ")");
       try {
-        if (uartService!=null){
-          uartService.write(chars.getBytes("UTF-8"));
+        if (nusService!=null){
+          nusService.write(chars.getBytes("UTF-8"));
         }
         if(serialPort!=null){
           serialPort.write(chars.getBytes("UTF-8"));

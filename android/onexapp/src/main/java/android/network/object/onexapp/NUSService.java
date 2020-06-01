@@ -48,8 +48,8 @@ import java.lang.Math;
  * Service for managing connection and data communication with a GATT server hosted on a
  * given Bluetooth LE device.
  */
-public class UartService extends Service {
-    private final static String LOGNAME = "BLE UART";
+public class NUSService extends Service {
+    private final static String LOGNAME = "BLE NUS";
 
     private BluetoothManager bluetoothManager;
     private BluetoothAdapter bluetoothAdapter;
@@ -61,12 +61,12 @@ public class UartService extends Service {
     private static final int STATE_CONNECTING = 1;
     private static final int STATE_CONNECTED = 2;
 
-    public final static String ACTION_GATT_CONNECTED = "com.nordicsemi.nrfUART.ACTION_GATT_CONNECTED";
-    public final static String ACTION_GATT_DISCONNECTED = "com.nordicsemi.nrfUART.ACTION_GATT_DISCONNECTED";
-    public final static String ACTION_GATT_SERVICES_DISCOVERED = "com.nordicsemi.nrfUART.ACTION_GATT_SERVICES_DISCOVERED";
-    public final static String ACTION_DATA_AVAILABLE = "com.nordicsemi.nrfUART.ACTION_DATA_AVAILABLE";
-    public final static String ACTION_UART_CONNECTED = "com.nordicsemi.nrfUART.ACTION_UART_CONNECTED";
-    public final static String EXTRA_DATA = "com.nordicsemi.nrfUART.EXTRA_DATA";
+    public final static String ACTION_GATT_CONNECTED = "com.nordicsemi.NUS.ACTION_GATT_CONNECTED";
+    public final static String ACTION_GATT_DISCONNECTED = "com.nordicsemi.NUS.ACTION_GATT_DISCONNECTED";
+    public final static String ACTION_GATT_SERVICES_DISCOVERED = "com.nordicsemi.NUS.ACTION_GATT_SERVICES_DISCOVERED";
+    public final static String ACTION_DATA_AVAILABLE = "com.nordicsemi.NUS.ACTION_DATA_AVAILABLE";
+    public final static String ACTION_NUS_CONNECTED = "com.nordicsemi.NUS.ACTION_NUS_CONNECTED";
+    public final static String EXTRA_DATA = "com.nordicsemi.NUS.EXTRA_DATA";
 
     public static final UUID TX_POWER_UUID = UUID.fromString("00001804-0000-1000-8000-00805f9b34fb");
     public static final UUID TX_POWER_LEVEL_UUID = UUID.fromString("00002a07-0000-1000-8000-00805f9b34fb");
@@ -117,7 +117,7 @@ public class UartService extends Service {
             Log.d(LOGNAME, "onDescriptorWrite callback: "+status+"/"+BluetoothGatt.GATT_SUCCESS);
             byte[] value=descriptor.getValue();
             if(status==BluetoothGatt.GATT_SUCCESS && Arrays.equals(value, BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)){
-                broadcastUpdate(ACTION_UART_CONNECTED);
+                broadcastUpdate(ACTION_NUS_CONNECTED);
             }
         }
 
@@ -165,8 +165,8 @@ public class UartService extends Service {
     }
 
     public class LocalBinder extends Binder {
-        UartService getService() {
-            return UartService.this;
+        NUSService getService() {
+            return NUSService.this;
         }
     }
 
@@ -379,7 +379,7 @@ public class UartService extends Service {
             return false;
         }
         if (bluetoothGATT == null) {
-            Log.e(LOGNAME, "UART GATT not there");
+            Log.e(LOGNAME, "NUS GATT not there");
             return false;
         }
         BluetoothGattService RxService = bluetoothGATT.getService(RX_SERVICE_UUID);

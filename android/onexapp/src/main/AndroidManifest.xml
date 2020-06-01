@@ -53,7 +53,7 @@
               android:label="@string/device_list_name"
               android:theme="@android:style/Theme.Dialog"/>
 
-    <service android:name=".UartService"
+    <service android:name=".NUSService"
              android:enabled="true" />
 
     <receiver android:name=".AlarmReceiver" android:exported="false" >
