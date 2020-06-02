@@ -386,21 +386,6 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)                
   delete(vulkanApp);                                      \
   return 0;                                            \
 }
-#elif defined(VK_USE_PLATFORM_ANDROID_KHR)
-// Android entry point
-#define VULKAN_EXAMPLE_MAIN()                                    \
-OnexApp *vulkanApp;                                    \
-void android_main(android_app* state)                                \
-{                                                  \
-  androidApp = state;                                        \
-  vulkanApp = new OnexApp();                              \
-  state->userData = vulkanApp;                                \
-  state->onAppCmd = OnexApp::handleAppCommand;                        \
-  state->onInputEvent = OnexApp::handleAppInput;                      \
-  vks::android::getDeviceConfig();                                \
-  vulkanApp->renderLoop();                                  \
-  delete(vulkanApp);                                      \
-}
 #elif defined(_DIRECT2DISPLAY)
 // Linux entry point with direct to display wsi
 #define VULKAN_EXAMPLE_MAIN()                                    \
@@ -434,31 +419,49 @@ int main(const int argc, const char *argv[])                              \
   delete(vulkanApp);                                      \
   return 0;                                            \
 }
-#elif defined(VK_USE_PLATFORM_XCB_KHR)
-#define VULKAN_EXAMPLE_MAIN()                                    \
-OnexApp *vulkanApp;                                    \
-static void handleEvent(const xcb_generic_event_t *event)                      \
-{                                                  \
-  if (vulkanApp != NULL)                                    \
-  {                                                \
-    vulkanApp->handleEvent(event);                              \
-  }                                                \
-}                                                  \
-int main(const int argc, const char *argv[])                              \
-{                                                  \
-  for (size_t i = 0; i < argc; i++) { OnexApp::args.push_back(argv[i]); };          \
-  vulkanApp = new OnexApp();                              \
-  vulkanApp->initVulkan();                                  \
-  vulkanApp->setupWindow();                                   \
-  vulkanApp->initSwapchain();                                  \
-  vulkanApp->prepare();                                    \
-  vulkanApp->renderLoop();                                  \
-  delete(vulkanApp);                                      \
-  return 0;                                            \
-}
 #elif (defined(VK_USE_PLATFORM_IOS_MVK) || defined(VK_USE_PLATFORM_MACOS_MVK))
 #define VULKAN_EXAMPLE_MAIN()
 #endif
+//VULKAN_EXAMPLE_MAIN()
 
-VULKAN_EXAMPLE_MAIN()
+OnexApp *vulkanApp;
+
+#if defined(VK_USE_PLATFORM_XCB_KHR)
+
+static void handleEvent(const xcb_generic_event_t *event)
+{
+  if (vulkanApp != NULL)
+  {
+    vulkanApp->handleEvent(event);
+  }
+}
+
+int main(const int argc, const char *argv[])
+{
+  for (size_t i = 0; i < argc; i++) { OnexApp::args.push_back(argv[i]); };
+  vulkanApp = new OnexApp();
+  vulkanApp->initVulkan();
+  vulkanApp->setupWindow();
+  vulkanApp->initSwapchain();
+  vulkanApp->prepare();
+  vulkanApp->renderLoop();
+  delete(vulkanApp);
+  return 0;
+}
+
+#elif defined(VK_USE_PLATFORM_ANDROID_KHR)
+
+void android_main(android_app* state)
+{
+  androidApp = state;
+  vulkanApp = new OnexApp();
+  state->userData = vulkanApp;
+  state->onAppCmd = OnexApp::handleAppCommand;
+  state->onInputEvent = OnexApp::handleAppInput;
+  vks::android::getDeviceConfig();
+  vulkanApp->renderLoop();
+  delete(vulkanApp);
+}
+
+#endif
 
