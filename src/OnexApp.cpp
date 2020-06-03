@@ -44,8 +44,17 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
 void sprintExternalStorageDirectory(char* buf, int buflen, const char* format)
 {
   JavaVM* vm = javaVM;
-  JNIEnv* env; vm->AttachCurrentThread(&env, 0);
-
+  JNIEnv* env;
+  jint res = vm->GetEnv((void**)&env, JNI_VERSION_1_6);
+  bool attached=false;
+  if(res!=JNI_OK) {
+     res=vm->AttachCurrentThread(&env, 0);
+     if(res!=JNI_OK){
+         log_write("Failed to AttachCurrentThread, ErrorCode: %d", res);
+         return;
+     }
+     attached=true;
+  }
   jclass osEnvClass = env->FindClass("android/os/Environment");
   jmethodID getExternalStorageDirectoryMethod = env->GetStaticMethodID(osEnvClass, "getExternalStorageDirectory", "()Ljava/io/File;");
   jobject extStorage = env->CallStaticObjectMethod(osEnvClass, getExternalStorageDirectoryMethod);
@@ -58,7 +67,7 @@ void sprintExternalStorageDirectory(char* buf, int buflen, const char* format)
   snprintf(buf, buflen, format, extStoragePathString);
   env->ReleaseStringUTFChars(extStoragePath, extStoragePathString);
 
-  vm->DetachCurrentThread();
+  if(attached) vm->DetachCurrentThread();
 }
 
 void onexInitialised(char* blemac)
@@ -84,7 +93,7 @@ void serial_send(char* buff)
   if(res!=JNI_OK) {
      res=vm->AttachCurrentThread(&env, 0);
      if(res!=JNI_OK){
-         log_write("Failed to AttachCurrentThread, ErrorCode: %d sending: %s", res, buff);
+         log_write("Failed to AttachCurrentThread, ErrorCode: %d", res);
          return;
      }
      attached=true;
