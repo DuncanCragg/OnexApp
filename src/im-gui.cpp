@@ -111,9 +111,13 @@ void tick_user()
 
 static void draw_window();
 
+bool ready_to_render=false;
+
 static bool evaluate_user(object* o, void* d)
 {
+  if(ready_to_render) return true;
   draw_window();
+  ready_to_render=true;
   return true;
 }
 
@@ -188,7 +192,7 @@ char* init_onex()
     oclock=onex_get_from_cache(clockUID);
   }
   time_ticker(every_second, 1000);
-  draw_window();
+
   return blemac;
 }
 

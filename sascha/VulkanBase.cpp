@@ -243,6 +243,7 @@ void VulkanBase::renderFrame()
     }
 }
 
+extern bool ready_to_render;
 extern void tick_user();
 
 void VulkanBase::renderLoop()
@@ -305,7 +306,7 @@ void VulkanBase::renderLoop()
 
       auto tStart = std::chrono::high_resolution_clock::now();
 
-      render();
+      if(ready_to_render){ render(); ready_to_render=false; }
 
       frameCounter++;
       auto tEnd = std::chrono::high_resolution_clock::now();
