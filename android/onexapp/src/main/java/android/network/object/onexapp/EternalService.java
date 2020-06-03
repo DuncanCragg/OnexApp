@@ -72,6 +72,8 @@ public class EternalService extends Service {
           }.start();
           initialised=true;
         }
+        else
+        if(blemac==null) OnexNativeActivity.getBLEMac();
 
         return START_STICKY;
     }
