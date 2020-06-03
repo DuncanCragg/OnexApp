@@ -78,8 +78,11 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
     static private BluetoothAdapter bluetoothAdapter = null;
 
     static public void getBLEMac(){
-        Log.i(LOGNAME, "getBLEMac ");
-
+        Log.i(LOGNAME, "getBLEMac");
+        if(self==null){
+          Log.d(LOGNAME, "calling getBLEMac without a running activity");
+          return;
+        }
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if (bluetoothAdapter == null) {
           Toast.makeText(self, "Bluetooth is not available", Toast.LENGTH_LONG).show();
