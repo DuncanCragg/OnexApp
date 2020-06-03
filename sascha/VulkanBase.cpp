@@ -2009,9 +2009,9 @@ void VulkanBase::handleEvent(const xcb_generic_event_t *event)
 
 void VulkanBase::viewChanged() {}
 
-void VulkanBase::keyPressed(uint32_t, char32_t) {}
+void VulkanBase::keyPressed(int32_t, char32_t) {}
 
-void VulkanBase::keyReleased(uint32_t) {}
+void VulkanBase::keyReleased(int32_t) {}
 
 void VulkanBase::mouseMoved(double x, double y, bool & handled) {}
 
