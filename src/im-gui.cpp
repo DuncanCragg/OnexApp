@@ -111,9 +111,11 @@ void tick_user()
 
 static void draw_window();
 
+extern bool front_end_running;
+
 static bool evaluate_user(object* o, void* d)
 {
-  draw_window();
+  if(front_end_running) draw_window();
   return true;
 }
 

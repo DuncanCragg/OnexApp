@@ -208,6 +208,8 @@ void setAlarm(time_t when, char* uid)
 #endif
 }
 
+bool front_end_running=false;
+
 class OnexApp : public VulkanBase
 {
   GUI* gui;
@@ -257,6 +259,7 @@ public:
     VulkanBase::prepare();
     gui->prepare();
     prepared = true;
+    front_end_running=true;
     if(keyboardUp){ keyboardUp = false; showOrHideSoftKeyboard(true); }
     log_write("-----------------------------\n");
   }
