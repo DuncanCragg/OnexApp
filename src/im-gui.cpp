@@ -111,13 +111,9 @@ void tick_user()
 
 static void draw_window();
 
-bool ready_to_render=false;
-
 static bool evaluate_user(object* o, void* d)
 {
-  if(ready_to_render) return true;
   draw_window();
-  ready_to_render=true;
   return true;
 }
 
@@ -196,13 +192,13 @@ char* init_onex()
   return blemac;
 }
 
-void loop_onex(bool focused)
+void loop_onex()
 {
   if(ticked){
     ticked=false;
     onex_run_evaluators(clockUID, 0);
   }
-  onex_loop(); // !focused=sleeping
+  onex_loop();
 }
 
 void set_blemac(char* blemac)
@@ -1129,8 +1125,11 @@ void draw_view()
   draw_link();
 }
 
+bool render_content_ready=false;
+
 void draw_window()
 {
+  if(render_content_ready) return;
   ImGui::NewFrame();
 
   ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiSetCond_FirstUseEver);
@@ -1139,6 +1138,7 @@ void draw_window()
   if(!ImGui::Begin("Onex", NULL, window_flags)){
       ImGui::End();
       ImGui::Render();
+      render_content_ready=true;
       return;
   }
 
@@ -1167,4 +1167,5 @@ void draw_window()
 //ImGui::ShowTestWindow();
 
   ImGui::Render();
+  render_content_ready=true;
 }

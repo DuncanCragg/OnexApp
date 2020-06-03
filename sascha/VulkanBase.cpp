@@ -243,13 +243,15 @@ void VulkanBase::renderFrame()
     }
 }
 
-extern bool ready_to_render;
+extern bool render_content_ready;
 extern void tick_user();
+static bool prepared_and_first_render_content_ready=false;
 
 void VulkanBase::renderLoop()
 {
   destWidth = width;
   destHeight = height;
+  if(prepared && render_content_ready) prepared_and_first_render_content_ready=true;
 #if defined(_WIN32)
   MSG msg;
   bool quitMessageReceived = false;
@@ -286,8 +288,6 @@ void VulkanBase::renderLoop()
       }
     }
 
-    loop(focused);
-
     if(!focused){
       if(ident==ALOOPER_POLL_TIMEOUT) continue;
     }
@@ -299,14 +299,15 @@ void VulkanBase::renderLoop()
       break;
     }
 
-    // Render frame
-    if (prepared)
-    {
+    loop();
+
+    if(prepared){
+
       tick_user();
 
       auto tStart = std::chrono::high_resolution_clock::now();
 
-      if(ready_to_render){ render(); ready_to_render=false; }
+      if(render_content_ready){ render(); render_content_ready=false; }
 
       frameCounter++;
       auto tEnd = std::chrono::high_resolution_clock::now();
@@ -466,12 +467,12 @@ void VulkanBase::renderLoop()
   xcb_flush(connection);
   while (!quit)
   {
-    auto tStart = std::chrono::high_resolution_clock::now();
     if (viewUpdated)
     {
       viewUpdated = false;
       viewChanged();
     }
+
     xcb_generic_event_t *event;
     while ((event = xcb_poll_for_event(connection)))
     {
@@ -479,37 +480,45 @@ void VulkanBase::renderLoop()
       free(event);
     }
 
-    loop(true);
-    render();
+    loop();
 
-    frameCounter++;
-    auto tEnd = std::chrono::high_resolution_clock::now();
-    auto tDiff = std::chrono::duration<double, std::milli>(tEnd - tStart).count();
-    frameTimer = tDiff / 1000.0f;
-    camera.update(frameTimer);
-    if (camera.moving())
-    {
-      viewUpdated = true;
-    }
-    // Convert to clamped timer value
-    if (!paused)
-    {
-      timer += timerSpeed * frameTimer;
-      if (timer > 1.0)
+    if(prepared){
+
+      tick_user();
+
+      auto tStart = std::chrono::high_resolution_clock::now();
+
+      if(render_content_ready){ render(); render_content_ready=false; }
+
+      frameCounter++;
+      auto tEnd = std::chrono::high_resolution_clock::now();
+      auto tDiff = std::chrono::duration<double, std::milli>(tEnd - tStart).count();
+      frameTimer = tDiff / 1000.0f;
+      camera.update(frameTimer);
+      if (camera.moving())
       {
-        timer -= 1.0f;
+        viewUpdated = true;
       }
-    }
-    fpsTimer += (float)tDiff;
-    if (fpsTimer > 1000.0f)
-    {
-      std::string windowTitle = getWindowTitle();
-      xcb_change_property(connection, XCB_PROP_MODE_REPLACE,
-                          window, XCB_ATOM_WM_NAME, XCB_ATOM_STRING, 8,
-                          windowTitle.size(), windowTitle.c_str());
-      lastFPS = frameCounter;
-      fpsTimer = 0.0f;
-      frameCounter = 0;
+      // Convert to clamped timer value
+      if (!paused)
+      {
+        timer += timerSpeed * frameTimer;
+        if (timer > 1.0)
+        {
+          timer -= 1.0f;
+        }
+      }
+      fpsTimer += (float)tDiff;
+      if (fpsTimer > 1000.0f)
+      {
+        std::string windowTitle = getWindowTitle();
+        xcb_change_property(connection, XCB_PROP_MODE_REPLACE,
+                            window, XCB_ATOM_WM_NAME, XCB_ATOM_STRING, 8,
+                            windowTitle.size(), windowTitle.c_str());
+        lastFPS = frameCounter;
+        fpsTimer = 0.0f;
+        frameCounter = 0;
+      }
     }
   }
 #endif
@@ -1987,7 +1996,7 @@ void VulkanBase::handleEvent(const xcb_generic_event_t *event)
         destHeight = cfgEvent->height;
         if ((destWidth > 0) && (destHeight > 0))
         {
-          windowResize();
+          if(prepared_and_first_render_content_ready) windowResize();
         }
     }
   }
@@ -2169,10 +2178,8 @@ void VulkanBase::getEnabledFeatures()
 
 void VulkanBase::windowResize()
 {
-  if (!prepared)
-  {
-    return;
-  }
+  if(!prepared) return;
+
   prepared = false;
 
   // Ensure all operations on the device have been finished before destroying resources

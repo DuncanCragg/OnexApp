@@ -36,43 +36,49 @@ public class EternalService extends Service {
 
     private static boolean initialised=false;
 
+    static private String blemac=null;
+
+    static public native String initOnex();
+    static public native void   loopOnex();
     static public native void   setBLEMac(String blemac);
+
     // onStartCommand may be called many times
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
         Log.d(LOGNAME, "*onStartCommand");
 
+        self=this;
 
         if(!initialised){
 
           System.loadLibrary("onexapp");
 
-          self=this;
+          new Thread(){
+             @Override
+             public void run(){
+               Log.d(LOGNAME, "============== calling initOnex()");
+               blemac=initOnex();
+               Log.d(LOGNAME, "============== initOnex() returned "+blemac);
 
+               bindToNUSService();
+
+               if(blemac==null) OnexNativeActivity.getBLEMac();
+               else useBLEMac();
+
+               Log.d(LOGNAME, "============== calling loopOnex()");
+               while(true) loopOnex();
+             }
+          }.start();
           initialised=true;
         }
 
         return START_STICKY;
     }
 
-    static private String blemac=null;
-
-    static public void onexInitialised(String blemac){
-
-        Log.i(LOGNAME, "onexInitialised "+ blemac);
-
-        self.blemac = blemac;
-
-        self.bindToNUS();
-
-        if(blemac==null) OnexNativeActivity.getBLEMac();
-        else self.useBLEMac();
-    }
-
     private NUSService nusService = null;
 
-    private void bindToNUS() {
+    private void bindToNUSService() {
         Intent bindIntent = new Intent(this, NUSService.class);
         bindService(bindIntent, serviceConnection, Context.BIND_AUTO_CREATE);
         IntentFilter intentFilter = new IntentFilter();

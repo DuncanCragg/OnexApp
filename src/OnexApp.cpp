@@ -9,7 +9,9 @@ bool keyboardUp = false;
 
 #define TEXTTYPE 1
 
-extern void set_blemac(char*);
+extern char* init_onex();
+extern void  loop_onex();
+extern void  set_blemac(char*);
 
 static char* pendingAlarmUID=0;
 
@@ -70,19 +72,6 @@ void sprintExternalStorageDirectory(char* buf, int buflen, const char* format)
   if(attached) vm->DetachCurrentThread();
 }
 
-void onexInitialised(char* blemac)
-{
-  JavaVM* vm = javaVM;
-  log_write("onexInitialised");
-  JNIEnv* env;
-  vm->AttachCurrentThread(&env, 0);
-  jmethodID method = env->GetStaticMethodID(eternalServiceClass, "onexInitialised", "(Ljava/lang/String;)V");
-  jstring jblemac  = env->NewStringUTF(blemac);
-  env->CallStaticVoidMethod(eternalServiceClass, method, jblemac);
-  env->DeleteLocalRef(jblemac);
-  vm->DetachCurrentThread();
-}
-
 void serial_send(char* buff)
 {
   log_write("serial_send");
@@ -103,6 +92,18 @@ void serial_send(char* buff)
   env->CallStaticVoidMethod(eternalServiceClass, method, jbuff);
   env->DeleteLocalRef(jbuff);
   if(attached) vm->DetachCurrentThread();
+}
+
+JNIEXPORT jstring JNICALL Java_network_object_onexapp_EternalService_initOnex(JNIEnv* env, jclass clazz)
+{
+  char* blemac=init_onex();
+  jstring jblemac = env->NewStringUTF(blemac);
+  return jblemac;
+}
+
+JNIEXPORT void JNICALL Java_network_object_onexapp_EternalService_loopOnex(JNIEnv* env, jclass clazz)
+{
+    loop_onex();
 }
 
 JNIEXPORT void JNICALL Java_network_object_onexapp_EternalService_setBLEMac(JNIEnv* env, jclass clazz, jstring jblemac)
@@ -187,10 +188,6 @@ JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onAlarmRec
 }
 
 #else
-void onexInitialised(char* blemac)
-{
-}
-
 void showOrHideSoftKeyboard(bool show)
 {
 }
@@ -207,13 +204,9 @@ void setAlarm(time_t when, char* uid)
 #endif
 }
 
-extern char* init_onex();
-extern void  loop_onex(bool focused);
-
 class OnexApp : public VulkanBase
 {
   GUI* gui;
-  bool onex_initialised=false;
 
 public:
 
@@ -253,20 +246,15 @@ public:
 
   void prepare()
   {
+#if defined(VK_USE_PLATFORM_XCB_KHR)
+    init_onex();
+#endif
     log_write("OnexApp----------------------\n");
     VulkanBase::prepare();
     gui->prepare();
-    char* blemac=0;
-    if(!onex_initialised){
-      blemac=init_onex();
-    }
-    buildCommandBuffers();
     prepared = true;
-    if(!onex_initialised){
-      onexInitialised(blemac);
-      onex_initialised=true;
-    }
     if(keyboardUp){ keyboardUp = false; showOrHideSoftKeyboard(true); }
+    log_write("-----------------------------\n");
   }
 
   void buildCommandBuffers()
@@ -325,14 +313,16 @@ public:
     VulkanBase::submitFrame();
   }
 
-  virtual void loop(bool focused)
+  virtual void loop()
   {
     if(pendingAlarmUID){
       onex_run_evaluators(pendingAlarmUID, 0);
       free(pendingAlarmUID);
       pendingAlarmUID=0;
     }
-    loop_onex(focused);
+#if defined(VK_USE_PLATFORM_XCB_KHR)
+    loop_onex();
+#endif
   }
 
   virtual void viewChanged()
