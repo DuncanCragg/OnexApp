@@ -13,7 +13,7 @@ extern char* init_onex();
 extern void  loop_onex();
 extern void  set_blemac(char*);
 
-static char* pendingAlarmUID=0;
+char* pendingAlarmUID=0;
 
 extern "C" {
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
@@ -319,11 +319,6 @@ public:
 
   virtual void loop()
   {
-    if(pendingAlarmUID){
-      onex_run_evaluators(pendingAlarmUID, 0);
-      free(pendingAlarmUID);
-      pendingAlarmUID=0;
-    }
 #if defined(VK_USE_PLATFORM_XCB_KHR)
     loop_onex();
 #endif
