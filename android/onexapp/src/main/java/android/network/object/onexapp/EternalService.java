@@ -67,7 +67,7 @@ public class EternalService extends Service {
                else useBLEMac();
 
                Log.d(LOGNAME, "============== calling loopOnex()");
-               while(true) loopOnex();
+               loopOnex();
              }
           }.start();
           initialised=true;

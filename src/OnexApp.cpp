@@ -96,7 +96,7 @@ JNIEXPORT jstring JNICALL Java_network_object_onexapp_EternalService_initOnex(JN
 
 JNIEXPORT void JNICALL Java_network_object_onexapp_EternalService_loopOnex(JNIEnv* env, jclass clazz)
 {
-    loop_onex();
+  while(true) loop_onex();
 }
 
 JNIEXPORT void JNICALL Java_network_object_onexapp_EternalService_setBLEMac(JNIEnv* env, jclass clazz, jstring jblemac)
