@@ -24,39 +24,40 @@ static jclass eternalServiceClass;
 
 static JavaVM* javaVM;
 
+static bool maybeAttachCurrentThreadAndFetchEnv(JNIEnv** env)
+{
+  jint res = javaVM->GetEnv((void**)env, JNI_VERSION_1_6);
+  if(res==JNI_OK) return false;
+
+  res=javaVM->AttachCurrentThread(env, 0);
+  if(res==JNI_OK) return true;
+
+  log_write("Failed to AttachCurrentThread, ErrorCode: %d", res);
+  *env=0;
+  return false;
+}
+
 // or see https://stackoverflow.com/questions/13263340/findclass-from-any-thread-in-android-jni
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
-  JNIEnv* env;
   javaVM=vm;
-  jint res = vm->GetEnv((void**)&env, JNI_VERSION_1_6);
-  bool attached=false;
-  if(res!=JNI_OK) {
-     res=vm->AttachCurrentThread(&env, 0);
-     if(res!=JNI_OK){
-         log_write("Failed to AttachCurrentThread, ErrorCode: %d", res);
-         return 0;
-     }
-     attached=true;
-  }
+
+  JNIEnv* env;
+  bool attached=maybeAttachCurrentThreadAndFetchEnv(&env);
+  if(!env) return 0;
+
   eternalServiceClass = (jclass)env->NewGlobalRef(env->FindClass("network/object/onexapp/EternalService"));
-  if(attached) vm->DetachCurrentThread();
+
+  if(attached) javaVM->DetachCurrentThread();
+
   return JNI_VERSION_1_6;
 }
 
 void sprintExternalStorageDirectory(char* buf, int buflen, const char* format)
 {
-  JavaVM* vm = javaVM;
   JNIEnv* env;
-  jint res = vm->GetEnv((void**)&env, JNI_VERSION_1_6);
-  bool attached=false;
-  if(res!=JNI_OK) {
-     res=vm->AttachCurrentThread(&env, 0);
-     if(res!=JNI_OK){
-         log_write("Failed to AttachCurrentThread, ErrorCode: %d", res);
-         return;
-     }
-     attached=true;
-  }
+  bool attached=maybeAttachCurrentThreadAndFetchEnv(&env);
+  if(!env) return;
+
   jclass osEnvClass = env->FindClass("android/os/Environment");
   jmethodID getExternalStorageDirectoryMethod = env->GetStaticMethodID(osEnvClass, "getExternalStorageDirectory", "()Ljava/io/File;");
   jobject extStorage = env->CallStaticObjectMethod(osEnvClass, getExternalStorageDirectoryMethod);
@@ -69,29 +70,21 @@ void sprintExternalStorageDirectory(char* buf, int buflen, const char* format)
   snprintf(buf, buflen, format, extStoragePathString);
   env->ReleaseStringUTFChars(extStoragePath, extStoragePathString);
 
-  if(attached) vm->DetachCurrentThread();
+  if(attached) javaVM->DetachCurrentThread();
 }
 
 void serial_send(char* buff)
 {
-  log_write("serial_send");
-  JavaVM* vm = javaVM;
   JNIEnv* env;
-  jint res = vm->GetEnv((void**)&env, JNI_VERSION_1_6);
-  bool attached=false;
-  if(res!=JNI_OK) {
-     res=vm->AttachCurrentThread(&env, 0);
-     if(res!=JNI_OK){
-         log_write("Failed to AttachCurrentThread, ErrorCode: %d", res);
-         return;
-     }
-     attached=true;
-  }
+  bool attached=maybeAttachCurrentThreadAndFetchEnv(&env);
+  if(!env) return;
+
   jmethodID method = env->GetStaticMethodID(eternalServiceClass, "serialSend", "(Ljava/lang/String;)V");
   jstring jbuff = env->NewStringUTF(buff);
   env->CallStaticVoidMethod(eternalServiceClass, method, jbuff);
   env->DeleteLocalRef(jbuff);
-  if(attached) vm->DetachCurrentThread();
+
+  if(attached) javaVM->DetachCurrentThread();
 }
 
 JNIEXPORT jstring JNICALL Java_network_object_onexapp_EternalService_initOnex(JNIEnv* env, jclass clazz)
@@ -125,8 +118,11 @@ JNIEXPORT void JNICALL Java_network_object_onexapp_EternalService_serialOnRecv(J
 void showOrHideSoftKeyboard(bool show)
 {
   if(keyboardUp == show) return;
+
   JNIEnv* env;
-  androidApp->activity->vm->AttachCurrentThread(&env, 0);
+  bool attached=maybeAttachCurrentThreadAndFetchEnv(&env);
+  if(!env) return;
+
   jobject nativeActivity = androidApp->activity->clazz;
   jclass nativeActivityClass = env->GetObjectClass(nativeActivity);
   if(show){
@@ -136,14 +132,17 @@ void showOrHideSoftKeyboard(bool show)
     jmethodID method = env->GetMethodID(nativeActivityClass, "hideKeyboard", "()V");
     env->CallVoidMethod(nativeActivity, method);
   }
-  androidApp->activity->vm->DetachCurrentThread();
   keyboardUp = show;
+
+  if(attached) javaVM->DetachCurrentThread();
 }
 
 void showNotification(char* title, char* text)
 {
   JNIEnv* env;
-  androidApp->activity->vm->AttachCurrentThread(&env, 0);
+  bool attached=maybeAttachCurrentThreadAndFetchEnv(&env);
+  if(!env) return;
+
   jobject nativeActivity = androidApp->activity->clazz;
   jclass nativeActivityClass = env->GetObjectClass(nativeActivity);
   jmethodID method = env->GetMethodID(nativeActivityClass, "showNotification", "(Ljava/lang/String;Ljava/lang/String;)V");
@@ -151,14 +150,18 @@ void showNotification(char* title, char* text)
   jstring jtext  = env->NewStringUTF(text);
   env->CallVoidMethod(nativeActivity, method, jtitle, jtext);
   env->DeleteLocalRef(jtitle); env->DeleteLocalRef(jtext);
-  androidApp->activity->vm->DetachCurrentThread();
+
+  if(attached) javaVM->DetachCurrentThread();
 }
 
 void setAlarm(time_t when, char* uid)
 {
   log_write("setAlarm %ld %s\n", when, uid);
+
   JNIEnv* env;
-  androidApp->activity->vm->AttachCurrentThread(&env, 0);
+  bool attached=maybeAttachCurrentThreadAndFetchEnv(&env);
+  if(!env) return;
+
   jobject nativeActivity = androidApp->activity->clazz;
   jclass nativeActivityClass = env->GetObjectClass(nativeActivity);
   jmethodID method = env->GetMethodID(nativeActivityClass, "setAlarm", "(JLjava/lang/String;)V");
@@ -166,7 +169,8 @@ void setAlarm(time_t when, char* uid)
   jstring juid  = env->NewStringUTF(uid);
   env->CallVoidMethod(nativeActivity, method, jwhen, juid);
   env->DeleteLocalRef(juid);
-  androidApp->activity->vm->DetachCurrentThread();
+
+  if(attached) javaVM->DetachCurrentThread();
 }
 
 JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyPress(JNIEnv* env, jclass clazz, jint keyCode, jint u32key)
