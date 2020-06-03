@@ -104,7 +104,7 @@ static void every_second()
   ticked=true;
 }
 
-void draw_gui()
+void tick_user()
 {
   if(userUID) onex_run_evaluators(userUID, 0);
 }

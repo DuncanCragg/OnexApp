@@ -72,8 +72,6 @@ void init_imgui(float width, float height);
 void get_font_info();
 void set_scaling();
 
-void draw_gui();
-
 void invoke_single_set(char* uid, char* key, char* val);
 void invoke_single_add(char* uid, char* key, char* val);
 

@@ -243,6 +243,8 @@ void VulkanBase::renderFrame()
     }
 }
 
+extern void tick_user();
+
 void VulkanBase::renderLoop()
 {
   destWidth = width;
@@ -299,6 +301,8 @@ void VulkanBase::renderLoop()
     // Render frame
     if (prepared)
     {
+      tick_user();
+
       auto tStart = std::chrono::high_resolution_clock::now();
 
       render();

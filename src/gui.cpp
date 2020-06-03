@@ -457,7 +457,6 @@ void GUI::drawFrame(VkCommandBuffer commandBuffer)
 void GUI::buildCommandBuffers(int32_t i)
 {
   if(i==0){
-    draw_gui();
     updateBuffers();
   }
   drawFrame(app->drawCmdBuffers[i]);
