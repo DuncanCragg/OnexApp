@@ -1831,7 +1831,7 @@ xcb_window_t VulkanBase::setupWindow()
 
 struct xkb_rule_names rns = {
   rules: "evdev",
-  model: "macbook78",
+  model: "pc104",
   layout: "gb",
   variant: NULL,
   options: NULL  // "ctrl:swapcaps"; "ctrl:nocaps"
