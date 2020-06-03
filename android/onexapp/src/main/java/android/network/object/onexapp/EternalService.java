@@ -36,13 +36,13 @@ public class EternalService extends Service {
 
     private static boolean initialised=false;
 
+    static public native void   setBLEMac(String blemac);
+    // onStartCommand may be called many times
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
-
         Log.d(LOGNAME, "*onStartCommand");
 
-        // onStartCommand may be called many times
 
         if(!initialised){
 
@@ -91,7 +91,6 @@ public class EternalService extends Service {
               return;
             }
             nusService = ((NUSService.LocalBinder)rawBinder).getService();
-            Log.d(LOGNAME, "NUS Service= " + nusService);
             if(!nusService.initialize()){
               Log.e(LOGNAME, "Unable to initialize NUS service");
               return;
@@ -103,8 +102,6 @@ public class EternalService extends Service {
             nusService = null;
         }
     };
-
-    static public native void setBLEMac(String blemac);
 
     public static void onBLEMac(String blemac){
       EternalService.blemac=blemac;
