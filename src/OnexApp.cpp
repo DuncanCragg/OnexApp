@@ -209,7 +209,7 @@ void setAlarm(time_t when, char* uid)
 #endif
 }
 
-static pthread_t thread_id;
+static pthread_t loop_onex_thread_id;
 
 static void* loop_onex_thread(void* data)
 {
@@ -263,7 +263,7 @@ public:
   {
 #if defined(VK_USE_PLATFORM_XCB_KHR)
     init_onex();
-    pthread_create(&thread_id, 0, loop_onex_thread, 0);
+    pthread_create(&loop_onex_thread_id, 0, loop_onex_thread, 0);
 #endif
     log_write("OnexApp----------------------\n");
     VulkanBase::prepare();
