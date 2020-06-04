@@ -274,7 +274,7 @@ void VulkanBase::renderLoop()
     struct android_poll_source* source;
     bool destroy = false;
 
-    while ((ident = ALooper_pollAll(0, NULL, &events, (void**)&source)) >= 0)
+    while ((ident = ALooper_pollAll(focused ? 0 : 200, NULL, &events, (void**)&source)) >= 0)
     {
       if (source != NULL)
       {
