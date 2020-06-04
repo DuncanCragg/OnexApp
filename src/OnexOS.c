@@ -292,7 +292,7 @@ bool evaluate_motion_io(object* o, void* d)
 
   static uint32_t ticks=0;
   ticks++;
-  if(ticks%5 && !viewscreen) return true;
+  if(ticks%50 && !viewscreen) return true;
 
   char buf[64];
   snprintf(buf, 64, "%d %d %d %d", motion_info.x, motion_info.y, motion_info.z, motion_info.m);
