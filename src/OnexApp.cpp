@@ -1,5 +1,6 @@
 
 #include "gui.h"
+#include <pthread.h>
 
 #define ENABLE_VALIDATION false
 
@@ -208,6 +209,16 @@ void setAlarm(time_t when, char* uid)
 #endif
 }
 
+static pthread_t thread_id;
+
+static void* loop_onex_thread(void* data)
+{
+  while(true) {
+    loop_onex();
+  }
+  return 0;
+}
+
 bool front_end_running=false;
 
 class OnexApp : public VulkanBase
@@ -254,6 +265,7 @@ public:
   {
 #if defined(VK_USE_PLATFORM_XCB_KHR)
     init_onex();
+    pthread_create(&thread_id, 0, loop_onex_thread, 0);
 #endif
     log_write("OnexApp----------------------\n");
     VulkanBase::prepare();
@@ -318,13 +330,6 @@ public:
     VK_CHECK_RESULT(vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE));
 
     VulkanBase::submitFrame();
-  }
-
-  virtual void loop()
-  {
-#if defined(VK_USE_PLATFORM_XCB_KHR)
-    loop_onex();
-#endif
   }
 
   virtual void viewChanged()

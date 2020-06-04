@@ -299,8 +299,6 @@ void VulkanBase::renderLoop()
       break;
     }
 
-    loop();
-
     if(prepared){
 
       tick_user();
@@ -479,8 +477,6 @@ void VulkanBase::renderLoop()
       handleEvent(event);
       free(event);
     }
-
-    loop();
 
     if(prepared){
 
