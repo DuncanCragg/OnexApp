@@ -132,7 +132,7 @@ char* init_onex()
   onex_set_evaluators((char*)"event",   evaluate_object_setter, evaluate_event, 0);
   onex_set_evaluators((char*)"light",   evaluate_object_setter, evaluate_light_logic, 0);
 
-#if defined(VK_USE_PLATFORM_ANDROID_KHR)
+#if defined(__ANDROID__)
   char dbpath[128];
   sprintExternalStorageDirectory(dbpath, 128, "%s/Onex/onex.ondb");
   onex_init(dbpath);
