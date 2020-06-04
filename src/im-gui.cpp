@@ -198,16 +198,18 @@ extern char* pendingAlarmUID;
 
 void loop_onex()
 {
-  if(pendingAlarmUID){
-    onex_run_evaluators(pendingAlarmUID, 0);
-    free(pendingAlarmUID);
-    pendingAlarmUID=0;
+  while(true){
+    if(pendingAlarmUID){
+      onex_run_evaluators(pendingAlarmUID, 0);
+      free(pendingAlarmUID);
+      pendingAlarmUID=0;
+    }
+    if(ticked){
+      ticked=false;
+      onex_run_evaluators(clockUID, 0);
+    }
+    onex_loop();
   }
-  if(ticked){
-    ticked=false;
-    onex_run_evaluators(clockUID, 0);
-  }
-  onex_loop();
 }
 
 void set_blemac(char* blemac)
