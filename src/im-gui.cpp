@@ -208,7 +208,9 @@ void loop_onex()
       ticked=false;
       onex_run_evaluators(clockUID, 0);
     }
-    onex_loop();
+    if(!onex_loop()){
+      time_delay_ms(5);
+    }
   }
 }
 
