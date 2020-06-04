@@ -209,6 +209,7 @@ void setAlarm(time_t when, char* uid)
 #endif
 }
 
+#if defined(VK_USE_PLATFORM_XCB_KHR)
 static pthread_t loop_onex_thread_id;
 
 static void* loop_onex_thread(void* data)
@@ -216,6 +217,7 @@ static void* loop_onex_thread(void* data)
   loop_onex();
   return 0;
 }
+#endif
 
 bool front_end_running=false;
 
