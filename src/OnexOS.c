@@ -19,6 +19,7 @@
 
 object* user;
 object* battery;
+object* bluetooth;
 object* touch;
 object* motion;
 object* button;
@@ -31,6 +32,7 @@ object* about;
 char* deviceuid;
 char* useruid;
 char* batteryuid;
+char* bluetoothuid;
 char* touchuid;
 char* motionuid;
 char* buttonuid;
@@ -44,6 +46,7 @@ static volatile bool          event_dfu=false;
 static volatile bool          event_tick_10ms=false;
 static volatile touch_info_t  touch_info;
 static volatile motion_info_t motion_info;
+static volatile blenus_info_t ble_info={ .connected=false, .rssi=-100 };
 static volatile bool          button_pressed;
 
 static void every_10ms(){
@@ -58,6 +61,12 @@ static void every_second(){
 
 static void every_10s(){
   onex_run_evaluators(batteryuid, 0);
+}
+
+static void blechanged(blenus_info_t bi)
+{
+  ble_info=bi;
+  onex_run_evaluators(bluetoothuid, 0);
 }
 
 static void touched(touch_info_t ti)
@@ -80,6 +89,7 @@ static void button_changed(uint8_t pin, uint8_t type){
 
 static bool evaluate_user(object* o, void* d);
 static bool evaluate_battery_io(object* o, void* d);
+static bool evaluate_bluetooth_io(object* o, void* d);
 static bool evaluate_touch_io(object* o, void* d);
 static bool evaluate_motion_io(object* o, void* d);
 static bool evaluate_button_io(object* o, void* d);
@@ -129,7 +139,7 @@ int main()
   log_init();
   time_init();
   gpio_init();
-  blenus_init(0);
+  blenus_init(0, blechanged);
 
   init_lv();
 
@@ -155,6 +165,7 @@ int main()
   onex_set_evaluators("device",    evaluate_device_logic, 0);
   onex_set_evaluators("user",      evaluate_user, 0);
   onex_set_evaluators("battery",   evaluate_battery_io, 0);
+  onex_set_evaluators("bluetooth", evaluate_bluetooth_io, 0);
   onex_set_evaluators("touch",     evaluate_touch_io, 0);
   onex_set_evaluators("motion",    evaluate_motion_io, 0);
   onex_set_evaluators("button",    evaluate_button_io, 0);
@@ -165,7 +176,8 @@ int main()
   object_set_evaluator(onex_device_object, "device");
 
   user     =object_new(0, "user",      "user", 8);
-  battery  =object_new(0, "battery",   "battery", 8);
+  battery  =object_new(0, "battery",   "battery", 4);
+  bluetooth=object_new(0, "bluetooth", "bluetooth", 4);
   touch    =object_new(0, "touch",     "touch", 8);
   motion   =object_new(0, "motion",    "motion", 8);
   button   =object_new(0, "button",    "button", 4);
@@ -178,6 +190,7 @@ int main()
   deviceuid   =object_property(onex_device_object, "UID");
   useruid     =object_property(user, "UID");
   batteryuid  =object_property(battery, "UID");
+  bluetoothuid=object_property(bluetooth, "UID");
   touchuid    =object_property(touch, "UID");
   motionuid   =object_property(motion, "UID");
   buttonuid   =object_property(button, "UID");
@@ -203,12 +216,14 @@ int main()
   object_property_set(watchface, "ampm-24hr", "ampm");
 
   object_property_set(home, (char*)"battery", batteryuid);
+  object_property_set(home, (char*)"bluetooth", bluetoothuid);
   object_property_set(home, (char*)"watchface", watchfaceuid);
 
   object_property_set(user, "viewing", homeuid);
 
   object_property_add(onex_device_object, (char*)"user", useruid);
   object_property_add(onex_device_object, (char*)"io",   batteryuid);
+  object_property_add(onex_device_object, (char*)"io",   bluetoothuid);
   object_property_add(onex_device_object, (char*)"io",   touchuid);
   object_property_add(onex_device_object, (char*)"io",   motionuid);
   object_property_add(onex_device_object, (char*)"io",   buttonuid);
@@ -217,6 +232,7 @@ int main()
 
   onex_run_evaluators(useruid, 0);
   onex_run_evaluators(batteryuid, 0);
+  onex_run_evaluators(bluetoothuid, 0);
   onex_run_evaluators(clockuid, 0);
   onex_run_evaluators(backlightuid, 0);
 
@@ -267,6 +283,14 @@ bool evaluate_battery_io(object* o, void* d)
   return true;
 }
 
+bool evaluate_bluetooth_io(object* o, void* d)
+{
+  object_property_set(bluetooth, "connected", ble_info.connected? "yes": "no");
+  char buf[16];
+  snprintf(buf, 16, "%3d", ble_info.rssi);
+  object_property_set(bluetooth, "rssi", buf);
+  return true;
+}
 
 bool evaluate_touch_io(object* o, void* d)
 {
@@ -367,6 +391,7 @@ bool evaluate_user(object* o, void* touchevent)
 #define BATTERY_MED     GFX_RGB256(200,200,0)
 #define BATTERY_HIGH    GFX_RGB256(0,200,0)
 #define BATTERY_CHG     GFX_RGB256(200,200,200)
+#define BLE_CONNECTED   GFX_RGB256(0,0,255)
 
 void draw_area_and_ready(lv_disp_drv_t * disp, const lv_area_t* area, lv_color_t* color_p)
 {
@@ -454,6 +479,7 @@ void draw_home()
 {
   char* pc=object_property(   user, "viewing:battery:percent");
   bool  ch=object_property_is(user, "viewing:battery:status", "charging");
+  bool  bl=object_property_is(user, "viewing:bluetooth:connected", "yes");
   char* ts=object_property(   user, "viewing:watchface:clock:ts");
   char* tz=object_property(   user, "viewing:watchface:clock:tz:2");
   bool h24=object_property_is(user, "viewing:watchface:ampm-24hr", "24hr");
@@ -492,10 +518,18 @@ void draw_home()
   if(pcnum>33) batt_col=BATTERY_MED;
   else         batt_col=BATTERY_LOW;
 
-  #define BATTERY_PAD 2
-  #define BATTERY_WIDTH (SCREEN_WIDTH-2*BATTERY_PAD)
-  gfx_rect_fill(BATTERY_PAD,0, BATTERY_PAD+ BATTERY_WIDTH,            2, GFX_GREY_3);
-  gfx_rect_fill(BATTERY_PAD,0, BATTERY_PAD+(BATTERY_WIDTH*pcnum)/100, 2, batt_col);
+  int8_t blnum=(int8_t)50;
+  uint16_t ble_col=bl? BLE_CONNECTED: GFX_GREY_7;
+
+  #define INDICATOR_PAD    2
+  #define INDICATOR_HEIGHT 2
+  #define INDICATOR_WIDTH  (SCREEN_WIDTH-2*INDICATOR_PAD)
+
+  gfx_rect_fill(INDICATOR_PAD,0,                 INDICATOR_WIDTH,            INDICATOR_HEIGHT, GFX_GREY_3);
+  gfx_rect_fill(INDICATOR_PAD,0,                (INDICATOR_WIDTH*pcnum)/100, INDICATOR_HEIGHT, batt_col);
+
+  gfx_rect_fill(INDICATOR_PAD,INDICATOR_HEIGHT+INDICATOR_PAD,  INDICATOR_WIDTH,            INDICATOR_HEIGHT, GFX_GREY_3);
+  gfx_rect_fill(INDICATOR_PAD,INDICATOR_HEIGHT+INDICATOR_PAD, (INDICATOR_WIDTH*blnum)/100, INDICATOR_HEIGHT, ble_col);
 
   gfx_text_colour(GFX_BLUE);
   log_write((time_es()%2)? "\n/": "\n\\");
