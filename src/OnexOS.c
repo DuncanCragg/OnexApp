@@ -503,7 +503,7 @@ void draw_home()
   strftime(t, 32, h24? "%H:%M": "%l:%M %p", &tms);
   lv_label_set_text(time_label, t);
 
-  strftime(t, 32, h24? "24 %d %h": "%p %d %h", &tms);
+  strftime(t, 32, h24? "24 %a %d %h": "%p %a %d %h", &tms);
   lv_label_set_text(date_label, t);
 
   int8_t pcnum=(int8_t)strtol(pc,&e,10);
