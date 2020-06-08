@@ -304,12 +304,10 @@ INC_FOLDERS += \
 LIB_FILES += \
 
 # Optimization flags
-OPT = -O3 -g3
 # Uncomment the line below to enable link time optimization
 #OPT += -flto
 
 # C flags common to all targets
-CFLAGS += $(OPT)
 CFLAGS += -DAPP_TIMER_V2
 CFLAGS += -DAPP_TIMER_V2_RTC1_ENABLED
 CFLAGS += -DBOARD_PINETIME
@@ -335,9 +333,7 @@ CFLAGS += -fno-builtin -fshort-enums
 # C++ flags common to all targets
 CXXFLAGS += $(OPT)
 # Assembler flags common to all targets
-ASMFLAGS += -g3
-ASMFLAGS += -mcpu=cortex-m4
-ASMFLAGS += -mthumb -mabi=aapcs
+ASMFLAGS += -mabi=aapcs
 ASMFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
 ASMFLAGS += -DAPP_TIMER_V2
 ASMFLAGS += -DAPP_TIMER_V2_RTC1_ENABLED
@@ -372,6 +368,38 @@ OnexOS: ASMFLAGS += -D__STACK_SIZE=8192
 # that may need symbols provided by these libraries.
 LIB_FILES += -lc -lnosys -lm
 
+ifeq ($(RELEASE), 1)
+CFLAGS += -O3 -g3
+ASMFLAGS += -g3
+$(info Building for release)
+else
+CFLAGS += -O1 -ggdb -DDEBUG -DDEBUG_NRF
+$(info Building for debug)
+endif
+
+ifeq ($(MMD), 1)
+CFLAGS += -DMMD
+ASMFLAGS += -mcpu=cortex-m4
+ASMFLAGS += -mthumb
+SRC_FILES += $(SDK_ROOT)/external/jlink_monitor_mode_debug/gcc/JLINK_MONITOR.c
+SRC_FILES += $(SDK_ROOT)/external/jlink_monitor_mode_debug/gcc/JLINK_MONITOR_ISR_SES.s
+INC_FOLDERS += $(SDK_ROOT)/external/jlink_monitor_mode_debug/gcc
+$(info Building for monitor mode debug)
+endif
+
+GDB_CMD_PATH=gdb-commands-jlink.txt
+
+.PHONY: gdb_commands
+
+gdb_commands: default
+	@echo "target remote localhost:2331" > $(GDB_CMD_PATH)
+	@echo "mon speed 10000" >> $(GDB_CMD_PATH)
+	@echo "mon flash download=1" >> $(GDB_CMD_PATH)
+	@echo "load $(OUTPUT_DIRECTORY)/$(PROJECT_NAME).out" >> $(GDB_CMD_PATH)
+	@echo "break main" >> $(GDB_CMD_PATH)
+	@echo "mon reset 0" >> $(GDB_CMD_PATH)
+	@echo "mon exec SetMonModeDebug=1" >> $(GDB_CMD_PATH)
+	@echo "mon exec SetMonModeVTableAddr=0x26000" >> $(GDB_CMD_PATH)
 
 .PHONY: default help
 

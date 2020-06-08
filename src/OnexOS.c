@@ -143,7 +143,7 @@ extern volatile char* event_log_buffer;
 void draw_log(char* s)
 {
   char* nl=strchr(s, '\n');
-  char* s2;
+  char* s2=0;
   if(nl){
     *nl=0;
     s2=nl+1;
