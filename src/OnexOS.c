@@ -1,4 +1,5 @@
 
+#include <math.h>
 #include <time.h>
 #include <stdlib.h>
 #include <string.h>
@@ -45,6 +46,7 @@ char* aboutuid;
 static volatile bool          event_dfu=false;
 static volatile bool          event_tick_10ms=false;
 static volatile touch_info_t  touch_info;
+static volatile uint16_t      touch_info_stroke=0;
 static volatile motion_info_t motion_info;
 static volatile blenus_info_t ble_info={ .connected=false, .rssi=-100 };
 static volatile bool          button_pressed;
@@ -69,11 +71,44 @@ static void blechanged(blenus_info_t bi)
   onex_run_evaluators(bluetoothuid, 0);
 }
 
+static bool backlight_on=false;
+
 static void touched(touch_info_t ti)
 {
   touch_info=ti;
+
+  static uint16_t swipe_start_x=0;
+  static uint16_t swipe_start_y=0;
+
+  bool is_gesture=(touch_info.gesture==TOUCH_GESTURE_LEFT  ||
+                   touch_info.gesture==TOUCH_GESTURE_RIGHT ||
+                   touch_info.gesture==TOUCH_GESTURE_DOWN  ||
+                   touch_info.gesture==TOUCH_GESTURE_UP      );
+
+  if(touch_info.action==TOUCH_ACTION_CONTACT && !is_gesture){
+    swipe_start_x=touch_info.x;
+    swipe_start_y=touch_info.y;
+    touch_info_stroke=0;
+  }
+  else
+  if(touch_info.action!=TOUCH_ACTION_CONTACT && is_gesture){
+    int16_t dx=touch_info.x-swipe_start_x;
+    int16_t dy=touch_info.y-swipe_start_y;
+    touch_info_stroke=(uint16_t)sqrtf(dx*dx+dy*dy);
+  }
+
   onex_run_evaluators(touchuid, 0);
-  onex_run_evaluators(useruid, (void*)1);
+
+
+  static uint8_t  disable_user_touch=0;
+
+  if(!backlight_on         && touch_info.action==TOUCH_ACTION_CONTACT) disable_user_touch=1;
+  if(disable_user_touch==1 && touch_info.action!=TOUCH_ACTION_CONTACT) disable_user_touch=2;
+  if(disable_user_touch==2 && touch_info.action==TOUCH_ACTION_CONTACT) disable_user_touch=0;
+
+  if(!disable_user_touch){
+    onex_run_evaluators(useruid, (void*)1);
+  }
 }
 
 static void moved(motion_info_t mi)
@@ -178,7 +213,7 @@ int main()
   user     =object_new(0, "user",      "user", 8);
   battery  =object_new(0, "battery",   "battery", 4);
   bluetooth=object_new(0, "bluetooth", "bluetooth", 4);
-  touch    =object_new(0, "touch",     "touch", 8);
+  touch    =object_new(0, "touch",     "touch", 6);
   motion   =object_new(0, "motion",    "motion", 8);
   button   =object_new(0, "button",    "button", 4);
   backlight=object_new(0, "backlight", "editable light", 9);
@@ -295,10 +330,16 @@ bool evaluate_bluetooth_io(object* o, void* d)
 bool evaluate_touch_io(object* o, void* d)
 {
   char buf[64];
+
   snprintf(buf, 64, "%3d %3d", touch_info.x, touch_info.y);
   object_property_set(touch, "coords", buf);
+
   snprintf(buf, 64, "%s %s", touch_actions[touch_info.action], touch_gestures[touch_info.gesture]);
   object_property_set(touch, "action", buf);
+
+  snprintf(buf, 64, "%d", touch_info_stroke);
+  object_property_set(touch, "stroke", buf);
+
   return true;
 }
 
@@ -335,12 +376,14 @@ bool evaluate_button_io(object* o, void* d)
 bool evaluate_backlight_io(object* o, void* d)
 {
   if(object_property_is(backlight, "light", "on")){
+    backlight_on=true;
     bool mid =object_property_is(backlight, "level", "mid");
     bool high=object_property_is(backlight, "level", "high");
     gpio_set(LCD_BACKLIGHT_LOW,               LEDS_ACTIVE_STATE);
     gpio_set(LCD_BACKLIGHT_MID,  (mid||high)? LEDS_ACTIVE_STATE: !LEDS_ACTIVE_STATE);
     gpio_set(LCD_BACKLIGHT_HIGH, (high)?      LEDS_ACTIVE_STATE: !LEDS_ACTIVE_STATE);
   } else {
+    backlight_on=false;
     gpio_set(LCD_BACKLIGHT_LOW,  !LEDS_ACTIVE_STATE);
     gpio_set(LCD_BACKLIGHT_MID,  !LEDS_ACTIVE_STATE);
     gpio_set(LCD_BACKLIGHT_HIGH, !LEDS_ACTIVE_STATE);
@@ -354,12 +397,12 @@ static lv_obj_t* about_screen;
 bool evaluate_user(object* o, void* touchevent)
 {
   if(touchevent){
-    if(touch_info.gesture==TOUCH_GESTURE_LEFT  && object_property_is(user, "viewing", homeuid )){
+    if(touch_info.gesture==TOUCH_GESTURE_LEFT  && touch_info_stroke > 50 && object_property_is(user, "viewing", homeuid )){
       lv_scr_load(about_screen); // switching screens should be by viewing:is detection, and knowing what you're on
       object_property_set(user, "viewing", aboutuid);
     }
     else
-    if(touch_info.gesture==TOUCH_GESTURE_RIGHT && object_property_is(user, "viewing", aboutuid)){
+    if(touch_info.gesture==TOUCH_GESTURE_RIGHT && touch_info_stroke > 50 && object_property_is(user, "viewing", aboutuid)){
       lv_scr_load(home_screen);
       object_property_set(user, "viewing", homeuid);
     }
