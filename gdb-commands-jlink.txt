@@ -1,8 +1,6 @@
 target remote localhost:2331
 mon speed 10000
 mon flash download=1
-load _build/OnexOS.out
-break main
+file _build/OnexOS.out
 mon reset 0
-mon exec SetMonModeDebug=1
-mon exec SetMonModeVTableAddr=0x26000
+continue

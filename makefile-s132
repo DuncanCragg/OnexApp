@@ -395,11 +395,11 @@ gdb_commands: default
 	@echo "target remote localhost:2331" > $(GDB_CMD_PATH)
 	@echo "mon speed 10000" >> $(GDB_CMD_PATH)
 	@echo "mon flash download=1" >> $(GDB_CMD_PATH)
-	@echo "load $(OUTPUT_DIRECTORY)/$(PROJECT_NAME).out" >> $(GDB_CMD_PATH)
-	@echo "break main" >> $(GDB_CMD_PATH)
+	@echo "file $(OUTPUT_DIRECTORY)/$(PROJECT_NAME).out" >> $(GDB_CMD_PATH)
 	@echo "mon reset 0" >> $(GDB_CMD_PATH)
-	@echo "mon exec SetMonModeDebug=1" >> $(GDB_CMD_PATH)
-	@echo "mon exec SetMonModeVTableAddr=0x26000" >> $(GDB_CMD_PATH)
+	@echo "continue" >> $(GDB_CMD_PATH)
+	@#echo "mon exec SetMonModeDebug=1" >> $(GDB_CMD_PATH)
+	@#echo "mon exec SetMonModeVTableAddr=0x26000" >> $(GDB_CMD_PATH)
 
 .PHONY: default help
 
