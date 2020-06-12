@@ -138,10 +138,12 @@ static void draw_ui();
 void* x;
 #define WHERESTHEHEAP(s) x = malloc(1); log_write("heap after %s: %x\n", s, x);
 
+#if defined(LOG_TO_GFX)
 extern volatile char* event_log_buffer;
 
-void draw_log(char* s)
+void draw_log()
 {
+  char* s=(char*)event_log_buffer;
   char* nl=strchr(s, '\n');
   char* s2=0;
   if(nl){
@@ -159,6 +161,7 @@ void draw_log(char* s)
   }
   gfx_pop();
 }
+#endif
 
 static void clear_screen()
 {
@@ -288,10 +291,12 @@ int main()
       event_tick_10ms=false;
       lv_task_handler();
     }
+#if defined(LOG_TO_GFX)
     if(event_log_buffer){
-      draw_log((char*)event_log_buffer);
+      draw_log();
       event_log_buffer=0;
     }
+#endif
   }
 }
 

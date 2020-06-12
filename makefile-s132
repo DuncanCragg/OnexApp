@@ -321,7 +321,7 @@ CFLAGS += -DNRF_SD_BLE_API_VERSION=7
 CFLAGS += -DS132
 CFLAGS += -DSOFTDEVICE_PRESENT
 CFLAGS += -DONP_CHANNEL_SERIAL
-CFLAGS += -DLOG_TO_GFX
+CFLAGS += -DLOG_TO_RTT
 CFLAGS += -mcpu=cortex-m4
 CFLAGS += -mthumb -mabi=aapcs
 CFLAGS += -Wall -Werror -Wno-unused-but-set-variable
