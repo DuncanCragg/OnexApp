@@ -35,6 +35,7 @@ NRF5_C_SOURCE_FILES = \
 ./OnexKernel/src/platforms/nRF5/serial.c \
 ./OnexKernel/src/platforms/nRF5/blenus.c \
 ./OnexKernel/src/platforms/nRF5/log.c \
+./OnexKernel/src/platforms/nRF5/mem.c \
 ./OnexKernel/src/platforms/nRF5/channel-serial.c \
 
 
@@ -45,6 +46,7 @@ ONEXAPP_IOT_OBJECTS = \
 # Source files common to all targets
 SRC_FILES += \
   $(SDK_ROOT)/modules/nrfx/mdk/gcc_startup_nrf52840.S \
+  $(SDK_ROOT)/components/libraries/mem_manager/mem_manager.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_rtt.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_serial.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_uart.c \

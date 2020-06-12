@@ -136,7 +136,7 @@ static void draw_ui();
 #define ADC_CHANNEL 0
 
 void* x;
-#define WHERESTHEHEAP(s) x = malloc(1); log_write("heap after %s: %x\n", s, x);
+#define WHERESTHEHEAP(s) x = malloc(1); log_write("heap after %s: %x\n", s, x); free(x);
 
 #if defined(LOG_TO_GFX)
 extern volatile char* event_log_buffer;

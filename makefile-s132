@@ -41,6 +41,7 @@ NRF5_C_SOURCE_FILES = \
 ./OnexKernel/src/platforms/nRF5/motion-bma421.c \
 ./OnexKernel/src/platforms/nRF5/blenus.c \
 ./OnexKernel/src/platforms/nRF5/log.c \
+./OnexKernel/src/platforms/nRF5/mem.c \
 ./OnexKernel/src/platforms/nRF5/channel-serial.c \
 
 
@@ -100,6 +101,7 @@ ONEXOS_OBJECTS = \
 # Source files common to all targets
 SRC_FILES += \
   $(SDK_ROOT)/modules/nrfx/mdk/gcc_startup_nrf52.S \
+  $(SDK_ROOT)/components/libraries/mem_manager/mem_manager.c \
   $(SDK_ROOT)/integration/nrfx/legacy/nrf_drv_spi.c \
   $(SDK_ROOT)/components/drivers_ext/st7789/st7789.c \
   $(SDK_ROOT)/components/drivers_ext/st7789/spi_master_fast.c \
