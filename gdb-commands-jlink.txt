@@ -2,5 +2,7 @@ target remote localhost:2331
 mon speed 10000
 mon flash download=1
 file _build/OnexOS.out
+set print pretty on
+break HardFault_Handler
 mon reset 0
 continue

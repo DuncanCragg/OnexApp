@@ -398,6 +398,8 @@ gdb_commands: default
 	@echo "mon speed 10000" >> $(GDB_CMD_PATH)
 	@echo "mon flash download=1" >> $(GDB_CMD_PATH)
 	@echo "file $(OUTPUT_DIRECTORY)/$(PROJECT_NAME).out" >> $(GDB_CMD_PATH)
+	@echo "set print pretty on" >> $(GDB_CMD_PATH)
+	@echo "break HardFault_Handler" >> $(GDB_CMD_PATH)
 	@echo "mon reset 0" >> $(GDB_CMD_PATH)
 	@echo "continue" >> $(GDB_CMD_PATH)
 	@#echo "mon exec SetMonModeDebug=1" >> $(GDB_CMD_PATH)
