@@ -125,6 +125,7 @@ SRC_FILES += \
   $(SDK_ROOT)/components/libraries/util/app_util_platform.c \
   $(SDK_ROOT)/components/libraries/timer/drv_rtc.c \
   $(SDK_ROOT)/components/libraries/hardfault/hardfault_implementation.c \
+  $(SDK_ROOT)/components/libraries/hardfault/nrf52/handler/hardfault_handler_gcc.c \
   $(SDK_ROOT)/components/libraries/util/nrf_assert.c \
   $(SDK_ROOT)/components/libraries/atomic_fifo/nrf_atfifo.c \
   $(SDK_ROOT)/components/libraries/atomic_flags/nrf_atflags.c \
@@ -399,7 +400,8 @@ gdb_commands: default
 	@echo "mon flash download=1" >> $(GDB_CMD_PATH)
 	@echo "file $(OUTPUT_DIRECTORY)/$(PROJECT_NAME).out" >> $(GDB_CMD_PATH)
 	@echo "set print pretty on" >> $(GDB_CMD_PATH)
-	@echo "break HardFault_Handler" >> $(GDB_CMD_PATH)
+	@#echo "break HardFault_Handler" >> $(GDB_CMD_PATH)
+	@echo "set unwindonsignal on" >> $(GDB_CMD_PATH)
 	@echo "mon reset 0" >> $(GDB_CMD_PATH)
 	@echo "continue" >> $(GDB_CMD_PATH)
 	@#echo "mon exec SetMonModeDebug=1" >> $(GDB_CMD_PATH)
