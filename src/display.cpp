@@ -14,6 +14,7 @@ extern "C" {
 #define OUTER_PADDING 20
 
 extern void draw_padding(char* path, int16_t width, int16_t height, int8_t depth);
+extern void set_new_value(char* path, char* buf, bool single);
 
 void draw_light(char* path, int16_t width)
 {
@@ -46,7 +47,9 @@ void draw_light(char* path, int16_t width)
       ImGui::PushStyleColor(ImGuiCol_ButtonActive, valueBackground);
     }
     char keyId[256]; snprintf(keyId, 256, "%s ## light %s", name? name: "light", path);
-    ImGui::Button(keyId, ImVec2(200, 200-OUTER_PADDING*2));
+    if(ImGui::Button(keyId, ImVec2(200, 200-OUTER_PADDING*2))){
+      set_new_value(pathlight, (char*)"on", true);
+    }
     ImGui::PopStyleColor(4);
   }
   ImGui::SameLine();
