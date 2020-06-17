@@ -392,22 +392,7 @@ endif
 
 GDB_CMD_PATH=gdb-commands-jlink.txt
 
-.PHONY: gdb_commands
-
-gdb_commands: default
-	@echo "target remote localhost:2331" > $(GDB_CMD_PATH)
-	@echo "mon speed 10000" >> $(GDB_CMD_PATH)
-	@echo "mon flash download=1" >> $(GDB_CMD_PATH)
-	@echo "file $(OUTPUT_DIRECTORY)/$(PROJECT_NAME).out" >> $(GDB_CMD_PATH)
-	@echo "set print pretty on" >> $(GDB_CMD_PATH)
-	@#echo "break HardFault_Handler" >> $(GDB_CMD_PATH)
-	@echo "set unwindonsignal on" >> $(GDB_CMD_PATH)
-	@echo "mon reset 0" >> $(GDB_CMD_PATH)
-	@echo "continue" >> $(GDB_CMD_PATH)
-	@#echo "mon exec SetMonModeDebug=1" >> $(GDB_CMD_PATH)
-	@#echo "mon exec SetMonModeVTableAddr=0x26000" >> $(GDB_CMD_PATH)
-
-.PHONY: default help
+.PHONY: default help flash_no_reset flash flash_ble flash_bootloader flash_softdevice erase gdb_commands
 
 # Default target - first one defined
 default: OnexOS
@@ -425,8 +410,6 @@ TEMPLATE_PATH := $(SDK_ROOT)/components/toolchain/gcc
 include $(TEMPLATE_PATH)/Makefile.common
 
 $(foreach target, $(TARGETS), $(call define_target, $(target)))
-
-.PHONY: flash flash_no_reset flash_ble flash_bootloader flash_softdevice erase
 
 PRIVATE_PEM = /home/duncan/priv.pem
 
@@ -478,6 +461,19 @@ erase:
 
 reset:
 	nrfjprog -f nrf52 --reset
+
+gdb_commands: default
+	@echo "target remote localhost:2331" > $(GDB_CMD_PATH)
+	@echo "mon speed 10000" >> $(GDB_CMD_PATH)
+	@echo "mon flash download=1" >> $(GDB_CMD_PATH)
+	@echo "file $(OUTPUT_DIRECTORY)/$(PROJECT_NAME).out" >> $(GDB_CMD_PATH)
+	@echo "set print pretty on" >> $(GDB_CMD_PATH)
+	@echo "break HardFault_Handler" >> $(GDB_CMD_PATH)
+	@echo "set unwindonsignal on" >> $(GDB_CMD_PATH)
+	@echo "mon reset 0" >> $(GDB_CMD_PATH)
+	@echo "continue" >> $(GDB_CMD_PATH)
+	@#echo "mon exec SetMonModeDebug=1" >> $(GDB_CMD_PATH)
+	@#echo "mon exec SetMonModeVTableAddr=0x26000" >> $(GDB_CMD_PATH)
 
 SDK_CONFIG_FILE := ./OnexKernel/src/platforms/nRF5/s132/sdk_config.h
 CMSIS_CONFIG_TOOL := $(SDK_ROOT)/external_tools/cmsisconfig/CMSIS_Configuration_Wizard.jar
