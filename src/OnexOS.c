@@ -18,30 +18,30 @@
 #include <noto_sans_numeric_60.h>
 #include <noto_sans_numeric_80.h>
 
-object* user;
-object* battery;
-object* bluetooth;
-object* touch;
-object* motion;
-object* button;
-object* backlight;
-object* oclock;
-object* watchface;
-object* home;
-object* about;
+static object* user;
+static object* battery;
+static object* bluetooth;
+static object* touch;
+static object* motion;
+static object* button;
+static object* backlight;
+static object* oclock;
+static object* watchface;
+static object* home;
+static object* about;
 
-char* deviceuid;
-char* useruid;
-char* batteryuid;
-char* bluetoothuid;
-char* touchuid;
-char* motionuid;
-char* buttonuid;
-char* backlightuid;
-char* clockuid;
-char* watchfaceuid;
-char* homeuid;
-char* aboutuid;
+static char* deviceuid;
+static char* useruid;
+static char* batteryuid;
+static char* bluetoothuid;
+static char* touchuid;
+static char* motionuid;
+static char* buttonuid;
+static char* backlightuid;
+static char* clockuid;
+static char* watchfaceuid;
+static char* homeuid;
+static char* aboutuid;
 
 static volatile bool          event_dfu=false;
 static volatile bool          event_tick_10ms=false;
