@@ -426,7 +426,7 @@ include $(TEMPLATE_PATH)/Makefile.common
 
 $(foreach target, $(TARGETS), $(call define_target, $(target)))
 
-.PHONY: flash flash_ble flash_bootloader flash_softdevice erase
+.PHONY: flash flash_no_reset flash_ble flash_bootloader flash_softdevice erase
 
 PRIVATE_PEM = /home/duncan/priv.pem
 
@@ -434,12 +434,14 @@ APPLICATION_VERSION = --application-version 1
 BOOTLOADER_VERSION = --bootloader-version $(shell cat OnexKernel/bootloader-number.txt)
 SETTINGS_VERSIONS = $(APPLICATION_VERSION) $(BOOTLOADER_VERSION) --bl-settings-version 2
 
-flash: default
+flash_no_reset: default
 	@echo Flashing: $(OUTPUT_DIRECTORY)/$(PROJECT_NAME).hex
 	nrfutil settings generate --family NRF52 --application $(OUTPUT_DIRECTORY)/$(PROJECT_NAME).hex $(SETTINGS_VERSIONS) $(OUTPUT_DIRECTORY)/settings.hex
 	mergehex --merge $(OUTPUT_DIRECTORY)/$(PROJECT_NAME).hex $(OUTPUT_DIRECTORY)/settings.hex --output $(OUTPUT_DIRECTORY)/$(PROJECT_NAME)+settings.hex
 	nrfjprog -f NRF52 --program $(OUTPUT_DIRECTORY)/$(PROJECT_NAME)+settings.hex --sectorerase
-	nrfjprog -r
+
+flash: flash_no_reset
+	nrfjprog -f nrf52 --reset
 
 # set MTU if fails, but do MSDDisable in JLinkExe
 # https://github.com/NordicSemiconductor/pc-nrfutil/issues/147
