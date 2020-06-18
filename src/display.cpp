@@ -57,6 +57,40 @@ void draw_light(char* path, int16_t width)
   ImGui::PopStyleColor(2);
 }
 
+void draw_bluetooth(char* path, int16_t width)
+{
+  char pathconnected[128]; snprintf(pathconnected, 128, "%s:connected", path);
+  char pathmac[128]; snprintf(pathmac, 128, "%s:mac", path);
+  bool connected=object_property_is(user, pathconnected, (char*)"yes");
+  char* mac=object_property(user, pathmac);
+  char childName[128]; memcpy(childName, path, strlen(path)+1);
+  ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+  ImGui::PushStyleColor(ImGuiCol_BorderShadow, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+  ImGui::BeginChild(childName, ImVec2(width,200), true);
+  {
+    if(!connected){
+      ImGui::PushStyleColor(ImGuiCol_Border, btDisconnected);
+      ImGui::PushStyleColor(ImGuiCol_Button, btDisconnected);
+      ImGui::PushStyleColor(ImGuiCol_ButtonHovered, btDisconnected);
+      ImGui::PushStyleColor(ImGuiCol_ButtonActive, btDisconnected);
+    }
+    else{
+      ImGui::PushStyleColor(ImGuiCol_Border, btDisconnected);
+      ImGui::PushStyleColor(ImGuiCol_Button, btConnected);
+      ImGui::PushStyleColor(ImGuiCol_ButtonHovered, btConnected);
+      ImGui::PushStyleColor(ImGuiCol_ButtonActive, btConnected);
+    }
+    char keyId[256]; snprintf(keyId, 256, "%s ## bluetooth %s", mac? mac: "Bluetooth", path);
+    if(ImGui::Button(keyId, ImVec2(300, 200-OUTER_PADDING*2))){
+      log_write("turn off bt\n");
+    }
+    ImGui::PopStyleColor(4);
+  }
+  ImGui::SameLine();
+  ImGui::EndChild();
+  ImGui::PopStyleColor(2);
+}
+
 char* buttonDown;
 
 void draw_button(char* path, int16_t width)
@@ -123,6 +157,7 @@ void draw_display(char* path, int16_t width, int16_t height)
     char pathis[128]; snprintf(pathis, 128, "%s:is", path);
     if(object_property_contains(user, pathis, (char*)"light")) draw_light(path, width);
     if(object_property_contains(user, pathis, (char*)"button")) draw_button(path, width);
+    if(object_property_contains(user, pathis, (char*)"bluetooth")) draw_bluetooth(path, width);
     path[l] = 0;
   }
   ImGui::PopStyleVar();

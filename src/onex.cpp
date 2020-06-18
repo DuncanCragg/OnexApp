@@ -10,13 +10,16 @@ extern "C" {
 object* config;
 object* user;
 object* oclock;
+object* bluetooth;
 
 char* userUID=0;
 char* clockUID=0;
+char* bluetoothUID=0;
 
 extern bool evaluate_default(object* o, void* d);
 extern bool evaluate_user(object* o, void* d);
 extern bool evaluate_event(object* o, void* d);
+static bool evaluate_bluetooth_io(object* o, void* d);
 
 static void every_second(){ onex_run_evaluators(clockUID, 0); }
 
@@ -26,12 +29,13 @@ char* init_onex()
 {
   char* blemac=0;
 
-  onex_set_evaluators((char*)"default", evaluate_object_setter, evaluate_default, 0);
-  onex_set_evaluators((char*)"device",  evaluate_device_logic, 0);
-  onex_set_evaluators((char*)"user",                            evaluate_user, 0);
-  onex_set_evaluators((char*)"clock",   evaluate_object_setter, evaluate_clock, 0);
-  onex_set_evaluators((char*)"event",   evaluate_object_setter, evaluate_event, 0);
-  onex_set_evaluators((char*)"light",   evaluate_object_setter, evaluate_light_logic, 0);
+  onex_set_evaluators((char*)"default",   evaluate_object_setter, evaluate_default, 0);
+  onex_set_evaluators((char*)"device",                            evaluate_device_logic, 0);
+  onex_set_evaluators((char*)"user",                              evaluate_user, 0);
+  onex_set_evaluators((char*)"clock",     evaluate_object_setter, evaluate_clock, 0);
+  onex_set_evaluators((char*)"event",     evaluate_object_setter, evaluate_event, 0);
+  onex_set_evaluators((char*)"light",     evaluate_object_setter, evaluate_light_logic, 0);
+  onex_set_evaluators((char*)"bluetooth", evaluate_bluetooth_io,                        0);
 
 #if defined(__ANDROID__)
   char dbpath[128];
@@ -69,11 +73,16 @@ char* init_onex()
     object_property_set(oclock, (char*)"title", (char*)"OnexApp Clock");
     clockUID=object_property(oclock, (char*)"UID");
 
+    bluetooth=object_new(0, (char*)"bluetooth", (char*)"bluetooth", 6);
+    object_property_set(bluetooth, (char*)"connected", (char*)"no");
+    bluetoothUID=object_property(bluetooth, (char*)"UID");
+
     object_set_evaluator(onex_device_object, (char*)"device");
     char* deviceUID=object_property(onex_device_object, (char*)"UID");
 
     object_property_add(onex_device_object, (char*)"user", userUID);
     object_property_add(onex_device_object, (char*)"io", clockUID);
+    object_property_add(onex_device_object, (char*)"io", bluetoothUID);
 
     object_property_set(user, (char*)"viewing-l", deviceUID);
 
@@ -112,5 +121,12 @@ void on_alarm_recv(char* uid)
 void set_blemac(char* blemac)
 {
   object_property_set(config, (char*)"blemac", blemac);
+  onex_run_evaluators(bluetoothUID, 0);
+}
+
+bool evaluate_bluetooth_io(object* o, void* d)
+{
+  object_property_set(bluetooth, (char*)"mac", object_property(config, (char*)"blemac"));
+  return true;
 }
 

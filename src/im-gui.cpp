@@ -33,6 +33,8 @@ ImVec4 renderBackgroundActive  (0.90f, 0.90f, 0.95f, 1.0f);
 
 ImVec4 ledOff(20.0f/255, 150.0f/255, 10.0f/255, 1.0f);
 ImVec4 ledOn(100.0f/255, 255.0f/255, 50.0f/255, 1.0f);
+ImVec4 btDisconnected(29.0f/255, 93.0f/255, 165.0f/255, 1.0f);
+ImVec4 btConnected(   50.0f/255, 131.0f/255, 255.0f/255, 1.0f);
 
 ImVec4 schemeBrown(183.0f/255, 142.0f/255, 96.0f/255, 1.0f);
 ImVec4 schemeYellow(255.0f/255, 245.0f/255, 180.0f/255, 1.0f);
