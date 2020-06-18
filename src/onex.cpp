@@ -18,11 +18,7 @@ extern bool evaluate_default(object* o, void* d);
 extern bool evaluate_user(object* o, void* d);
 extern bool evaluate_event(object* o, void* d);
 
-bool ticked=false;
-static void every_second()
-{
-  ticked=true;
-}
+static void every_second(){ onex_run_evaluators(clockUID, 0); }
 
 extern "C" void sprintExternalStorageDirectory(char* buf, int buflen, const char* format);
 
@@ -102,10 +98,6 @@ char* init_onex()
 void loop_onex()
 {
   while(true){
-    if(ticked){
-      ticked=false;
-      onex_run_evaluators(clockUID, 0);
-    }
     if(!onex_loop()){
       time_delay_ms(5);
     }
