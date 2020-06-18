@@ -62,6 +62,7 @@ char* init_onex()
     object_property_set(taglookup, (char*)"train",     object_property(tagtrain, (char*)"UID"));
     object_property_set(taglookup, (char*)"celebrate", object_property(tagceleb, (char*)"UID"));
     object_property_set(taglookup, (char*)"love",      object_property(taglove,  (char*)"UID"));
+    char* taglookupUID=object_property(taglookup, (char*)"UID");
 /*
     object* links=object_new(0, (char*)"default", (char*)"links list", 4);
     object_property_set(links, (char*)"list", object_property(taglookup, (char*)"UID"));
@@ -87,17 +88,16 @@ char* init_onex()
     object_property_set(user, (char*)"viewing-l", deviceUID);
 
     config=object_new((char*)"uid-0", 0, (char*)"config", 10);
-    object_property_set(config, (char*)"user", userUID);
-    object_property_set(config, (char*)"clock", clockUID);
-    object_property_set(config, (char*)"device", deviceUID);
-    object_property_set(config, (char*)"taglookup", object_property(taglookup, (char*)"UID"));
+    object_property_set(config, (char*)"user",      userUID);
+    object_property_set(config, (char*)"clock",     clockUID);
+    object_property_set(config, (char*)"taglookup", taglookupUID);
   }
   else{
-    userUID=object_property(config, (char*)"user");
-    clockUID=object_property(config, (char*)"clock");
+    userUID=     object_property(config, (char*)"user");
+    clockUID=    object_property(config, (char*)"clock");
     blemac=object_property(config, (char*)"blemac");
-    user=onex_get_from_cache(userUID);
-    oclock=onex_get_from_cache(clockUID);
+    user     =onex_get_from_cache(userUID);
+    oclock   =onex_get_from_cache(clockUID);
   }
   time_ticker(every_second, 1000);
 
