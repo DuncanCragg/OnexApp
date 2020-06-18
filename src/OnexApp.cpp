@@ -108,8 +108,8 @@ JNIEXPORT void JNICALL Java_network_object_onexapp_EternalService_setBLEMac(JNIE
 
 JNIEXPORT void JNICALL Java_network_object_onexapp_EternalService_serialOnRecv(JNIEnv* env, jclass clazz, jstring b)
 {
-  const char* chars = b? env->GetStringUTFChars(b, 0): 0;
-  serial_on_recv((char*)chars, chars? strlen(chars): 0);
+  char* chars = b? (char*)env->GetStringUTFChars(b, 0): 0;
+  serial_on_recv(chars, chars? strlen(chars): 0);
   if(b) env->ReleaseStringUTFChars(b, chars);
 }
 
@@ -185,7 +185,7 @@ JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onKeyRelea
 
 JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onAlarmRecv(JNIEnv* env, jclass clazz, jstring juid)
 {
-  const char* uid = env->GetStringUTFChars(juid, 0);
+  char* uid = (char*)env->GetStringUTFChars(juid, 0);
   log_write("onAlarmRecv=%s\n",uid);
   on_alarm_recv(uid);
   env->ReleaseStringUTFChars(juid, uid);
