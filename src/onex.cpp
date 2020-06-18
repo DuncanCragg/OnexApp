@@ -1,5 +1,6 @@
 
 #include <stdlib.h>
+#include <string.h>
 
 extern "C" {
 #include <onex-kernel/time.h>
@@ -25,10 +26,11 @@ static void every_second(){ onex_run_evaluators(clockUID, 0); }
 
 extern "C" void sprintExternalStorageDirectory(char* buf, int buflen, const char* format);
 
+static bool  bleconnected=true;
+static char* blemac=0;
+
 char* init_onex()
 {
-  char* blemac=0;
-
   onex_set_evaluators((char*)"default",   evaluate_object_setter, evaluate_default, 0);
   onex_set_evaluators((char*)"device",                            evaluate_device_logic, 0);
   onex_set_evaluators((char*)"user",                              evaluate_user, 0);
@@ -90,14 +92,19 @@ char* init_onex()
     config=object_new((char*)"uid-0", 0, (char*)"config", 10);
     object_property_set(config, (char*)"user",      userUID);
     object_property_set(config, (char*)"clock",     clockUID);
+    object_property_set(config, (char*)"bluetooth", bluetoothUID);
     object_property_set(config, (char*)"taglookup", taglookupUID);
   }
   else{
     userUID=     object_property(config, (char*)"user");
     clockUID=    object_property(config, (char*)"clock");
-    blemac=object_property(config, (char*)"blemac");
+    bluetoothUID=object_property(config, (char*)"bluetooth");
+
     user     =onex_get_from_cache(userUID);
     oclock   =onex_get_from_cache(clockUID);
+    bluetooth=onex_get_from_cache(bluetoothUID);
+
+    blemac=strdup(object_property(bluetooth, (char*)"mac"));
   }
   time_ticker(every_second, 1000);
 
@@ -118,15 +125,17 @@ void on_alarm_recv(char* uid)
   onex_run_evaluators(uid, 0);
 }
 
-void set_blemac(char* blemac)
+void set_blemac(char* bm)
 {
-  object_property_set(config, (char*)"blemac", blemac);
+  if(blemac) free(blemac);
+  blemac=strdup(bm);
   onex_run_evaluators(bluetoothUID, 0);
 }
 
 bool evaluate_bluetooth_io(object* o, void* d)
 {
-  object_property_set(bluetooth, (char*)"mac", object_property(config, (char*)"blemac"));
+  object_property_set(bluetooth, (char*)"connected", (char*)(bleconnected? "yes": "no"));
+  object_property_set(bluetooth, (char*)"mac", blemac);
   return true;
 }
 
