@@ -4,6 +4,7 @@
 
 extern "C" {
 #include <onex-kernel/time.h>
+#include <onex-kernel/log.h>
 #include <onf.h>
 #include <onr.h>
 }
@@ -26,8 +27,8 @@ static void every_second(){ onex_run_evaluators(clockUID, 0); }
 
 extern "C" void sprintExternalStorageDirectory(char* buf, int buflen, const char* format);
 
-static bool  bleconnected=true;
-static char* blemac=0;
+static char* ble_state=0;
+static char* ble_mac=0;
 
 char* init_onex()
 {
@@ -77,7 +78,7 @@ char* init_onex()
     clockUID=object_property(oclock, (char*)"UID");
 
     bluetooth=object_new(0, (char*)"bluetooth", (char*)"bluetooth", 6);
-    object_property_set(bluetooth, (char*)"connected", (char*)"no");
+    object_property_set(bluetooth, (char*)"state", (char*)"BLE disconnected");
     bluetoothUID=object_property(bluetooth, (char*)"UID");
 
     object_set_evaluator(onex_device_object, (char*)"device");
@@ -104,11 +105,11 @@ char* init_onex()
     oclock   =onex_get_from_cache(clockUID);
     bluetooth=onex_get_from_cache(bluetoothUID);
 
-    blemac=strdup(object_property(bluetooth, (char*)"mac"));
+    ble_mac=strdup(object_property(bluetooth, (char*)"mac"));
   }
   time_ticker(every_second, 1000);
 
-  return blemac;
+  return ble_mac;
 }
 
 void loop_onex()
@@ -125,17 +126,24 @@ void on_alarm_recv(char* uid)
   onex_run_evaluators(uid, 0);
 }
 
-void set_blemac(char* bm)
+void connection_state(char* st)
 {
-  if(blemac) free(blemac);
-  blemac=strdup(bm);
+  free(ble_state);
+  ble_state=strdup(st);
+  onex_run_evaluators(bluetoothUID, 0);
+}
+
+void set_ble_mac(char* bm)
+{
+  free(ble_mac);
+  ble_mac=strdup(bm);
   onex_run_evaluators(bluetoothUID, 0);
 }
 
 bool evaluate_bluetooth_io(object* o, void* d)
 {
-  object_property_set(bluetooth, (char*)"connected", (char*)(bleconnected? "yes": "no"));
-  object_property_set(bluetooth, (char*)"mac", blemac);
+  object_property_set(bluetooth, (char*)"state", ble_state);
+  object_property_set(bluetooth, (char*)"mac",   ble_mac);
   return true;
 }
 

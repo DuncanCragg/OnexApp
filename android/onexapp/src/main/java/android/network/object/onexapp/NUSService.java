@@ -61,11 +61,13 @@ public class NUSService extends Service {
     private static final int STATE_CONNECTING = 1;
     private static final int STATE_CONNECTED = 2;
 
+    public final static String ACTION_GATT_CONNECTING = "com.nordicsemi.NUS.ACTION_GATT_CONNECTING";
     public final static String ACTION_GATT_CONNECTED = "com.nordicsemi.NUS.ACTION_GATT_CONNECTED";
-    public final static String ACTION_GATT_DISCONNECTED = "com.nordicsemi.NUS.ACTION_GATT_DISCONNECTED";
     public final static String ACTION_GATT_SERVICES_DISCOVERED = "com.nordicsemi.NUS.ACTION_GATT_SERVICES_DISCOVERED";
-    public final static String ACTION_DATA_AVAILABLE = "com.nordicsemi.NUS.ACTION_DATA_AVAILABLE";
     public final static String ACTION_NUS_CONNECTED = "com.nordicsemi.NUS.ACTION_NUS_CONNECTED";
+    public final static String ACTION_DATA_AVAILABLE = "com.nordicsemi.NUS.ACTION_DATA_AVAILABLE";
+    public final static String ACTION_GATT_DISCONNECTED = "com.nordicsemi.NUS.ACTION_GATT_DISCONNECTED";
+
     public final static String EXTRA_DATA = "com.nordicsemi.NUS.EXTRA_DATA";
 
     public static final UUID TX_POWER_UUID = UUID.fromString("00001804-0000-1000-8000-00805f9b34fb");
@@ -82,19 +84,16 @@ public class NUSService extends Service {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             Log.d(LOGNAME, "onConnectionStateChange: "+status+"/"+newState);
-            String intentAction;
 
             if (newState == BluetoothProfile.STATE_CONNECTED) {
-                intentAction = ACTION_GATT_CONNECTED;
+                broadcastUpdate(ACTION_GATT_CONNECTED);
                 connectionState = STATE_CONNECTED;
-                broadcastUpdate(intentAction);
                 Log.i(LOGNAME, "Connected to GATT server. Attempting to start service discovery");
                 bluetoothGATT.discoverServices();
 
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                intentAction = ACTION_GATT_DISCONNECTED;
+                broadcastUpdate(ACTION_GATT_DISCONNECTED);
                 connectionState = STATE_DISCONNECTED;
-                broadcastUpdate(intentAction);
                 Log.i(LOGNAME, "Disconnected from GATT server.");
             }
         }
@@ -125,9 +124,14 @@ public class NUSService extends Service {
         public void onCharacteristicRead(BluetoothGatt gatt,
                                          BluetoothGattCharacteristic characteristic,
                                          int status) {
-            if (status == BluetoothGatt.GATT_SUCCESS) {
-                broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
-            }
+            if (status != BluetoothGatt.GATT_SUCCESS) return;
+            broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
+        }
+
+        @Override
+        public void onCharacteristicChanged(BluetoothGatt gatt,
+                                            BluetoothGattCharacteristic characteristic) {
+            broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
         }
 
         @Override
@@ -141,12 +145,6 @@ public class NUSService extends Service {
               Log.w(LOGNAME, "onCharacteristicWrite "+status+"!=SUCCESS");
             }
         }
-
-        @Override
-        public void onCharacteristicChanged(BluetoothGatt gatt,
-                                            BluetoothGattCharacteristic characteristic) {
-            broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
-        }
     };
 
     private void broadcastUpdate(final String action) {
@@ -154,10 +152,8 @@ public class NUSService extends Service {
         sendBroadcast(intent);
     }
 
-    private void broadcastUpdate(final String action,
-                                 final BluetoothGattCharacteristic characteristic) {
+    private void broadcastUpdate(final String action, final BluetoothGattCharacteristic characteristic) {
         final Intent intent = new Intent(action);
-
         if (TX_CHAR_UUID.equals(characteristic.getUuid())) {
             intent.putExtra(EXTRA_DATA, characteristic.getValue());
         }
@@ -230,6 +226,7 @@ public class NUSService extends Service {
         if (bluetoothDeviceAddress != null && address.equals(bluetoothDeviceAddress) && bluetoothGATT != null) {
             Log.d(LOGNAME, "Trying to use an existing bluetoothGATT for connection.");
             if (bluetoothGATT.connect()) {
+                broadcastUpdate(ACTION_GATT_CONNECTING);
                 connectionState = STATE_CONNECTING;
                 return true;
             } else {
@@ -246,6 +243,7 @@ public class NUSService extends Service {
         bluetoothGATT = device.connectGatt(this, false, gattCallback);
         Log.d(LOGNAME, "Trying to create a new connection.");
         bluetoothDeviceAddress = address;
+        broadcastUpdate(ACTION_GATT_CONNECTING);
         connectionState = STATE_CONNECTING;
         return true;
     }

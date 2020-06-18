@@ -59,10 +59,13 @@ void draw_light(char* path, int16_t width)
 
 void draw_bluetooth(char* path, int16_t width)
 {
-  char pathconnected[128]; snprintf(pathconnected, 128, "%s:connected", path);
-  char pathmac[128]; snprintf(pathmac, 128, "%s:mac", path);
-  bool connected=object_property_is(user, pathconnected, (char*)"yes");
+  char pathstate2[128]; snprintf(pathstate2, 128, "%s:state:2", path);
+  char pathmac[128];    snprintf(pathmac,    128, "%s:mac",     path);
+
+  bool connected=object_property_is(user, pathstate2, (char*)"connected");
+
   char* mac=object_property(user, pathmac);
+
   char childName[128]; memcpy(childName, path, strlen(path)+1);
   ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
   ImGui::PushStyleColor(ImGuiCol_BorderShadow, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));

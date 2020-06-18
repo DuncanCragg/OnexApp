@@ -16,9 +16,6 @@ import android.content.*;
 import android.util.Log;
 import android.app.*;
 
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-
 import com.felhr.usbserial.UsbSerialInterface;
 import com.felhr.usbserial.UsbSerialDevice;
 
@@ -41,6 +38,7 @@ public class EternalService extends Service {
     static public native String initOnex();
     static public native void   loopOnex();
     static public native void   setBLEMac(String blemac);
+    static public native void   connectionState(String state);
 
     // onStartCommand may be called many times
     @Override
@@ -84,11 +82,12 @@ public class EternalService extends Service {
         Intent bindIntent = new Intent(this, NUSService.class);
         bindService(bindIntent, serviceConnection, Context.BIND_AUTO_CREATE);
         IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(NUSService.ACTION_GATT_CONNECTING);
         intentFilter.addAction(NUSService.ACTION_GATT_CONNECTED);
-        intentFilter.addAction(NUSService.ACTION_GATT_DISCONNECTED);
         intentFilter.addAction(NUSService.ACTION_GATT_SERVICES_DISCOVERED);
         intentFilter.addAction(NUSService.ACTION_NUS_CONNECTED);
         intentFilter.addAction(NUSService.ACTION_DATA_AVAILABLE);
+        intentFilter.addAction(NUSService.ACTION_GATT_DISCONNECTED);
         registerReceiver(NUSStatusChangeReceiver, intentFilter);
     }
 
@@ -127,8 +126,24 @@ public class EternalService extends Service {
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
 
+            if (action.equals(NUSService.ACTION_GATT_CONNECTING)) {
+                Log.d(LOGNAME, "GATT connected");
+                connectionState("BLE connecting");
+            }
+
+            if (action.equals(NUSService.ACTION_GATT_CONNECTED)) {
+                Log.d(LOGNAME, "GATT connected");
+                connectionState("BLE connected");
+            }
+
+            if (action.equals(NUSService.ACTION_GATT_SERVICES_DISCOVERED)) {
+                Log.d(LOGNAME, "GATT connected");
+                connectionState("services connected");
+            }
+
             if (action.equals(NUSService.ACTION_NUS_CONNECTED)) {
                 Log.d(LOGNAME, "NUS connected");
+                connectionState("Onex connected");
                 asyncConnected();
             }
 
@@ -144,6 +159,7 @@ public class EternalService extends Service {
             if (action.equals(NUSService.ACTION_GATT_DISCONNECTED)) {
                 Log.d(LOGNAME, "GATT disconnected");
                 recvBuff.reset();
+                connectionState("BLE disconnected");
                 if(blemac==null) OnexNativeActivity.getBLEMac();
                 else useBLEMac();
             }

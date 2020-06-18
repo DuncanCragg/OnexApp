@@ -12,7 +12,8 @@ bool keyboardUp = false;
 
 extern char* init_onex();
 extern void  loop_onex();
-extern void  set_blemac(char*);
+extern void  connection_state(char*);
+extern void  set_ble_mac(char*);
 extern void  on_alarm_recv(char*);
 
 extern "C" {
@@ -99,11 +100,18 @@ JNIEXPORT void JNICALL Java_network_object_onexapp_EternalService_loopOnex(JNIEn
   loop_onex();
 }
 
+JNIEXPORT void JNICALL Java_network_object_onexapp_EternalService_connectionState(JNIEnv* env, jclass clazz, jstring jstate)
+{
+  char* state = (char*)env->GetStringUTFChars(jstate, 0);
+  connection_state(state);
+  env->ReleaseStringUTFChars(jstate, state);
+}
+
 JNIEXPORT void JNICALL Java_network_object_onexapp_EternalService_setBLEMac(JNIEnv* env, jclass clazz, jstring jblemac)
 {
-  char* blemac = (char*)env->GetStringUTFChars(jblemac, 0);
-  set_blemac(blemac);
-  env->ReleaseStringUTFChars(jblemac, blemac);
+  char* ble_mac = (char*)env->GetStringUTFChars(jblemac, 0);
+  set_ble_mac(ble_mac);
+  env->ReleaseStringUTFChars(jblemac, ble_mac);
 }
 
 JNIEXPORT void JNICALL Java_network_object_onexapp_EternalService_serialOnRecv(JNIEnv* env, jclass clazz, jstring b)
