@@ -13,8 +13,7 @@ bool keyboardUp = false;
 extern char* init_onex();
 extern void  loop_onex();
 extern void  set_blemac(char*);
-
-char* pendingAlarmUID=0;
+extern void  on_alarm_recv(char*);
 
 extern "C" {
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
@@ -188,7 +187,7 @@ JNIEXPORT void JNICALL Java_network_object_onexapp_OnexNativeActivity_onAlarmRec
 {
   const char* uid = env->GetStringUTFChars(juid, 0);
   log_write("onAlarmRecv=%s\n",uid);
-  pendingAlarmUID=strdup(uid);
+  on_alarm_recv(uid);
   env->ReleaseStringUTFChars(juid, uid);
 }
 
