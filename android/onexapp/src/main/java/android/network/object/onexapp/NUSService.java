@@ -53,6 +53,7 @@ public class NUSService extends Service {
 
     private BluetoothManager bluetoothManager;
     private BluetoothAdapter bluetoothAdapter;
+    private String connectingAddress;
     private String bluetoothDeviceAddress;
     private BluetoothGatt bluetoothGATT;
     private int connectionState = STATE_DISCONNECTED;
@@ -89,6 +90,7 @@ public class NUSService extends Service {
                 broadcastUpdate(ACTION_GATT_CONNECTED);
                 connectionState = STATE_CONNECTED;
                 Log.i(LOGNAME, "Connected to GATT server. Attempting to start service discovery");
+                bluetoothDeviceAddress=connectingAddress;
                 bluetoothGATT.discoverServices();
 
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
@@ -238,7 +240,10 @@ public class NUSService extends Service {
             return false;
         }
 
-        bluetoothDeviceAddress = address;
+        close();
+
+        connectingAddress = address;
+
         Log.d(LOGNAME, "connect(): Trying to create a new connection.");
 
         // We want to directly connect to the device, so we are setting the autoConnect parameter to false.
@@ -270,6 +275,7 @@ public class NUSService extends Service {
 
         bluetoothGATT.close();
 
+        connectingAddress = null;
         bluetoothDeviceAddress = null;
         bluetoothGATT = null;
 
