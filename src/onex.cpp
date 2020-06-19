@@ -5,6 +5,7 @@
 extern "C" {
 #include <onex-kernel/time.h>
 #include <onex-kernel/log.h>
+#include <onex-kernel/mem.h>
 #include <onf.h>
 #include <onr.h>
 }
@@ -105,7 +106,7 @@ char* init_onex()
     oclock   =onex_get_from_cache(clockUID);
     bluetooth=onex_get_from_cache(bluetoothUID);
 
-    ble_mac=strdup(object_property(bluetooth, (char*)"mac"));
+    ble_mac=mem_strdup(object_property(bluetooth, (char*)"mac"));
   }
   time_ticker(every_second, 1000);
 
@@ -128,15 +129,15 @@ void on_alarm_recv(char* uid)
 
 void connection_state(char* st)
 {
-  free(ble_state);
-  ble_state=strdup(st);
+  mem_free(ble_state);
+  ble_state=mem_strdup(st);
   onex_run_evaluators(bluetoothUID, 0);
 }
 
 void set_ble_mac(char* bm)
 {
-  free(ble_mac);
-  ble_mac=strdup(bm);
+  mem_free(ble_mac);
+  ble_mac=mem_strdup(bm);
   onex_run_evaluators(bluetoothUID, 0);
 }
 
