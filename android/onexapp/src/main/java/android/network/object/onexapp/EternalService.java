@@ -31,7 +31,7 @@ public class EternalService extends Service {
         return null;
     }
 
-    private static boolean initialised=false;
+    static private boolean initialised=false;
 
     static private String blemac=null;
 
@@ -79,8 +79,11 @@ public class EternalService extends Service {
     private NUSService nusService = null;
 
     private void bindToNUSService() {
+        Log.d(LOGNAME, "bindToNUSService()");
+
         Intent bindIntent = new Intent(this, NUSService.class);
         bindService(bindIntent, serviceConnection, Context.BIND_AUTO_CREATE);
+
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(NUSService.ACTION_GATT_CONNECTING);
         intentFilter.addAction(NUSService.ACTION_GATT_CONNECTED);
@@ -94,29 +97,35 @@ public class EternalService extends Service {
     private ServiceConnection serviceConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder rawBinder) {
             if(nusService !=null){
-              Log.d(LOGNAME, "attempt to set nusService on top of existing");
+              Log.d(LOGNAME, "onServiceConnected(): attempt to set nusService on top of existing");
               return;
             }
+
             nusService = ((NUSService.LocalBinder)rawBinder).getService();
+
             if(!nusService.initialize()){
-              Log.e(LOGNAME, "Unable to initialize NUS service");
+              Log.e(LOGNAME, "onServiceConnected(): Unable to initialize NUS service");
               return;
             }
+
+            Log.d(LOGNAME, "onServiceConnected(): OK");
             useBLEMac();
         }
 
         public void onServiceDisconnected(ComponentName classname) {
+            Log.d(LOGNAME, "onServiceDisconnected()");
             nusService = null;
         }
     };
 
-    public static void onBLEMac(String blemac){
-      EternalService.blemac=blemac;
-      setBLEMac(blemac);
+    public static void onBLEMac(String bm){
+      Log.d(LOGNAME, "onBLEMac("+bm+")");
+      blemac=bm; setBLEMac(blemac);
       self.useBLEMac();
     }
 
     private void useBLEMac(){
+      Log.d(LOGNAME, "useBLEMac["+nusService+", "+blemac+"]");
       if(nusService==null || blemac==null) return;
       if(!nusService.connect(blemac)) Log.d(LOGNAME, "nusService.connect failed");
     }
@@ -127,7 +136,7 @@ public class EternalService extends Service {
             String action = intent.getAction();
 
             if (action.equals(NUSService.ACTION_GATT_CONNECTING)) {
-                Log.d(LOGNAME, "GATT connected");
+                Log.d(LOGNAME, "GATT connecting");
                 connectionState("BLE connecting");
             }
 

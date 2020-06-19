@@ -94,7 +94,9 @@ public class DeviceListActivity extends Activity {
         }
 
         populateList();
+
         emptyList = (TextView) findViewById(R.id.empty);
+
         Button cancelButton = (Button) findViewById(R.id.btn_cancel);
         cancelButton.setOnClickListener(new OnClickListener() {
             @Override
@@ -103,10 +105,11 @@ public class DeviceListActivity extends Activity {
                 else finish();
             }
         });
+
+        scanLeDevice(true);
     }
 
     private void populateList() {
-        Log.d(LOGNAME, "populateList");
         deviceList = new ArrayList<BluetoothDevice>();
         deviceAdapter = new DeviceAdapter(this, deviceList);
         devRssiValues = new HashMap<String, Integer>();
@@ -114,8 +117,6 @@ public class DeviceListActivity extends Activity {
         ListView newDevicesListView = (ListView) findViewById(R.id.new_devices);
         newDevicesListView.setAdapter(deviceAdapter);
         newDevicesListView.setOnItemClickListener(deviceClickListener);
-
-        scanLeDevice(true);
     }
 
     private void scanLeDevice(final boolean enable) {

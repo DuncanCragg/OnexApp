@@ -37,6 +37,7 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
     @Override
     public void onNewIntent(Intent intent){
       super.onNewIntent(intent);
+      Log.d(LOGNAME, "onNewIntent("+intent.getAction()+")");
       if(!"android.hardware.usb.action.USB_DEVICE_ATTACHED".equalsIgnoreCase(intent.getAction())) return;
       EternalService.onUSBAttached(intent);
     }
@@ -78,7 +79,7 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
     static private BluetoothAdapter bluetoothAdapter = null;
 
     static public void getBLEMac(){
-        Log.i(LOGNAME, "getBLEMac");
+        Log.d(LOGNAME, "getBLEMac()");
         if(self==null){
           Log.d(LOGNAME, "calling getBLEMac without a running activity");
           return;
@@ -100,8 +101,8 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+      Log.d(LOGNAME, "onActivityResult()");
       switch (requestCode) {
-
         case REQUEST_ENABLE_BT:
             if (resultCode == Activity.RESULT_OK) {
                 Toast.makeText(this, "Bluetooth enabled", Toast.LENGTH_SHORT).show();
@@ -115,8 +116,10 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
         case REQUEST_SELECT_DEVICE:
             if (resultCode == Activity.RESULT_OK && data != null) {
                 String blemac = data.getStringExtra(BluetoothDevice.EXTRA_DEVICE);
+                Log.d(LOGNAME, "onActivityResult() select device OK: "+blemac);
                 EternalService.onBLEMac(blemac);
             }
+            else Log.d(LOGNAME, "onActivityResult() select device not OK");
             break;
         default:
             Log.e(LOGNAME, "wrong request code");
@@ -235,6 +238,7 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
     }
 
     public void showNotification(String title, String text){
+      Log.d(LOGNAME, "showNotification!!");
       PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, OnexNativeActivity.class), PendingIntent.FLAG_UPDATE_CURRENT);
       Notification.Builder notifbuilder = new Notification.Builder(this, "Notification-Channel-ID");
       notifbuilder.setContentTitle(title)

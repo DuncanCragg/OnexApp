@@ -101,7 +101,7 @@ public class NUSService extends Service {
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                Log.w(LOGNAME, "services discovered");
+                Log.w(LOGNAME, "onServicesDiscovered OK");
                 broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED);
                 enableTXNotification();
             } else {
@@ -113,7 +113,7 @@ public class NUSService extends Service {
         public void onDescriptorWrite(BluetoothGatt gatt,
                                       BluetoothGattDescriptor descriptor,
                                       int status){
-            Log.d(LOGNAME, "onDescriptorWrite callback: "+status+"/"+BluetoothGatt.GATT_SUCCESS);
+            Log.d(LOGNAME, "onDescriptorWrite() callback: "+status+"/"+BluetoothGatt.GATT_SUCCESS);
             byte[] value=descriptor.getValue();
             if(status==BluetoothGatt.GATT_SUCCESS && Arrays.equals(value, BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)){
                 broadcastUpdate(ACTION_NUS_CONNECTED);
@@ -142,7 +142,7 @@ public class NUSService extends Service {
               writeAChunk();
             }
             else {
-              Log.w(LOGNAME, "onCharacteristicWrite "+status+"!=SUCCESS");
+              Log.w(LOGNAME, "onCharacteristicWrite() "+status+"!=SUCCESS");
             }
         }
     };
@@ -188,8 +188,7 @@ public class NUSService extends Service {
      * @return Return true if the initialization is successful.
      */
     public boolean initialize() {
-        // For API level 18 and above, get a reference to BluetoothAdapter through
-        // BluetoothManager.
+        Log.d(LOGNAME, "initialize() NUSService");
         if (bluetoothManager == null) {
             bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
             if (bluetoothManager == null) {
@@ -197,7 +196,6 @@ public class NUSService extends Service {
                 return false;
             }
         }
-
         bluetoothAdapter = bluetoothManager.getAdapter();
         if (bluetoothAdapter == null) {
             Log.e(LOGNAME, "Unable to obtain a BluetoothAdapter.");
@@ -219,12 +217,12 @@ public class NUSService extends Service {
      */
     public boolean connect(final String address) {
         if (bluetoothAdapter == null || address == null) {
-            Log.w(LOGNAME, "BluetoothAdapter not initialized or unspecified address.");
+            Log.w(LOGNAME, "connect(): BluetoothAdapter not initialized or unspecified address.");
             return false;
         }
 
         if (bluetoothDeviceAddress != null && address.equals(bluetoothDeviceAddress) && bluetoothGATT != null) {
-            Log.d(LOGNAME, "Trying to use an existing bluetoothGATT for connection.");
+            Log.d(LOGNAME, "connect(): Trying to use an existing bluetoothGATT for connection.");
             if (bluetoothGATT.connect()) {
                 broadcastUpdate(ACTION_GATT_CONNECTING);
                 connectionState = STATE_CONNECTING;
@@ -236,90 +234,66 @@ public class NUSService extends Service {
 
         final BluetoothDevice device = bluetoothAdapter.getRemoteDevice(address);
         if (device == null) {
-            Log.w(LOGNAME, "Device not found.  Unable to connect.");
+            Log.w(LOGNAME, "connect(): Device not found.  Unable to connect.");
             return false;
         }
+
+        bluetoothDeviceAddress = address;
+        Log.d(LOGNAME, "connect(): Trying to create a new connection.");
+
         // We want to directly connect to the device, so we are setting the autoConnect parameter to false.
         bluetoothGATT = device.connectGatt(this, false, gattCallback);
-        Log.d(LOGNAME, "Trying to create a new connection.");
-        bluetoothDeviceAddress = address;
+
         broadcastUpdate(ACTION_GATT_CONNECTING);
         connectionState = STATE_CONNECTING;
         return true;
     }
 
-    /**
-     * Disconnects an existing connection or cancel a pending connection. The disconnection result
-     * is reported asynchronously through the
-     * {@code BluetoothGattCallback#onConnectionStateChange(android.bluetooth.BluetoothGatt, int, int)}
-     * callback.
-     */
-    public void disconnect() {
+    public boolean disconnect() {
         if (bluetoothAdapter == null || bluetoothGATT == null) {
-            Log.w(LOGNAME, "BluetoothAdapter not initialized");
-            return;
+            Log.w(LOGNAME, "disconnect(): BluetoothAdapter not initialized or no connection to disconnect");
+            return false;
         }
+        Log.d(LOGNAME, "bluetoothGATT.disconnect()");
+
         bluetoothGATT.disconnect();
-       // bluetoothGATT.close();
+
+        return true;
     }
 
-    /**
-     * After using a given BLE device, the app must call this method to ensure resources are
-     * released properly.
-     */
-    public void close() {
-        if (bluetoothGATT == null) {
-            return;
-        }
-        Log.w(LOGNAME, "bluetoothGATT closed");
-        bluetoothDeviceAddress = null;
-        bluetoothGATT.close();
-        bluetoothGATT = null;
-    }
-
-    /**
-     * Request a read on a given {@code BluetoothGattCharacteristic}. The read result is reported
-     * asynchronously through the {@code BluetoothGattCallback#onCharacteristicRead(android.bluetooth.BluetoothGatt, android.bluetooth.BluetoothGattCharacteristic, int)}
-     * callback.
-     *
-     * @param characteristic The characteristic to read from.
-     */
-    public void readCharacteristic(BluetoothGattCharacteristic characteristic) {
+    public boolean close() {
         if (bluetoothAdapter == null || bluetoothGATT == null) {
-            Log.w(LOGNAME, "BluetoothAdapter not initialized");
-            return;
+            Log.w(LOGNAME, "close(): BluetoothAdapter not initialized or no connection to close");
+            return false;
         }
-        bluetoothGATT.readCharacteristic(characteristic);
+        Log.w(LOGNAME, "bluetoothGATT.close()");
+
+        bluetoothGATT.close();
+
+        bluetoothDeviceAddress = null;
+        bluetoothGATT = null;
+
+        return true;
     }
 
-    /**
-     * Enables or disables notification on a give characteristic.
-     *
-    */
-
-    /**
-     * Enable Notification on TX characteristic
-     *
-     * @return
-     */
-    public void enableTXNotification()
-    {
+    public void enableTXNotification(){
         if (bluetoothGATT == null) {
-            Log.e(LOGNAME, "bluetoothGATT null");
+            Log.e(LOGNAME, "enableTXNotification(): bluetoothGATT null");
             return;
         }
         BluetoothGattService RxService = bluetoothGATT.getService(RX_SERVICE_UUID);
         if (RxService == null) {
-            Log.e(LOGNAME, "Rx service not found!");
+            Log.e(LOGNAME, "enableTXNotification(): Rx service not found");
             return;
         }
         BluetoothGattCharacteristic TxChar = RxService.getCharacteristic(TX_CHAR_UUID);
         if (TxChar == null) {
-            Log.e(LOGNAME, "Tx characteristic not found!");
+            Log.e(LOGNAME, "enableTXNotification(): Tx characteristic not found");
             return;
         }
         boolean ok=bluetoothGATT.setCharacteristicNotification(TxChar,true);
-        if(!ok) Log.d(LOGNAME, "setCharacteristicNotification failed");
+        if(!ok) Log.d(LOGNAME, "enableTXNotification(): setCharacteristicNotification failed");
+        else    Log.d(LOGNAME, "enableTXNotification(): setCharacteristicNotification OK");
 
         BluetoothGattDescriptor descriptor = TxChar.getDescriptor(CCCD);
         descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
@@ -332,12 +306,12 @@ public class NUSService extends Service {
 
     public synchronized void write(byte[] value){
       if(connectionState!=STATE_CONNECTED){
-        Log.d(LOGNAME, "write when not connected");
+        Log.d(LOGNAME, "write(): not connected");
         writesInProgress=false;
         return;
       }
       if(writeChunks.size() >100){
-        Log.d(LOGNAME, "Write buffer full!");
+        Log.d(LOGNAME, "write(): buffer full!");
         if(!writesInProgress) writeAChunk();
         return;
       }
@@ -365,7 +339,7 @@ public class NUSService extends Service {
         writesInProgress=true;
       }
       else{
-        Log.d(LOGNAME, "Can't send "+new String(slice));
+        Log.d(LOGNAME, "writeAChunk(): Can't send "+new String(slice));
         writesInProgress=false;
       }
     }
@@ -373,21 +347,21 @@ public class NUSService extends Service {
     public boolean writeRXCharacteristic(byte[] value)
     {
         if(connectionState!=STATE_CONNECTED){
-            Log.d(LOGNAME, "writeRXCharacteristic when disconnected ");
+            Log.d(LOGNAME, "writeRXCharacteristic(): disconnected");
             return false;
         }
         if (bluetoothGATT == null) {
-            Log.e(LOGNAME, "NUS GATT not there");
+            Log.e(LOGNAME, "writeRXCharacteristic(): NUS GATT not there");
             return false;
         }
         BluetoothGattService RxService = bluetoothGATT.getService(RX_SERVICE_UUID);
         if (RxService == null) {
-            Log.e(LOGNAME, "Rx service not found!");
+            Log.e(LOGNAME, "writeRXCharacteristic(): Rx service not found");
             return false;
         }
         BluetoothGattCharacteristic RxChar = RxService.getCharacteristic(RX_CHAR_UUID);
         if (RxChar == null) {
-            Log.e(LOGNAME, "Rx characteristic not found!");
+            Log.e(LOGNAME, "writeRXCharacteristic(): Rx characteristic not found");
             return false;
         }
 
@@ -395,16 +369,5 @@ public class NUSService extends Service {
         boolean status = bluetoothGATT.writeCharacteristic(RxChar);
 
         return status;
-    }
-
-    /**
-     * Retrieves a list of supported GATT services on the connected device. This should be
-     * invoked only after {@code BluetoothGatt#discoverServices()} completes successfully.
-     *
-     * @return A {@code List} of supported services.
-     */
-    public List<BluetoothGattService> getSupportedGattServices() {
-        if (bluetoothGATT == null) return null;
-        return bluetoothGATT.getServices();
     }
 }
