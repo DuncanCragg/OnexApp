@@ -144,8 +144,8 @@ void set_ble_mac(char* bm)
 
 bool evaluate_bluetooth_in(object* o, void* d)
 {
-  object_property_set(bluetooth, (char*)"state", ble_state);
-  object_property_set(bluetooth, (char*)"mac",   ble_mac);
+  if(ble_state) object_property_set(bluetooth, (char*)"state", ble_state);
+  if(ble_mac)   object_property_set(bluetooth, (char*)"mac",   ble_mac);
   return true;
 }
 
