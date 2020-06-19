@@ -88,6 +88,18 @@ void serial_send(char* buff)
   if(attached) javaVM->DetachCurrentThread();
 }
 
+void ensureBluetoothConnecting()
+{
+  JNIEnv* env;
+  bool attached=maybeAttachCurrentThreadAndFetchEnv(&env);
+  if(!env) return;
+
+  jmethodID method = env->GetStaticMethodID(eternalServiceClass, "ensureBluetoothConnecting", "()V");
+  env->CallStaticVoidMethod(eternalServiceClass, method);
+
+  if(attached) javaVM->DetachCurrentThread();
+}
+
 JNIEXPORT jstring JNICALL Java_network_object_onexapp_EternalService_initOnex(JNIEnv* env, jclass clazz)
 {
   char* blemac=init_onex();

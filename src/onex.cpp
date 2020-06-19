@@ -28,6 +28,7 @@ static bool evaluate_bluetooth_out(object* o, void* d);
 static void every_second(){ onex_run_evaluators(clockUID, 0); }
 
 extern "C" void sprintExternalStorageDirectory(char* buf, int buflen, const char* format);
+extern "C" void ensureBluetoothConnecting();
 
 static char* ble_state=0;
 static char* ble_mac=0;
@@ -151,6 +152,11 @@ bool evaluate_bluetooth_in(object* o, void* d)
 
 bool evaluate_bluetooth_out(object* o, void* d)
 {
+#if defined(__ANDROID__)
+  if(object_property_is(bluetooth, (char*)"state:2", (char*)"connecting")){
+    ensureBluetoothConnecting();
+  }
+#endif
   return true;
 }
 
