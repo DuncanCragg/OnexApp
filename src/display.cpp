@@ -59,10 +59,10 @@ void draw_light(char* path, int16_t width)
 
 void draw_bluetooth(char* path, int16_t width)
 {
-  char pathstate2[128]; snprintf(pathstate2, 128, "%s:state:2", path);
+  char pathstate[128];  snprintf(pathstate,  128, "%s:state", path);
   char pathmac[128];    snprintf(pathmac,    128, "%s:mac",     path);
 
-  bool connected=object_property_is(user, pathstate2, (char*)"connected");
+  bool connected=object_property_contains(user, pathstate, (char*)"connected");
 
   char* mac=object_property(user, pathmac);
 
@@ -85,7 +85,7 @@ void draw_bluetooth(char* path, int16_t width)
     }
     char keyId[256]; snprintf(keyId, 256, "%s ## bluetooth %s", mac? mac: "Bluetooth", path);
     if(ImGui::Button(keyId, ImVec2(300, 200-OUTER_PADDING*2))){
-      log_write("turn off bt\n");
+      set_new_value(pathstate, (char*)"BLE connecting", true);
     }
     ImGui::PopStyleColor(4);
   }
