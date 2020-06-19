@@ -22,7 +22,8 @@ char* bluetoothUID=0;
 extern bool evaluate_default(object* o, void* d);
 extern bool evaluate_user(object* o, void* d);
 extern bool evaluate_event(object* o, void* d);
-static bool evaluate_bluetooth_io(object* o, void* d);
+static bool evaluate_bluetooth_in(object* o, void* d);
+static bool evaluate_bluetooth_out(object* o, void* d);
 
 static void every_second(){ onex_run_evaluators(clockUID, 0); }
 
@@ -33,13 +34,13 @@ static char* ble_mac=0;
 
 char* init_onex()
 {
-  onex_set_evaluators((char*)"default",   evaluate_object_setter, evaluate_default, 0);
-  onex_set_evaluators((char*)"device",                            evaluate_device_logic, 0);
-  onex_set_evaluators((char*)"user",                              evaluate_user, 0);
-  onex_set_evaluators((char*)"clock",     evaluate_object_setter, evaluate_clock, 0);
-  onex_set_evaluators((char*)"event",     evaluate_object_setter, evaluate_event, 0);
-  onex_set_evaluators((char*)"light",     evaluate_object_setter, evaluate_light_logic, 0);
-  onex_set_evaluators((char*)"bluetooth", evaluate_bluetooth_io,                        0);
+  onex_set_evaluators((char*)"default",                          evaluate_object_setter, evaluate_default, 0);
+  onex_set_evaluators((char*)"device",                                                   evaluate_device_logic, 0);
+  onex_set_evaluators((char*)"user",                                                     evaluate_user, 0);
+  onex_set_evaluators((char*)"clock",                            evaluate_object_setter, evaluate_clock, 0);
+  onex_set_evaluators((char*)"event",                            evaluate_object_setter, evaluate_event, 0);
+  onex_set_evaluators((char*)"light",                            evaluate_object_setter, evaluate_light_logic, 0);
+  onex_set_evaluators((char*)"bluetooth", evaluate_bluetooth_in, evaluate_object_setter,                       evaluate_bluetooth_out, 0);
 
 #if defined(__ANDROID__)
   char dbpath[128];
@@ -141,10 +142,15 @@ void set_ble_mac(char* bm)
   onex_run_evaluators(bluetoothUID, 0);
 }
 
-bool evaluate_bluetooth_io(object* o, void* d)
+bool evaluate_bluetooth_in(object* o, void* d)
 {
   object_property_set(bluetooth, (char*)"state", ble_state);
   object_property_set(bluetooth, (char*)"mac",   ble_mac);
+  return true;
+}
+
+bool evaluate_bluetooth_out(object* o, void* d)
+{
   return true;
 }
 
