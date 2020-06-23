@@ -208,7 +208,6 @@ public class DeviceListActivity extends Activity {
 
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-            BluetoothDevice device = deviceList.get(position);
             bluetoothAdapter.getBluetoothLeScanner().stopScan(leScanCallback);
 
             Bundle b = new Bundle();
