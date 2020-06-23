@@ -205,20 +205,21 @@ public class DeviceListActivity extends Activity {
     }
 
     private OnItemClickListener deviceClickListener = new OnItemClickListener() {
-
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
             bluetoothAdapter.getBluetoothLeScanner().stopScan(leScanCallback);
-
-            Bundle b = new Bundle();
-            b.putString(BluetoothDevice.EXTRA_DEVICE, deviceList.get(position).getAddress());
-
-            Intent result = new Intent();
-            result.putExtras(b);
-            setResult(Activity.RESULT_OK, result);
-            finish();
+            finishWith(deviceList.get(position).getAddress());
         }
     };
+
+    private void finishWith(String address){
+      Bundle b = new Bundle();
+      b.putString(BluetoothDevice.EXTRA_DEVICE, address);
+      Intent result = new Intent();
+      result.putExtras(b);
+      setResult(Activity.RESULT_OK, result);
+      finish();
+    }
 
     protected void onPause() {
         super.onPause();
