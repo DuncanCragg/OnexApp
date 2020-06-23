@@ -63,8 +63,6 @@ public class EternalService extends Service {
 
                bindToNUSService();
 
-               useBLEMac();
-
                Log.d(LOGNAME, "============== calling loopOnex()");
                loopOnex();
              }
@@ -105,8 +103,8 @@ public class EternalService extends Service {
               Log.e(LOGNAME, "onServiceConnected(): Unable to initialize NUS service");
               return;
             }
-
             Log.d(LOGNAME, "onServiceConnected(): OK");
+
             useBLEMac();
         }
 
