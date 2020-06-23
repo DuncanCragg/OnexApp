@@ -34,6 +34,7 @@ public class EternalService extends Service {
     static private boolean initialised=false;
 
     static private boolean connecting=false;
+    static private boolean reconnecting=false;
 
     static private String blemac=null;
 
@@ -111,6 +112,7 @@ public class EternalService extends Service {
         public void onServiceDisconnected(ComponentName classname) {
             Log.d(LOGNAME, "onServiceDisconnected()");
             connecting=false;
+            reconnecting=false;
             nusService = null;
         }
     };
@@ -119,6 +121,7 @@ public class EternalService extends Service {
       Log.d(LOGNAME, "onBLEMacSelected("+bm+")");
       if(bm.equals("00:00:00:00:00:00")){
         connecting=false;
+        reconnecting=false;
         connectionState("BLE disconnected");
         blemac=null;
         return;
@@ -134,9 +137,9 @@ public class EternalService extends Service {
     }
 
     static public void ensureBluetoothConnecting(){
-      Log.d(LOGNAME, "ensureBluetoothConnecting() connecting="+connecting);
-      if(connecting) return;
-      connecting=true;
+      Log.d(LOGNAME, "ensureBluetoothConnecting() connecting="+connecting+" reconnecting="+reconnecting);
+      if(reconnecting) return;
+      reconnecting=true;
       blemac=null; setBLEMac("");
       if(self.nusService.disconnect()){
         Log.d(LOGNAME, "ensureBluetoothConnecting(): disconnecting..");
@@ -150,6 +153,7 @@ public class EternalService extends Service {
       Log.d(LOGNAME, "BT off");
       self.nusService.close();
       connecting=false;
+      reconnecting=false;
       connectionState("BLE disconnected");
     }
 
@@ -172,18 +176,21 @@ public class EternalService extends Service {
             if (action.equals(NUSService.ACTION_GATT_CONNECTED)) {
                 Log.d(LOGNAME, "GATT connected");
                 connecting=false;
+                reconnecting=false;
                 connectionState("BLE connected");
             }
 
             if (action.equals(NUSService.ACTION_GATT_SERVICES_DISCOVERED)) {
                 Log.d(LOGNAME, "GATT connected");
                 connecting=false;
+                reconnecting=false;
                 connectionState("services connected");
             }
 
             if (action.equals(NUSService.ACTION_NUS_CONNECTED)) {
                 Log.d(LOGNAME, "NUS connected");
                 connecting=false;
+                reconnecting=false;
                 connectionState("Onex connected");
                 asyncConnected();
             }
@@ -200,8 +207,8 @@ public class EternalService extends Service {
             if (action.equals(NUSService.ACTION_GATT_DISCONNECTED)) {
                 Log.d(LOGNAME, "GATT disconnected");
                 recvBuff.reset();
-                connectionState("BLE disconnected");
-                if(connecting) self.nusService.close();
+                if(reconnecting) self.nusService.close();
+                else connectionState("BLE disconnected");
                 if(blemac==null) OnexNativeActivity.selectBLEMac();
                 else connectBLEMac();
             }

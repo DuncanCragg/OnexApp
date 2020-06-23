@@ -85,7 +85,7 @@ void draw_bluetooth(char* path, int16_t width)
     }
     char keyId[256]; snprintf(keyId, 256, "%s ## bluetooth %s", mac? mac: "Bluetooth", path);
     if(ImGui::Button(keyId, ImVec2(300, 200-OUTER_PADDING*2))){
-      set_new_value(pathstate, (char*)"BLE connecting", true);
+      set_new_value(pathstate, (char*)"BLE reconnecting", true);
     }
     ImGui::PopStyleColor(4);
   }

@@ -153,7 +153,9 @@ bool evaluate_bluetooth_in(object* o, void* d)
 bool evaluate_bluetooth_out(object* o, void* d)
 {
 #if defined(__ANDROID__)
-  if(object_property_is(bluetooth, (char*)"state:2", (char*)"connecting")){
+  if(object_property_is(bluetooth, (char*)"state:2", (char*)"reconnecting")){
+    mem_free(ble_state);
+    ble_state=mem_strdup("BLE reconnecting");
     ensureBluetoothConnecting();
   }
 #endif
