@@ -110,6 +110,7 @@ public class EternalService extends Service {
 
         public void onServiceDisconnected(ComponentName classname) {
             Log.d(LOGNAME, "onServiceDisconnected()");
+            connecting=false;
             nusService = null;
         }
     };
