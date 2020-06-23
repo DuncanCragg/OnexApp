@@ -84,19 +84,22 @@ public class NUSService extends Service {
     private final BluetoothGattCallback gattCallback = new BluetoothGattCallback() {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-            Log.d(LOGNAME, "onConnectionStateChange: "+status+"/"+newState);
-
+            if(status != GATT_SUCCESS) {
+              Log.d(LOGNAME, "onConnectionStateChange FAIL: "+status+"/"+newState);
+              close();
+              return;
+            }
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 broadcastUpdate(ACTION_GATT_CONNECTED);
                 connectionState = STATE_CONNECTED;
-                Log.i(LOGNAME, "Connected to GATT server. Attempting to start service discovery");
+                Log.i(LOGNAME, "onConnectionStateChange Connected to GATT server. Attempting to start service discovery");
                 bluetoothDeviceAddress=connectingAddress;
                 bluetoothGATT.discoverServices();
-
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 broadcastUpdate(ACTION_GATT_DISCONNECTED);
                 connectionState = STATE_DISCONNECTED;
-                Log.i(LOGNAME, "Disconnected from GATT server.");
+                Log.i(LOGNAME, "onConnectionStateChange Disconnected from GATT server, closing...");
+                close();
             }
         }
 
@@ -107,7 +110,8 @@ public class NUSService extends Service {
                 broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED);
                 enableTXNotification();
             } else {
-                Log.w(LOGNAME, "onServicesDiscovered received: " + status);
+                Log.w(LOGNAME, "onServicesDiscovered FAIL: " + status);
+                disconnect();
             }
         }
 
@@ -247,7 +251,7 @@ public class NUSService extends Service {
         Log.d(LOGNAME, "connect(): Trying to create a new connection.");
 
         // We want to directly connect to the device, so we are setting the autoConnect parameter to false.
-        bluetoothGATT = device.connectGatt(this, false, gattCallback);
+        bluetoothGATT = device.connectGatt(this, false, gattCallback, BluetoothDevice.TRANSPORT_LE);
 
         broadcastUpdate(ACTION_GATT_CONNECTING);
         connectionState = STATE_CONNECTING;
