@@ -13,7 +13,7 @@ import android.util.Log;
 import static android.content.Context.JOB_SCHEDULER_SERVICE;
 
 public class EternalServiceRestarter extends BroadcastReceiver {
-    private static String LOGNAME="EternalServiceRestarter";
+    private static String LOGNAME="Onex EternalServiceRestarter";
 
     private static JobScheduler jobScheduler;
 

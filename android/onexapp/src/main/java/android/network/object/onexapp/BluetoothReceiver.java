@@ -7,7 +7,7 @@ import android.content.Intent;
 import android.bluetooth.BluetoothAdapter;
 
 public class BluetoothReceiver extends BroadcastReceiver {
-    private static String LOGNAME="BluetoothReceiver";
+    private static String LOGNAME="Onex BluetoothReceiver";
 
     @Override
     public void onReceive(Context context, Intent intent) {

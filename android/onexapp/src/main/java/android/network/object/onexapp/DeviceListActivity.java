@@ -58,7 +58,7 @@ public class DeviceListActivity extends Activity {
     private BluetoothAdapter bluetoothAdapter;
 
     private TextView emptyList;
-    public static final String LOGNAME = "DeviceListActivity";
+    public static final String LOGNAME = "Onex DeviceListActivity";
 
     List<BluetoothDevice> deviceList;
     private DeviceAdapter deviceAdapter;

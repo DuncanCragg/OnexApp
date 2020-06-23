@@ -7,7 +7,7 @@ import android.content.Intent;
 import android.util.Log;
 
 public class EternalServiceJob extends android.app.job.JobService {
-    private static String LOGNAME="EternalServiceJob";
+    private static String LOGNAME="Onex EternalServiceJob";
 
     @Override
     public boolean onStartJob(JobParameters jobParameters) {

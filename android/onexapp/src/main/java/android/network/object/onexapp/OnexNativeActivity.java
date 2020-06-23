@@ -22,14 +22,14 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
 
     static OnexNativeActivity self=null;
 
-    public static final String LOGNAME = "OnexNativeActivity";
+    public static final String LOGNAME = "Onex OnexNativeActivity";
 
     private static final int REQUEST_SELECT_DEVICE = 1;
     private static final int REQUEST_ENABLE_BT = 2;
 
     @Override
     public void onCreate(Bundle savedInstanceState){
-        super.onCreate(savedInstanceState); System.out.println("onCreate");
+        super.onCreate(savedInstanceState); Log.d(LOGNAME, "onCreate");
         self=this;
         setUpKeyboardView();
     }
@@ -44,33 +44,33 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
 
     @Override
     public void onRestart(){
-        super.onRestart(); System.out.println("onRestart");
+        super.onRestart(); Log.d(LOGNAME, "onRestart");
     }
 
     @Override
     public void onStart(){
-        super.onStart(); System.out.println("onStart");
+        super.onStart(); Log.d(LOGNAME, "onStart");
     }
 
     @Override
     public void onResume(){
-        super.onResume(); System.out.println("onResume");
+        super.onResume(); Log.d(LOGNAME, "onResume");
         sendBroadcast(new Intent("network.object.onexapp.eternal.restart"));
     }
 
     @Override
     public void onPause(){
-        super.onPause(); System.out.println("onPause");
+        super.onPause(); Log.d(LOGNAME, "onPause");
     }
 
     @Override
     public void onStop(){
-        super.onStop(); System.out.println("onStop");
+        super.onStop(); Log.d(LOGNAME, "onStop");
     }
 
     @Override
     public void onDestroy(){
-        super.onDestroy(); System.out.println("onDestroy");
+        super.onDestroy(); Log.d(LOGNAME, "onDestroy");
         self=null;
     }
 

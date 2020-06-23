@@ -20,7 +20,7 @@ import com.felhr.usbserial.UsbSerialInterface;
 import com.felhr.usbserial.UsbSerialDevice;
 
 public class EternalService extends Service {
-    private static String LOGNAME = "EternalService";
+    private static String LOGNAME = "Onex EternalService";
     public static final boolean logReadWrite = true;
 
     static private EternalService self=null;
@@ -226,8 +226,8 @@ public class EternalService extends Service {
       UsbInterface interf = device.getInterface(0);
       connection.claimInterface(interf, true);
       serialPort = UsbSerialDevice.createUsbSerialDevice(device, connection);
-      if(serialPort == null) { System.out.println("No serial port!"); return; }
-      if(!serialPort.open()) { System.out.println("Could not open serial port!"); return; }
+      if(serialPort == null) { Log.e(LOGNAME, "No serial port!"); return; }
+      if(!serialPort.open()) { Log.e(LOGNAME, "Could not open serial port!"); return; }
       serialPort.setBaudRate(9600);
       serialPort.setDataBits(UsbSerialInterface.DATA_BITS_8);
       serialPort.setStopBits(UsbSerialInterface.STOP_BITS_1);

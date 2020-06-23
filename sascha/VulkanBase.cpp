@@ -8,6 +8,9 @@
 
 #include "VulkanBase.h"
 
+#undef LOGD
+#define LOGD(...) ((void)__android_log_print(ANDROID_LOG_DEBUG, "Onex VulkanBase", __VA_ARGS__))
+
 std::vector<const char*> VulkanBase::args;
 
 VkResult VulkanBase::createInstance(bool enableValidation)

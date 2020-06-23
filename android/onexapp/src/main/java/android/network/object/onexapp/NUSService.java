@@ -49,7 +49,7 @@ import java.lang.Math;
  * given Bluetooth LE device.
  */
 public class NUSService extends Service {
-    private final static String LOGNAME = "BLE NUS";
+    private final static String LOGNAME = "Onex NUSService";
 
     private BluetoothManager bluetoothManager;
     private BluetoothAdapter bluetoothAdapter;
