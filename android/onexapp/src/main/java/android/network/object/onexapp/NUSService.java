@@ -85,7 +85,9 @@ public class NUSService extends Service {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             if(status != BluetoothGatt.GATT_SUCCESS) {
-              Log.d(LOGNAME, "onConnectionStateChange FAIL: "+status+"/"+newState);
+              broadcastUpdate(ACTION_GATT_DISCONNECTED);
+              connectionState = STATE_DISCONNECTED;
+              Log.d(LOGNAME, "onConnectionStateChange FAIL: status="+status+" newState="+newState+" closing...");
               close();
               return;
             }
@@ -119,7 +121,7 @@ public class NUSService extends Service {
         public void onDescriptorWrite(BluetoothGatt gatt,
                                       BluetoothGattDescriptor descriptor,
                                       int status){
-            Log.d(LOGNAME, "onDescriptorWrite() callback: "+status+"/"+BluetoothGatt.GATT_SUCCESS);
+            Log.d(LOGNAME, "onDescriptorWrite() callback: status="+status);
             byte[] value=descriptor.getValue();
             if(status==BluetoothGatt.GATT_SUCCESS && Arrays.equals(value, BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)){
                 broadcastUpdate(ACTION_NUS_CONNECTED);
