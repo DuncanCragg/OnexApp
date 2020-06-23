@@ -105,7 +105,7 @@ public class EternalService extends Service {
             }
             Log.d(LOGNAME, "onServiceConnected(): OK");
 
-            useBLEMac();
+            connectBLEMac();
         }
 
         public void onServiceDisconnected(ComponentName classname) {
@@ -124,11 +124,11 @@ public class EternalService extends Service {
         return;
       }
       blemac=bm; setBLEMac(blemac);
-      self.useBLEMac();
+      self.connectBLEMac();
     }
 
-    private void useBLEMac(){
-      Log.d(LOGNAME, "useBLEMac["+nusService+", "+blemac+"]");
+    private void connectBLEMac(){
+      Log.d(LOGNAME, "connectBLEMac["+nusService+", "+blemac+"]");
       if(nusService==null || blemac==null) return;
       if(!nusService.connect(blemac)) Log.d(LOGNAME, "nusService.connect failed");
     }
@@ -142,7 +142,7 @@ public class EternalService extends Service {
         Log.d(LOGNAME, "ensureBluetoothConnecting(): disconnecting..");
       }else{
         Log.d(LOGNAME, "ensureBluetoothConnecting(): not yet connected");
-        OnexNativeActivity.getBLEMac();
+        OnexNativeActivity.selectBLEMac();
       }
     }
 
@@ -155,7 +155,7 @@ public class EternalService extends Service {
 
     static public void bluetoothOn(){
       Log.d(LOGNAME, "BT on");
-      self.useBLEMac();
+      self.connectBLEMac();
     }
 
     private final BroadcastReceiver NUSStatusChangeReceiver = new BroadcastReceiver() {
@@ -202,8 +202,8 @@ public class EternalService extends Service {
                 recvBuff.reset();
                 connectionState("BLE disconnected");
                 if(connecting) self.nusService.close();
-                if(blemac==null) OnexNativeActivity.getBLEMac();
-                else useBLEMac();
+                if(blemac==null) OnexNativeActivity.selectBLEMac();
+                else connectBLEMac();
             }
         }
     };

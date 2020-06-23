@@ -78,10 +78,10 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
 
     static private BluetoothAdapter bluetoothAdapter = null;
 
-    static public void getBLEMac(){
-        Log.d(LOGNAME, "getBLEMac()");
+    static public void selectBLEMac(){
+        Log.d(LOGNAME, "selectBLEMac()");
         if(self==null){
-          Log.d(LOGNAME, "calling getBLEMac without a running activity");
+          Log.d(LOGNAME, "calling selectBLEMac without a running activity");
           return;
         }
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
