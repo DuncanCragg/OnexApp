@@ -141,6 +141,18 @@ public class EternalService extends Service {
       }
     }
 
+    static public void bluetoothOff(){
+      Log.d(LOGNAME, "BT off");
+      self.nusService.close();
+      connecting=false;
+      connectionState("BLE disconnected");
+    }
+
+    static public void bluetoothOn(){
+      Log.d(LOGNAME, "BT on");
+      self.useBLEMac();
+    }
+
     private final BroadcastReceiver NUSStatusChangeReceiver = new BroadcastReceiver() {
 
         public void onReceive(Context context, Intent intent) {

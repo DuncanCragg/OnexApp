@@ -62,6 +62,13 @@
         </intent-filter>
     </receiver>
 
+    <receiver android:name=".BluetoothReceiver"
+              android:enabled="true">
+        <intent-filter>
+          <action android:name="android.bluetooth.adapter.action.STATE_CHANGED"/>
+        </intent-filter>
+    </receiver>
+
     <service
         android:name=".EternalService"
         android:clearTaskOnLaunch="true"
