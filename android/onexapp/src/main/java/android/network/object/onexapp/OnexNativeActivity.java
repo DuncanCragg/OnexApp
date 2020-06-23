@@ -166,7 +166,7 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
 
     private KeyboardView kbdView;
 
-    public void delay(int ms){ try{ Thread.sleep(ms); }catch(Exception e){}; }
+    static public void delay(int ms){ try{ Thread.sleep(ms); }catch(Exception e){}; }
 
     public void setUpKeyboardView(){
         kbdView = new KeyboardView(this);

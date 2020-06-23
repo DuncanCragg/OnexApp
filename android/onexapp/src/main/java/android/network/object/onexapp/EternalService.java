@@ -143,6 +143,13 @@ public class EternalService extends Service {
       blemac=null; setBLEMac("");
       if(self.nusService.disconnect()){
         Log.d(LOGNAME, "ensureBluetoothConnecting(): disconnecting..");
+        if(connecting){
+          OnexNativeActivity.delay(10);
+          Log.d(LOGNAME, "ensureBluetoothConnecting(): already reconnecting; closing");
+          self.nusService.close();
+          connecting=false;
+          OnexNativeActivity.selectBLEMac();
+        }
       }else{
         Log.d(LOGNAME, "ensureBluetoothConnecting(): not yet connected");
         OnexNativeActivity.selectBLEMac();
