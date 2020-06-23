@@ -119,7 +119,10 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
                 Log.d(LOGNAME, "onActivityResult() select device OK: "+blemac);
                 EternalService.onBLEMacSelected(blemac);
             }
-            else Log.d(LOGNAME, "onActivityResult() select device not OK");
+            else {
+                Log.d(LOGNAME, "onActivityResult() select device not OK");
+                EternalService.onBLEMacSelected("00:00:00:00:00:00");
+            }
             break;
         default:
             Log.e(LOGNAME, "wrong request code");
