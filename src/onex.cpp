@@ -133,6 +133,7 @@ void connection_state(char* st)
 {
   mem_free(ble_state);
   ble_state=mem_strdup(st);
+  log_write("connection state=%s\n", ble_state);
   onex_run_evaluators(bluetoothUID, 0);
 }
 
