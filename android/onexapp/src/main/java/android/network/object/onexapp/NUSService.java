@@ -85,23 +85,23 @@ public class NUSService extends Service {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             if(status != BluetoothGatt.GATT_SUCCESS) {
-              broadcastUpdate(ACTION_GATT_DISCONNECTED);
-              connectionState = STATE_DISCONNECTED;
               Log.d(LOGNAME, "onConnectionStateChange FAIL: status="+status+" newState="+newState+" closing...");
               close();
+              connectionState = STATE_DISCONNECTED;
+              broadcastUpdate(ACTION_GATT_DISCONNECTED);
               return;
             }
             if (newState == BluetoothProfile.STATE_CONNECTED) {
-                broadcastUpdate(ACTION_GATT_CONNECTED);
-                connectionState = STATE_CONNECTED;
                 Log.i(LOGNAME, "onConnectionStateChange Connected to GATT server. Attempting to start service discovery");
+                connectionState = STATE_CONNECTED;
+                broadcastUpdate(ACTION_GATT_CONNECTED);
                 bluetoothDeviceAddress=connectingAddress;
                 bluetoothGATT.discoverServices();
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                broadcastUpdate(ACTION_GATT_DISCONNECTED);
-                connectionState = STATE_DISCONNECTED;
                 Log.i(LOGNAME, "onConnectionStateChange Disconnected from GATT server, closing...");
                 close();
+                connectionState = STATE_DISCONNECTED;
+                broadcastUpdate(ACTION_GATT_DISCONNECTED);
             }
         }
 
@@ -232,8 +232,8 @@ public class NUSService extends Service {
         if (bluetoothDeviceAddress != null && address.equals(bluetoothDeviceAddress) && bluetoothGATT != null) {
             Log.d(LOGNAME, "connect(): Trying to use an existing bluetoothGATT for connection.");
             if (bluetoothGATT.connect()) {
-                broadcastUpdate(ACTION_GATT_CONNECTING);
                 connectionState = STATE_CONNECTING;
+                broadcastUpdate(ACTION_GATT_CONNECTING);
                 return true;
             } else {
                 return false;
@@ -255,8 +255,8 @@ public class NUSService extends Service {
         // We want to directly connect to the device, so we are setting the autoConnect parameter to false.
         bluetoothGATT = device.connectGatt(this, false, gattCallback, BluetoothDevice.TRANSPORT_LE);
 
-        broadcastUpdate(ACTION_GATT_CONNECTING);
         connectionState = STATE_CONNECTING;
+        broadcastUpdate(ACTION_GATT_CONNECTING);
         return true;
     }
 
