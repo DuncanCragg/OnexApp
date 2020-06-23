@@ -114,8 +114,8 @@ public class EternalService extends Service {
         }
     };
 
-    public static void onBLEMac(String bm){
-      Log.d(LOGNAME, "onBLEMac("+bm+")");
+    public static void onBLEMacSelected(String bm){
+      Log.d(LOGNAME, "onBLEMacSelected("+bm+")");
       blemac=bm; setBLEMac(blemac);
       self.useBLEMac();
     }

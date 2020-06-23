@@ -117,7 +117,7 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
             if (resultCode == Activity.RESULT_OK && data != null) {
                 String blemac = data.getStringExtra(BluetoothDevice.EXTRA_DEVICE);
                 Log.d(LOGNAME, "onActivityResult() select device OK: "+blemac);
-                EternalService.onBLEMac(blemac);
+                EternalService.onBLEMacSelected(blemac);
             }
             else Log.d(LOGNAME, "onActivityResult() select device not OK");
             break;
