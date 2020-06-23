@@ -117,6 +117,12 @@ public class EternalService extends Service {
 
     public static void onBLEMacSelected(String bm){
       Log.d(LOGNAME, "onBLEMacSelected("+bm+")");
+      if(bm.equals("00:00:00:00:00:00")){
+        connecting=false;
+        connectionState("BLE disconnected");
+        blemac=null;
+        return;
+      }
       blemac=bm; setBLEMac(blemac);
       self.useBLEMac();
     }

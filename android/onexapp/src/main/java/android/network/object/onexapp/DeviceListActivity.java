@@ -102,7 +102,7 @@ public class DeviceListActivity extends Activity {
             @Override
             public void onClick(View v) {
                 if (scanning==false) scanLeDevice(true);
-                else finish();
+                else finishWith("00:00:00:00:00:00");
             }
         });
 
