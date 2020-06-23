@@ -84,7 +84,7 @@ public class NUSService extends Service {
     private final BluetoothGattCallback gattCallback = new BluetoothGattCallback() {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-            if(status != GATT_SUCCESS) {
+            if(status != BluetoothGatt.GATT_SUCCESS) {
               Log.d(LOGNAME, "onConnectionStateChange FAIL: "+status+"/"+newState);
               close();
               return;
