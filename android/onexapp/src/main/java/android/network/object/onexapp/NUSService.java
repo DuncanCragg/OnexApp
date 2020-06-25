@@ -323,7 +323,7 @@ public class NUSService extends Service {
       @Override
       public void onScanResult(int callbackType, final ScanResult result) {
           super.onScanResult(callbackType, result);
-          if(!blemac.equals(result.getDevice().getAddress())) return;
+          if(blemac==null || !blemac.equals(result.getDevice().getAddress())) return;
           Log.d(LOGNAME, "scanForBLEMAC(): device rediscovered: "+blemac);
           blemac=null;
           bluetoothAdapter.getBluetoothLeScanner().stopScan(leScanCallback);
