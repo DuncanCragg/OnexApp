@@ -32,10 +32,12 @@ import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
+import android.bluetooth.le.*;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
+import android.os.Handler;
 import android.util.Log;
 
 import java.util.List;
@@ -292,6 +294,42 @@ public class NUSService extends Service {
 
         return true;
     }
+
+    private String blemac=null;
+
+    public void scanForBLEMAC(final String bl){
+        if(bluetoothAdapter==null || !bluetoothAdapter.isEnabled()){
+          Log.w(LOGNAME, "scanForBLEMAC(): BluetoothAdapter not available and enabled");
+          return;
+        }
+        Log.d(LOGNAME, "scanForBLEMAC("+bl+")");
+        blemac=bl;
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                BluetoothLeScanner s=bluetoothAdapter.getBluetoothLeScanner();
+                if(s!=null) s.stopScan(leScanCallback);
+                if(blemac==null) return;
+                Log.w(LOGNAME, "scanForBLEMAC(): device not rediscovered: "+blemac);
+                EternalService.connectBLEMac(false);
+            }
+        }, 5000);
+
+        bluetoothAdapter.getBluetoothLeScanner().startScan(leScanCallback);
+    }
+
+    private ScanCallback leScanCallback = new ScanCallback() {
+      @Override
+      public void onScanResult(int callbackType, final ScanResult result) {
+          super.onScanResult(callbackType, result);
+          if(!blemac.equals(result.getDevice().getAddress())) return;
+          Log.d(LOGNAME, "scanForBLEMAC(): device rediscovered: "+blemac);
+          blemac=null;
+          bluetoothAdapter.getBluetoothLeScanner().stopScan(leScanCallback);
+          EternalService.connectBLEMac(true);
+      }
+    };
 
     public void enableTXNotification(){
         if (bluetoothGATT == null) {

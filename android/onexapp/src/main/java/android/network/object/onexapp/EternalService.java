@@ -125,12 +125,16 @@ public class EternalService extends Service {
       if(bm.equals("00:00:00:00:00:00")){
         connecting=false;
         reconnecting=false;
+        blemac=null; setBLEMac("");
         connectionState("BLE disconnected");
-        blemac=null;
         return;
       }
       blemac=bm; setBLEMac(blemac);
-      self.connectBLEMac();
+      connectBLEMac(true);
+    }
+
+    static public void connectBLEMac(boolean success){
+      if(success) self.connectBLEMac();
     }
 
     private void connectBLEMac(){
@@ -172,7 +176,7 @@ public class EternalService extends Service {
 
     static public void bluetoothOn(){
       Log.d(LOGNAME, "BT on");
-      self.connectBLEMac();
+      if(blemac!=null) self.nusService.scanForBLEMAC(blemac);
     }
 
     private final BroadcastReceiver NUSStatusChangeReceiver = new BroadcastReceiver() {
