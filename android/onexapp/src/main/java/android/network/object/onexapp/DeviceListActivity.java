@@ -126,7 +126,8 @@ public class DeviceListActivity extends Activity {
                 @Override
                 public void run() {
                     scanning = false;
-                    bluetoothAdapter.getBluetoothLeScanner().stopScan(leScanCallback);
+                    BluetoothLeScanner s=bluetoothAdapter.getBluetoothLeScanner();
+                    if(s!=null) s.stopScan(leScanCallback);
                     cancelButton.setText(R.string.scan);
                 }
             }, SCAN_PERIOD);
