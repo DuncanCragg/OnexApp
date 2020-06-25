@@ -166,8 +166,6 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
 
     private KeyboardView kbdView;
 
-    static public void delay(int ms){ try{ Thread.sleep(ms); }catch(Exception e){}; }
-
     public void setUpKeyboardView(){
         kbdView = new KeyboardView(this);
         kbdView.setImeOptions(EditorInfo.IME_FLAG_NO_FULLSCREEN);
@@ -198,7 +196,7 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
       if(ch=='\n'){ keyCode=KEY_ENTER; ch=0; }
       onKeyPress(keyCode, ch);
       onKeyRelease(keyCode);
-      delay(50);
+      EternalService.delay(50);
     }
 
     public static native void onKeyPress(int keyCode, int key);

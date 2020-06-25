@@ -25,6 +25,8 @@ public class EternalService extends Service {
 
     static private EternalService self=null;
 
+    static public void delay(int ms){ try{ Thread.sleep(ms); }catch(Exception e){}; }
+
     @Override
     public IBinder onBind(Intent intent) {
         Log.d(LOGNAME, "*onBind");
@@ -145,7 +147,7 @@ public class EternalService extends Service {
       if(self.nusService.disconnect()){
         Log.d(LOGNAME, "ensureBluetoothConnecting(): disconnecting..");
         if(connecting){
-          OnexNativeActivity.delay(10);
+          delay(10);
           Log.d(LOGNAME, "ensureBluetoothConnecting(): already reconnecting; closing");
           self.nusService.close();
           connecting=false;
@@ -160,7 +162,7 @@ public class EternalService extends Service {
     static public void bluetoothOff(){
       Log.d(LOGNAME, "BT off");
       if(self.nusService.disconnect()){
-        OnexNativeActivity.delay(10);
+        delay(10);
         self.nusService.close();
       }
       connecting=false;

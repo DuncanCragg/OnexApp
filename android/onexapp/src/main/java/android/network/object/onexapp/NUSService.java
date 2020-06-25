@@ -87,7 +87,7 @@ public class NUSService extends Service {
             if(status != BluetoothGatt.GATT_SUCCESS) {
               Log.d(LOGNAME, "onConnectionStateChange FAIL: status="+status+" newState="+newState+" closing...");
               if(disconnect()){
-                OnexNativeActivity.delay(10);
+                EternalService.delay(10);
                 close();
               }
               connectionState = STATE_DISCONNECTED;
@@ -103,7 +103,7 @@ public class NUSService extends Service {
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 Log.i(LOGNAME, "onConnectionStateChange Disconnected from GATT server, closing...");
                 if(disconnect()){
-                  OnexNativeActivity.delay(10);
+                  EternalService.delay(10);
                   close();
                 }
                 connectionState = STATE_DISCONNECTED;
