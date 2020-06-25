@@ -114,6 +114,7 @@ public class EternalService extends Service {
             connecting=false;
             reconnecting=false;
             nusService = null;
+            recvBuff.reset();
         }
     };
 
@@ -158,7 +159,10 @@ public class EternalService extends Service {
 
     static public void bluetoothOff(){
       Log.d(LOGNAME, "BT off");
-      self.nusService.close();
+      if(self.nusService.disconnect()){
+        OnexNativeActivity.delay(10);
+        self.nusService.close();
+      }
       connecting=false;
       reconnecting=false;
       connectionState("BLE disconnected");

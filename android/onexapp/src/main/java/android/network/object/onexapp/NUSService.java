@@ -86,7 +86,10 @@ public class NUSService extends Service {
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             if(status != BluetoothGatt.GATT_SUCCESS) {
               Log.d(LOGNAME, "onConnectionStateChange FAIL: status="+status+" newState="+newState+" closing...");
-              close();
+              if(disconnect()){
+                OnexNativeActivity.delay(10);
+                close();
+              }
               connectionState = STATE_DISCONNECTED;
               broadcastUpdate(ACTION_GATT_DISCONNECTED);
               return;
@@ -99,7 +102,10 @@ public class NUSService extends Service {
                 bluetoothGATT.discoverServices();
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 Log.i(LOGNAME, "onConnectionStateChange Disconnected from GATT server, closing...");
-                close();
+                if(disconnect()){
+                  OnexNativeActivity.delay(10);
+                  close();
+                }
                 connectionState = STATE_DISCONNECTED;
                 broadcastUpdate(ACTION_GATT_DISCONNECTED);
             }
@@ -252,7 +258,6 @@ public class NUSService extends Service {
 
         Log.d(LOGNAME, "connect(): Trying to create a new connection.");
 
-        // We want to directly connect to the device, so we are setting the autoConnect parameter to false.
         bluetoothGATT = device.connectGatt(this, false, gattCallback, BluetoothDevice.TRANSPORT_LE);
 
         connectionState = STATE_CONNECTING;
