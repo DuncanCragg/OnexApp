@@ -120,19 +120,6 @@ public class EternalService extends Service {
         }
     };
 
-    public static void onBLEMacSelected(String bm){
-      Log.d(LOGNAME, "onBLEMacSelected("+bm+")");
-      if(bm.equals("00:00:00:00:00:00")){
-        connecting=false;
-        reconnecting=false;
-        blemac=null; setBLEMac("");
-        connectionState("BLE disconnected");
-        return;
-      }
-      blemac=bm; setBLEMac(blemac);
-      connectBLEMac(true);
-    }
-
     static public void connectBLEMac(boolean success){
       if(success) self.connectBLEMac();
     }
@@ -161,6 +148,19 @@ public class EternalService extends Service {
         Log.d(LOGNAME, "ensureBluetoothConnecting(): not yet connected");
         OnexNativeActivity.selectBLEMac();
       }
+    }
+
+    public static void onBLEMacSelected(String bm){
+      Log.d(LOGNAME, "onBLEMacSelected("+bm+")");
+      if(bm.equals("00:00:00:00:00:00")){
+        connecting=false;
+        reconnecting=false;
+        blemac=null; setBLEMac("");
+        connectionState("BLE disconnected");
+        return;
+      }
+      blemac=bm; setBLEMac(blemac);
+      connectBLEMac(true);
     }
 
     static public void bluetoothOff(){
