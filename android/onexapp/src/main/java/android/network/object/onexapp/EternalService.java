@@ -122,6 +122,7 @@ public class EternalService extends Service {
 
     static public void connectBLEMac(boolean success){
       if(success) self.connectBLEMac();
+      else connectionState("BLE disconnected");
     }
 
     private void connectBLEMac(){
@@ -142,10 +143,12 @@ public class EternalService extends Service {
           Log.d(LOGNAME, "ensureBluetoothConnecting(): already reconnecting; closing");
           self.nusService.close();
           connecting=false;
+          connectionState("BLE selection");
           OnexNativeActivity.selectBLEMac();
         }
       }else{
         Log.d(LOGNAME, "ensureBluetoothConnecting(): not yet connected");
+        connectionState("BLE selection");
         OnexNativeActivity.selectBLEMac();
       }
     }
@@ -176,7 +179,10 @@ public class EternalService extends Service {
 
     static public void bluetoothOn(){
       Log.d(LOGNAME, "BT on");
-      if(blemac!=null) self.nusService.scanForBLEMAC(blemac);
+      if(blemac!=null){
+        connectionState("BLE rescanning");
+        self.nusService.scanForBLEMAC(blemac);
+      }
     }
 
     private final BroadcastReceiver NUSStatusChangeReceiver = new BroadcastReceiver() {
@@ -225,8 +231,10 @@ public class EternalService extends Service {
                 Log.d(LOGNAME, "GATT disconnected");
                 recvBuff.reset();
                 if(reconnecting) self.nusService.close();
-                else connectionState("BLE disconnected");
-                if(blemac==null) OnexNativeActivity.selectBLEMac();
+                if(blemac==null){
+                  connectionState("BLE selection");
+                  OnexNativeActivity.selectBLEMac();
+                }
                 else connectBLEMac();
             }
         }
