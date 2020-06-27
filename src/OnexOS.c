@@ -49,14 +49,12 @@ static volatile touch_info_t  touch_info;
 static volatile uint16_t      touch_info_stroke=0;
 static volatile motion_info_t motion_info;
 static volatile blenus_info_t ble_info={ .connected=false, .rssi=-100 };
-static volatile bool          button_pressed;
 
 static void every_10ms(){
   event_tick_10ms=true;
 }
 
 static void every_second(){
-  // don't rely on button_pressed for this in case interrupt was missed
   if(gpio_get(BUTTON_1)!=BUTTONS_ACTIVE_STATE) boot_feed_watchdog();
   onex_run_evaluators(clockuid, 0);
 }
@@ -118,8 +116,11 @@ static void moved(motion_info_t mi)
 }
 
 static void button_changed(uint8_t pin, uint8_t type){
-  button_pressed=(gpio_get(pin)==BUTTONS_ACTIVE_STATE);
   onex_run_evaluators(buttonuid, 0);
+}
+
+static void charging_changed(uint8_t pin, uint8_t type){
+  onex_run_evaluators(batteryuid, 0);
 }
 
 static bool evaluate_user(object* o, void* d);
@@ -188,7 +189,7 @@ int main()
   gpio_mode_cb(BUTTON_1, INPUT_PULLDOWN, RISING_AND_FALLING, button_changed);
   gpio_mode(   BUTTON_ENABLE, OUTPUT);
   gpio_set(    BUTTON_ENABLE, 1);
-  gpio_mode(CHARGE_SENSE, INPUT);
+  gpio_mode_cb(CHARGE_SENSE, INPUT, RISING_AND_FALLING, charging_changed);
   gpio_adc_init(BATTERY_V, ADC_CHANNEL);
 
   gpio_mode(LCD_BACKLIGHT_LOW, OUTPUT);
@@ -371,6 +372,7 @@ bool evaluate_motion_io(object* o, void* d)
 
 bool evaluate_button_io(object* o, void* d)
 {
+  bool button_pressed=(gpio_get(BUTTON_1)==BUTTONS_ACTIVE_STATE);
   object_property_set(button, "state", button_pressed? "down": "up");
   return true;
 }
