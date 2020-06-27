@@ -547,7 +547,7 @@ void draw_home()
 
   char t[32];
 
-  strftime(t, 32, h24? "%H:%M": "%l:%M %p", &tms);
+  strftime(t, 32, h24? "%H:%M": "%l:%M", &tms);
   lv_label_set_text(time_label, t);
 
   strftime(t, 32, h24? "24 %a %d %h": "%p %a %d %h", &tms);
