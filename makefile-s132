@@ -461,6 +461,9 @@ erase:
 reset:
 	nrfjprog -f nrf52 --reset
 
+normal:
+	nrfjprog -f nrf52 --pinreset
+
 gdb_commands: default
 	@echo "target remote localhost:2331" > $(GDB_CMD_PATH)
 	@echo "mon speed 10000" >> $(GDB_CMD_PATH)
