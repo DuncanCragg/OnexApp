@@ -592,7 +592,7 @@ void draw_about()
 {
   gfx_text_colour(GFX_WHITE);
   lv_label_set_text(boot_label, "OnexOS update");
-  char b[32]; snprintf(b, 32, ((time_es()%2)? "%lu %lu/": "%lu %lu\\"), (unsigned long)&__BUILD_TIMESTAMP, (unsigned long)&__BOOTLOADER_NUMBER);
+  char b[32]; snprintf(b, 32, ((time_es()%2)? "%lu %lu %d/": "%lu %lu %d\\"), (unsigned long)&__BUILD_TIMESTAMP, (unsigned long)&__BOOTLOADER_NUMBER, (uint8_t)((DWT->CYCCNT)%256));
   gfx_pos(10,220);
   gfx_text(b);
 }
