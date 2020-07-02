@@ -167,6 +167,7 @@ SRC_FILES += \
 INC_FOLDERS += \
   $(SDK_ROOT)/components/libraries/bootloader/ \
   $(SDK_ROOT)/modules/nrfx/soc/ \
+  $(SDK_ROOT)/components/drivers_nrf/spi_master \
   $(SDK_ROOT)/components/drivers_ext/st7789 \
   $(SDK_ROOT)/external/thedotfactory_fonts \
   $(SDK_ROOT)/components/nfc/ndef/generic/message \
