@@ -323,7 +323,6 @@ CFLAGS += -DNRF_SD_BLE_API_VERSION=7
 CFLAGS += -DS132
 CFLAGS += -DSOFTDEVICE_PRESENT
 CFLAGS += -DONP_CHANNEL_SERIAL
-CFLAGS += -DLOG_TO_RTT
 CFLAGS += -mcpu=cortex-m4
 CFLAGS += -mthumb -mabi=aapcs
 CFLAGS += -Wall -Werror -Wno-unused-but-set-variable
@@ -372,10 +371,12 @@ LIB_FILES += -lc -lnosys -lm
 
 ifeq ($(RELEASE), 1)
 CFLAGS += -O3 -g3
+CFLAGS += -DLOG_TO_GFX
 ASMFLAGS += -g3
 $(info Building for release)
 else
 CFLAGS += -O1 -ggdb -DDEBUG -DDEBUG_NRF
+CFLAGS += -DLOG_TO_RTT
 $(info Building for debug)
 endif
 
