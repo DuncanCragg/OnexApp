@@ -104,7 +104,7 @@ SRC_FILES += \
   $(SDK_ROOT)/components/libraries/mem_manager/mem_manager.c \
   $(SDK_ROOT)/integration/nrfx/legacy/nrf_drv_spi.c \
   $(SDK_ROOT)/components/drivers_ext/st7789/st7789.c \
-  $(SDK_ROOT)/components/drivers_ext/st7789/spi_master_fast.c \
+  $(SDK_ROOT)/components/drivers_nrf/spi_master/spi_master_fast.c \
   $(SDK_ROOT)/components/libraries/gfx/nrf_gfx.c \
   $(SDK_ROOT)/external/thedotfactory_fonts/orkney8pts.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_twi.c \
@@ -142,12 +142,9 @@ SRC_FILES += \
   $(SDK_ROOT)/modules/nrfx/mdk/system_nrf52.c \
   $(SDK_ROOT)/components/boards/boards.c \
   $(SDK_ROOT)/integration/nrfx/legacy/nrf_drv_clock.c \
-  $(SDK_ROOT)/integration/nrfx/legacy/nrf_drv_uart.c \
   $(SDK_ROOT)/modules/nrfx/soc/nrfx_atomic.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_clock.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/prs/nrfx_prs.c \
-  $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_uart.c \
-  $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_uarte.c \
   $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT.c \
   $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT_Syscalls_GCC.c \
   $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT_printf.c \

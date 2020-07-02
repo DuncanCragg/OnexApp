@@ -279,7 +279,9 @@ int main()
   while(1){
 
     if(!onex_loop()){
+      gfx_spi_sleep();
       boot_sleep();
+      gfx_spi_wake();
     }
 
     if(event_dfu){
@@ -383,6 +385,7 @@ bool evaluate_backlight_io(object* o, void* d)
     backlight_on=true;
     bool mid =object_property_is(backlight, "level", "mid");
     bool high=object_property_is(backlight, "level", "high");
+    gfx_wake();
     gpio_set(LCD_BACKLIGHT_LOW,               LEDS_ACTIVE_STATE);
     gpio_set(LCD_BACKLIGHT_MID,  (mid||high)? LEDS_ACTIVE_STATE: !LEDS_ACTIVE_STATE);
     gpio_set(LCD_BACKLIGHT_HIGH, (high)?      LEDS_ACTIVE_STATE: !LEDS_ACTIVE_STATE);
@@ -391,6 +394,7 @@ bool evaluate_backlight_io(object* o, void* d)
     gpio_set(LCD_BACKLIGHT_LOW,  !LEDS_ACTIVE_STATE);
     gpio_set(LCD_BACKLIGHT_MID,  !LEDS_ACTIVE_STATE);
     gpio_set(LCD_BACKLIGHT_HIGH, !LEDS_ACTIVE_STATE);
+    gfx_sleep();
   }
   return true;
 }
