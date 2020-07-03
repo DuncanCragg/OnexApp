@@ -70,7 +70,7 @@ static void blechanged(blenus_info_t bi)
   onex_run_evaluators(bluetoothuid, 0);
 }
 
-static bool backlight_on=false;
+static bool backlight_on=true;
 
 static void touched(touch_info_t ti)
 {
@@ -530,6 +530,7 @@ static void draw_about();
 
 void draw_ui()
 {
+  if(!backlight_on) return;
   if(object_property_is(user, "viewing", homeuid))  draw_home();
   if(object_property_is(user, "viewing", aboutuid)) draw_about();
 }
