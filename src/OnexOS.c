@@ -239,7 +239,7 @@ int main()
 
   object_property_set(backlight, "light", "on");
   object_property_set(backlight, "level", "high");
-  object_property_set(backlight, "timeout", "5000");
+  object_property_set(backlight, "timeout", "6000");
   object_property_set(backlight, "touch", touchuid);
   object_property_set(backlight, "motion", motionuid);
   object_property_set(backlight, "button", buttonuid);
