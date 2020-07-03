@@ -280,7 +280,11 @@ int main()
 
     if(!onex_loop()){
       gfx_spi_sleep();
+      gpio_sleep();
+
       boot_sleep();
+
+      gpio_wake();
       gfx_spi_wake();
     }
 
