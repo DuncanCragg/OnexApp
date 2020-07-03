@@ -8,6 +8,7 @@
 #include <onex-kernel/log.h>
 #include <onex-kernel/time.h>
 #include <onex-kernel/gpio.h>
+#include <onex-kernel/i2c.h>
 #include <onex-kernel/blenus.h>
 #include <onex-kernel/gfx.h>
 #include <onex-kernel/touch.h>
@@ -280,6 +281,7 @@ int main()
 
     if(!onex_loop()){
       gfx_spi_sleep();
+      i2c_sleep(); // will i2c_wake() in irq to read values
       gpio_sleep();
 
       boot_sleep();
@@ -389,6 +391,7 @@ bool evaluate_backlight_io(object* o, void* d)
     backlight_on=true;
     bool mid =object_property_is(backlight, "level", "mid");
     bool high=object_property_is(backlight, "level", "high");
+  //touch_wake();
     gfx_wake();
     gpio_set(LCD_BACKLIGHT_LOW,               LEDS_ACTIVE_STATE);
     gpio_set(LCD_BACKLIGHT_MID,  (mid||high)? LEDS_ACTIVE_STATE: !LEDS_ACTIVE_STATE);
@@ -399,6 +402,7 @@ bool evaluate_backlight_io(object* o, void* d)
     gpio_set(LCD_BACKLIGHT_MID,  !LEDS_ACTIVE_STATE);
     gpio_set(LCD_BACKLIGHT_HIGH, !LEDS_ACTIVE_STATE);
     gfx_sleep();
+  //touch_sleep();
   }
   return true;
 }
