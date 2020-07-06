@@ -597,17 +597,12 @@ void draw_home()
 
   gfx_rect_fill(INDICATOR_PAD,INDICATOR_HEIGHT+INDICATOR_PAD,  INDICATOR_WIDTH,            INDICATOR_HEIGHT, GFX_GREY_3);
   gfx_rect_fill(INDICATOR_PAD,INDICATOR_HEIGHT+INDICATOR_PAD, (INDICATOR_WIDTH*blnum)/100, INDICATOR_HEIGHT, ble_col);
-
-  gfx_text_colour(GFX_BLUE);
-  gfx_push(10,220);
-  gfx_text((time_es()%2)? "/": "\\");
-  gfx_pop();
 }
 
 void draw_about()
 {
   lv_label_set_text(boot_label, "OnexOS update");
-  char b[32]; snprintf(b, 32, ((time_es()%2)? "%lu %lu %d/": "%lu %lu %d\\"), (unsigned long)&__BUILD_TIMESTAMP, (unsigned long)&__BOOTLOADER_NUMBER, (uint8_t)((DWT->CYCCNT)%256));
+  char b[32]; snprintf(b, 32, "%lu %lu", (unsigned long)&__BUILD_TIMESTAMP, (unsigned long)&__BOOTLOADER_NUMBER);
   lv_label_set_text(build_label, b);
 }
 
