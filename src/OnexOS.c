@@ -52,6 +52,9 @@ static volatile uint16_t      touch_info_stroke=0;
 static volatile motion_info_t motion_info;
 static volatile blenus_info_t ble_info={ .connected=false, .rssi=-100 };
 
+extern char __BUILD_TIMESTAMP;
+extern char __BOOTLOADER_NUMBER;
+
 static char buf[64];
 
 static void every_10ms(){
@@ -516,6 +519,9 @@ void init_lv()
 
   lv_label_set_text(time_label, "00:00");
   lv_label_set_text(date_label, "Onex");
+  lv_label_set_text(boot_label, "OnexOS update");
+  snprintf(buf, 32, "%lu %lu", (unsigned long)&__BUILD_TIMESTAMP, (unsigned long)&__BOOTLOADER_NUMBER);
+  lv_label_set_text(build_label, buf);
   lv_label_set_text(log_label, "--");
 
   lv_scr_load(home_screen);
@@ -527,9 +533,6 @@ void draw_log()
   lv_label_set_text(log_label, (const char*)event_log_buffer);
 }
 #endif
-
-extern char __BUILD_TIMESTAMP;
-extern char __BOOTLOADER_NUMBER;
 
 void draw_ui()
 {
@@ -597,8 +600,5 @@ void draw_home()
 
 void draw_about()
 {
-  lv_label_set_text(boot_label, "OnexOS update");
-  char b[32]; snprintf(b, 32, "%lu %lu", (unsigned long)&__BUILD_TIMESTAMP, (unsigned long)&__BOOTLOADER_NUMBER);
-  lv_label_set_text(build_label, b);
 }
 
