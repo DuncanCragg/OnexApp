@@ -52,6 +52,8 @@ static volatile uint16_t      touch_info_stroke=0;
 static volatile motion_info_t motion_info;
 static volatile blenus_info_t ble_info={ .connected=false, .rssi=-100 };
 
+static char buf[64];
+
 static void every_10ms(){
   event_tick_10ms=true;
 }
@@ -282,20 +284,18 @@ int main()
 #define BATTERY_PERCENT_STEPS 5
 bool evaluate_battery_io(object* o, void* d)
 {
-  char b[16];
-
   int32_t bv = gpio_read(ADC_CHANNEL);
   int32_t mv = bv*2000/(1024/(33/10));
   int8_t pc = ((mv-BATTERY_ZERO_PERCENT)*100/((BATTERY_100_PERCENT-BATTERY_ZERO_PERCENT)*BATTERY_PERCENT_STEPS))*BATTERY_PERCENT_STEPS;
   if(pc<0) pc=0;
   if(pc>100) pc=100;
-  snprintf(b, 16, "%d%%(%ld)", pc, mv);
+  snprintf(buf, 16, "%d%%(%ld)", pc, mv);
 
-  object_property_set(battery, "percent", b);
+  object_property_set(battery, "percent", buf);
 
   int batt=gpio_get(CHARGE_SENSE);
-  snprintf(b, 16, "%s", batt? "powering": "charging");
-  object_property_set(battery, "status", b);
+  snprintf(buf, 16, "%s", batt? "powering": "charging");
+  object_property_set(battery, "status", buf);
 
   return true;
 }
@@ -303,7 +303,6 @@ bool evaluate_battery_io(object* o, void* d)
 bool evaluate_bluetooth_io(object* o, void* d)
 {
   object_property_set(bluetooth, "connected", ble_info.connected? "yes": "no");
-  char buf[16];
   snprintf(buf, 16, "%3d", ble_info.rssi);
   object_property_set(bluetooth, "rssi", buf);
   return true;
@@ -311,8 +310,6 @@ bool evaluate_bluetooth_io(object* o, void* d)
 
 bool evaluate_touch_io(object* o, void* d)
 {
-  char buf[64];
-
   snprintf(buf, 64, "%3d %3d", touch_info.x, touch_info.y);
   object_property_set(touch, "coords", buf);
 
@@ -341,7 +338,6 @@ bool evaluate_motion_io(object* o, void* d)
   ticks++;
   if(ticks%50 && !viewscreen) return true;
 
-  char buf[64];
   snprintf(buf, 64, "%d %d %d %d", motion_info.x, motion_info.y, motion_info.z, motion_info.m);
   object_property_set(motion, "x-y-z-m", buf);
   object_property_set(motion, "gesture", viewscreen? "view-screen": "none");
