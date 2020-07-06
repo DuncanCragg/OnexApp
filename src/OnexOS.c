@@ -438,10 +438,8 @@ static lv_obj_t* boot_label;
 static lv_obj_t* build_label;
 static lv_obj_t* log_label;
 
-void init_lv()
+static void wire_display_and_touch()
 {
-  lv_init();
-
   lv_disp_buf_init(&disp_buf, lv_buf1, lv_buf2, LV_BUF_SIZE);
 
   lv_disp_drv_t disp_drv;
@@ -450,8 +448,11 @@ void init_lv()
   disp_drv.buffer = &disp_buf;
   lv_disp_drv_register(&disp_drv);
 
+}
+
+static void build_home()
+{
   home_screen  = lv_obj_create(0,0);
-  about_screen = lv_obj_create(0,0);
 
   time_label=lv_label_create(home_screen, 0);
   lv_label_set_long_mode(time_label, LV_LABEL_LONG_BREAK);
@@ -466,7 +467,11 @@ void init_lv()
   lv_obj_set_height(date_label, 200);
   lv_label_set_align(date_label, LV_LABEL_ALIGN_CENTER);
   lv_obj_align(date_label, home_screen, LV_ALIGN_CENTER, -5, 50);
+}
 
+static void build_about()
+{
+  about_screen = lv_obj_create(0,0);
 
   boot_label=lv_label_create(about_screen, 0);
   lv_label_set_long_mode(boot_label, LV_LABEL_LONG_BREAK);
@@ -488,8 +493,11 @@ void init_lv()
   lv_obj_set_height(log_label, 100);
   lv_label_set_align(log_label, LV_LABEL_ALIGN_LEFT);
   lv_obj_align(log_label, about_screen, LV_ALIGN_IN_TOP_LEFT, 5, 215);
+}
 
 
+static void style_everything()
+{
   lv_style_t bg;
   lv_style_copy(&bg, &lv_style_plain);
   bg.body.main_color = LV_COLOR_BLACK;
@@ -510,7 +518,10 @@ void init_lv()
   lg.text.color= LV_COLOR_TEAL;
   lv_label_set_style(log_label, LV_LABEL_STYLE_MAIN, &lg);
   lv_label_set_style(build_label, LV_LABEL_STYLE_MAIN, &lg);
+}
 
+static void set_initial_values()
+{
   lv_label_set_text(time_label, "00:00");
   lv_label_set_text(date_label, "Onex");
   lv_label_set_text(boot_label, "OnexOS update");
@@ -519,6 +530,16 @@ void init_lv()
   lv_label_set_text(log_label, "--");
 
   lv_scr_load(home_screen);
+}
+
+void init_lv()
+{
+  lv_init();
+  wire_display_and_touch();
+  build_home();
+  build_about();
+  style_everything();
+  set_initial_values();
 }
 
 #if defined(LOG_TO_GFX)
