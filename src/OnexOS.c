@@ -132,9 +132,6 @@ static bool evaluate_motion_io(object* o, void* d);
 static bool evaluate_button_io(object* o, void* d);
 static bool evaluate_backlight_io(object* o, void* d);
 
-static void draw_ui();
-//static void draw_obj();
-
 #define ADC_CHANNEL 0
 
 #if defined(LOG_TO_GFX)
@@ -410,6 +407,10 @@ bool evaluate_backlight_io(object* o, void* d)
 static lv_obj_t* home_screen;
 static lv_obj_t* about_screen;
 
+static void draw_ui();
+static void draw_home();
+static void draw_about();
+
 bool evaluate_user(object* o, void* touchevent)
 {
   if(touchevent){
@@ -525,9 +526,6 @@ void init_lv()
 extern char __BUILD_TIMESTAMP;
 extern char __BOOTLOADER_NUMBER;
 
-static void draw_home();
-static void draw_about();
-
 void draw_ui()
 {
   if(!backlight_on) return;
@@ -605,27 +603,4 @@ void draw_about()
   gfx_pos(10,220);
   gfx_text(b);
 }
-
-/*
-void draw_obj()
-{
-  gfx_rect_line(0,0, SCREEN_WIDTH,SCREEN_HEIGHT, GFX_GREY_F, PADDING);
-
-  gfx_screen_colour(ACTION_BG);
-  gfx_rect_fill(PADDING,PADDING, SCREEN_WIDTH-PADDING,ROW_HEIGHT, ACTION_BG);
-  gfx_pos(PADDING+L_PADDING, PADDING+T_PADDING);
-  gfx_text_colour(ACTION_COLOUR);
-  gfx_text("user");
-
-  gfx_rect_fill(PADDING,PADDING+ROW_HEIGHT, PADDING+PROPERTY_WIDTH,PADDING+ROW_HEIGHT*2, PROPERTY_BG);
-  gfx_pos(PADDING+L_PADDING, PADDING+T_PADDING);
-  gfx_text_colour(PROPERTY_COLOUR);
-  gfx_text("is");
-
-  gfx_rect_fill(PADDING,PADDING+ROW_HEIGHT, PADDING+PROPERTY_WIDTH,PADDING+ROW_HEIGHT*2, VALUE_BG);
-  gfx_pos(PADDING+L_PADDING, PADDING+T_PADDING);
-  gfx_text_colour(VALUE_COLOUR);
-  gfx_text("list");
-}
-*/
 
