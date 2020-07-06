@@ -142,12 +142,6 @@ extern volatile char* event_log_buffer;
 static void draw_log();
 #endif
 
-static void clear_screen()
-{
-  gfx_screen_colour(GFX_BLACK);
-  gfx_screen_fill();
-}
-
 int main()
 {
   boot_init();
@@ -160,7 +154,6 @@ int main()
 
   gfx_init();
   gfx_text_colour(GFX_BLUE);
-  clear_screen();
 
   touch_init(touched);
   motion_init(moved);
