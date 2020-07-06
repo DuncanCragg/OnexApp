@@ -158,7 +158,6 @@ int main()
   init_lv();
 
   gfx_init();
-  gfx_text_colour(GFX_BLUE);
 
   touch_init(touched);
   motion_init(moved);
