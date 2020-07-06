@@ -14,6 +14,7 @@ NRF5_INCLUDES = \
 ./external \
 ./external/fonts \
 ./external/lvgl \
+./external/lvgl/src/lv_font/ \
 ./OnexLang/include \
 ./OnexKernel/include \
 ./OnexKernel/src/ \
@@ -48,6 +49,7 @@ NRF5_C_SOURCE_FILES = \
 EXTERNAL_SOURCES = \
 ./external/fonts/fonts_noto_sans_numeric_60.c \
 ./external/fonts/fonts_noto_sans_numeric_80.c \
+./external/lvgl/src/lv_font/lv_font_roboto_12.c \
 ./external/lvgl/src/lv_misc/lv_area.c \
 ./external/lvgl/src/lv_misc/lv_mem.c \
 ./external/lvgl/src/lv_misc/lv_task.c \

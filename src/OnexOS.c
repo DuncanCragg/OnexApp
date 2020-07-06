@@ -16,6 +16,7 @@
 #include <onf.h>
 #include <onr.h>
 #include <lvgl.h>
+#include <lv_font.h>
 #include <noto_sans_numeric_60.h>
 #include <noto_sans_numeric_80.h>
 
@@ -134,29 +135,11 @@ static bool evaluate_backlight_io(object* o, void* d);
 
 #define ADC_CHANNEL 0
 
+static void init_lv();
+
 #if defined(LOG_TO_GFX)
 extern volatile char* event_log_buffer;
-
-void draw_log()
-{
-  char* s=(char*)event_log_buffer;
-  char* nl=strchr(s, '\n');
-  char* s2=0;
-  if(nl){
-    *nl=0;
-    s2=nl+1;
-  }
-  if(strlen(s)>16) s[16]=0;
-  if(nl && strlen(s2)>16) s2[16]=0;
-  gfx_push(10,200);
-  gfx_text(s);
-  if(nl){
-    gfx_push(10,220);
-    gfx_text(s2);
-    gfx_pop();
-  }
-  gfx_pop();
-}
+static void draw_log();
 #endif
 
 static void clear_screen()
@@ -164,8 +147,6 @@ static void clear_screen()
   gfx_screen_colour(GFX_BLACK);
   gfx_screen_fill();
 }
-
-static void init_lv();
 
 int main()
 {
@@ -468,11 +449,15 @@ static lv_color_t lv_buf2[LV_BUF_SIZE];
 static lv_obj_t* time_label;
 static lv_obj_t* date_label;
 static lv_obj_t* boot_label;
+static lv_obj_t* build_label;
+static lv_obj_t* log_label;
 
 void init_lv()
 {
   lv_init();
+
   lv_disp_buf_init(&disp_buf, lv_buf1, lv_buf2, LV_BUF_SIZE);
+
   lv_disp_drv_t disp_drv;
   lv_disp_drv_init(&disp_drv);
   disp_drv.flush_cb = draw_area_and_ready;
@@ -496,12 +481,28 @@ void init_lv()
   lv_label_set_align(date_label, LV_LABEL_ALIGN_CENTER);
   lv_obj_align(date_label, home_screen, LV_ALIGN_CENTER, -5, 50);
 
+
   boot_label=lv_label_create(about_screen, 0);
   lv_label_set_long_mode(boot_label, LV_LABEL_LONG_BREAK);
   lv_obj_set_width(boot_label, 200);
   lv_obj_set_height(boot_label, 200);
   lv_label_set_align(boot_label, LV_LABEL_ALIGN_CENTER);
   lv_obj_align(boot_label, about_screen, LV_ALIGN_CENTER, -5, -50);
+
+  build_label=lv_label_create(about_screen, 0);
+  lv_label_set_long_mode(build_label, LV_LABEL_LONG_CROP);
+  lv_obj_set_width(build_label, 230);
+  lv_obj_set_height(build_label, 100);
+  lv_label_set_align(build_label, LV_LABEL_ALIGN_LEFT);
+  lv_obj_align(build_label, about_screen, LV_ALIGN_IN_TOP_LEFT, 5, 226);
+
+  log_label=lv_label_create(about_screen, 0);
+  lv_label_set_long_mode(log_label, LV_LABEL_LONG_CROP);
+  lv_obj_set_width(log_label, 230);
+  lv_obj_set_height(log_label, 100);
+  lv_label_set_align(log_label, LV_LABEL_ALIGN_LEFT);
+  lv_obj_align(log_label, about_screen, LV_ALIGN_IN_TOP_LEFT, 5, 215);
+
 
   lv_style_t bg;
   lv_style_copy(&bg, &lv_style_plain);
@@ -517,11 +518,26 @@ void init_lv()
   lb.text.font= &noto_sans_numeric_80;
   lv_label_set_style(time_label, LV_LABEL_STYLE_MAIN, &lb);
 
+  lv_style_t lg;
+  lv_style_copy(&lg, &bg);
+  lg.text.font= &lv_font_roboto_12;
+  lg.text.color= LV_COLOR_TEAL;
+  lv_label_set_style(log_label, LV_LABEL_STYLE_MAIN, &lg);
+  lv_label_set_style(build_label, LV_LABEL_STYLE_MAIN, &lg);
+
   lv_label_set_text(time_label, "00:00");
   lv_label_set_text(date_label, "Onex");
+  lv_label_set_text(log_label, "--");
 
   lv_scr_load(home_screen);
 }
+
+#if defined(LOG_TO_GFX)
+void draw_log()
+{
+  lv_label_set_text(log_label, (const char*)event_log_buffer);
+}
+#endif
 
 extern char __BUILD_TIMESTAMP;
 extern char __BOOTLOADER_NUMBER;
@@ -597,10 +613,8 @@ void draw_home()
 
 void draw_about()
 {
-  gfx_text_colour(GFX_WHITE);
   lv_label_set_text(boot_label, "OnexOS update");
   char b[32]; snprintf(b, 32, ((time_es()%2)? "%lu %lu %d/": "%lu %lu %d\\"), (unsigned long)&__BUILD_TIMESTAMP, (unsigned long)&__BOOTLOADER_NUMBER, (uint8_t)((DWT->CYCCNT)%256));
-  gfx_pos(10,220);
-  gfx_text(b);
+  lv_label_set_text(build_label, b);
 }
 
