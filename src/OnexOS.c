@@ -257,14 +257,12 @@ int main()
 
     if(!onex_loop()){
 
-      spi_sleep();
-      i2c_sleep(); // will i2c_wake() in irq to read values
-      gpio_sleep();
+      spi_sleep();  // will spi_wake() as soon as spi_tx called
+      i2c_sleep();  // will i2c_wake() in irq to read values
+      gpio_sleep(); // will gpio_wake() when ADC read
 
       boot_sleep();
 
-      gpio_wake();
-      spi_wake();
     }
 
     if(event_dfu){
