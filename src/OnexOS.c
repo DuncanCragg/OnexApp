@@ -494,29 +494,34 @@ static void build_about()
   lv_obj_align(log_label, about_screen, LV_ALIGN_IN_TOP_LEFT, 5, 215);
 }
 
+static lv_style_t screen_style;
+static lv_style_t time_label_style;
+static lv_style_t log_label_style;
+static lv_style_t build_label_style;
 
 static void style_everything()
 {
-  lv_style_t bg;
-  lv_style_copy(&bg, &lv_style_plain);
-  bg.body.main_color = LV_COLOR_BLACK;
-  bg.body.grad_color = LV_COLOR_BLACK;
-  bg.text.color      = LV_COLOR_WHITE;
-  bg.image.color     = LV_COLOR_WHITE;
-  lv_label_set_style(home_screen, LV_LABEL_STYLE_MAIN, &bg);
-  lv_label_set_style(about_screen, LV_LABEL_STYLE_MAIN, &bg);
+  lv_style_copy(&screen_style, &lv_style_plain);
+  screen_style.body.main_color = LV_COLOR_BLACK;
+  screen_style.body.grad_color = LV_COLOR_BLACK;
+  screen_style.text.color      = LV_COLOR_WHITE;
+  screen_style.image.color     = LV_COLOR_WHITE;
+  lv_label_set_style(home_screen, LV_LABEL_STYLE_MAIN, &screen_style);
+  lv_label_set_style(about_screen, LV_LABEL_STYLE_MAIN, &screen_style);
 
-  lv_style_t lb;
-  lv_style_copy(&lb, &bg);
-  lb.text.font= &noto_sans_numeric_80;
-  lv_label_set_style(time_label, LV_LABEL_STYLE_MAIN, &lb);
+  lv_style_copy(&time_label_style, &screen_style);
+  time_label_style.text.font= &noto_sans_numeric_80;
+  lv_label_set_style(time_label, LV_LABEL_STYLE_MAIN, &time_label_style);
 
-  lv_style_t lg;
-  lv_style_copy(&lg, &bg);
-  lg.text.font= &lv_font_roboto_12;
-  lg.text.color= LV_COLOR_TEAL;
-  lv_label_set_style(log_label, LV_LABEL_STYLE_MAIN, &lg);
-  lv_label_set_style(build_label, LV_LABEL_STYLE_MAIN, &lg);
+  lv_style_copy(&log_label_style, &screen_style);
+  log_label_style.text.font= &lv_font_roboto_12;
+  log_label_style.text.color= LV_COLOR_TEAL;
+  lv_label_set_style(log_label, LV_LABEL_STYLE_MAIN, &log_label_style);
+
+  lv_style_copy(&build_label_style, &screen_style);
+  build_label_style.text.font= &lv_font_roboto_12;
+  build_label_style.text.color= LV_COLOR_ORANGE;
+  lv_label_set_style(build_label, LV_LABEL_STYLE_MAIN, &build_label_style);
 }
 
 static void set_initial_values()
