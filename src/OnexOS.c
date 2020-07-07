@@ -9,8 +9,9 @@
 #include <onex-kernel/time.h>
 #include <onex-kernel/gpio.h>
 #include <onex-kernel/i2c.h>
+#include <onex-kernel/spi.h>
 #include <onex-kernel/blenus.h>
-#include <onex-kernel/gfx.h>
+#include <onex-kernel/display.h>
 #include <onex-kernel/touch.h>
 #include <onex-kernel/motion.h>
 #include <onf.h>
@@ -157,7 +158,7 @@ int main()
 
   init_lv();
 
-  gfx_init();
+  display_init();
 
   touch_init(touched);
   motion_init(moved);
@@ -255,14 +256,15 @@ int main()
   while(1){
 
     if(!onex_loop()){
-      gfx_spi_sleep();
+
+      spi_sleep();
       i2c_sleep(); // will i2c_wake() in irq to read values
       gpio_sleep();
 
       boot_sleep();
 
       gpio_wake();
-      gfx_spi_wake();
+      spi_wake();
     }
 
     if(event_dfu){
@@ -361,7 +363,7 @@ bool evaluate_backlight_io(object* o, void* d)
     bool mid =object_property_is(backlight, "level", "mid");
     bool high=object_property_is(backlight, "level", "high");
   //touch_wake();
-    gfx_wake();
+  //display_wake();
     gpio_set(LCD_BACKLIGHT_LOW,               LEDS_ACTIVE_STATE);
     gpio_set(LCD_BACKLIGHT_MID,  (mid||high)? LEDS_ACTIVE_STATE: !LEDS_ACTIVE_STATE);
     gpio_set(LCD_BACKLIGHT_HIGH, (high)?      LEDS_ACTIVE_STATE: !LEDS_ACTIVE_STATE);
@@ -370,7 +372,7 @@ bool evaluate_backlight_io(object* o, void* d)
     gpio_set(LCD_BACKLIGHT_LOW,  !LEDS_ACTIVE_STATE);
     gpio_set(LCD_BACKLIGHT_MID,  !LEDS_ACTIVE_STATE);
     gpio_set(LCD_BACKLIGHT_HIGH, !LEDS_ACTIVE_STATE);
-    gfx_sleep();
+  //display_sleep();
   //touch_sleep();
   }
   return true;
@@ -421,10 +423,19 @@ bool evaluate_user(object* o, void* touchevent)
 #define BLE_CONNECTED    LV_COLOR_BLUE
 #define BLE_DISCONNECTED LV_COLOR_GRAY
 
-void draw_area_and_ready(lv_disp_drv_t * disp, const lv_area_t* area, lv_color_t* color_p)
+lv_disp_drv_t* disp_4_cb=0;
+
+void area_drawn()
 {
-  gfx_draw_area(area->x1, area->x2, area->y1, area->y2, (uint16_t*)color_p);
-  lv_disp_flush_ready(disp);
+  lv_disp_flush_ready(disp_4_cb);
+}
+
+void draw_area_and_ready(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_p)
+{
+  disp_4_cb=disp;
+  display_draw_area(area->x1, area->x2, area->y1, area->y2, (uint16_t*)color_p, area_drawn);
+}
+
 }
 
 static lv_disp_buf_t disp_buf;

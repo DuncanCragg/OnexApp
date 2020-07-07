@@ -37,7 +37,8 @@ NRF5_C_SOURCE_FILES = \
 ./OnexKernel/src/platforms/nRF5/random.c \
 ./OnexKernel/src/platforms/nRF5/gpio.c \
 ./OnexKernel/src/platforms/nRF5/i2c.c \
-./OnexKernel/src/platforms/nRF5/gfx.c \
+./OnexKernel/src/platforms/nRF5/spi.c \
+./OnexKernel/src/platforms/nRF5/display-st7789.c \
 ./OnexKernel/src/platforms/nRF5/touch-cst816s.c \
 ./OnexKernel/src/platforms/nRF5/motion-bma421.c \
 ./OnexKernel/src/platforms/nRF5/blenus.c \
@@ -107,9 +108,6 @@ SRC_FILES += \
   $(SDK_ROOT)/modules/nrfx/mdk/gcc_startup_nrf52.S \
   $(SDK_ROOT)/components/libraries/mem_manager/mem_manager.c \
   $(SDK_ROOT)/integration/nrfx/legacy/nrf_drv_spi.c \
-  $(SDK_ROOT)/components/drivers_ext/st7789/st7789.c \
-  $(SDK_ROOT)/components/drivers_nrf/spi_master/spi_master_fast.c \
-  $(SDK_ROOT)/components/libraries/gfx/nrf_gfx.c \
   $(SDK_ROOT)/external/thedotfactory_fonts/orkney8pts.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_twi.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_spim.c \
@@ -171,8 +169,6 @@ SRC_FILES += \
 INC_FOLDERS += \
   $(SDK_ROOT)/components/libraries/bootloader/ \
   $(SDK_ROOT)/modules/nrfx/soc/ \
-  $(SDK_ROOT)/components/drivers_nrf/spi_master \
-  $(SDK_ROOT)/components/drivers_ext/st7789 \
   $(SDK_ROOT)/external/thedotfactory_fonts \
   $(SDK_ROOT)/components/nfc/ndef/generic/message \
   $(SDK_ROOT)/components/nfc/t2t_lib \
