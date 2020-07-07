@@ -639,7 +639,9 @@ void draw_home()
   if(pcnum>33) batt_col=BATTERY_MED;
   else         batt_col=BATTERY_LOW;
 
-  int8_t blnum=(int8_t)100;
+  static bool force_redraw=false;
+  force_redraw=!force_redraw;
+  int8_t blnum=100-force_redraw;
   lv_color_t ble_col=bl? BLE_CONNECTED: BLE_DISCONNECTED;
 
   battery_level_style.body.main_color=batt_col;
