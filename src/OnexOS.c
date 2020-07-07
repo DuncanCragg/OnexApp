@@ -282,8 +282,8 @@ int main()
 }
 
 #define BATTERY_ZERO_PERCENT 3400
-#define BATTERY_100_PERCENT 4100
-#define BATTERY_PERCENT_STEPS 5
+#define BATTERY_100_PERCENT 4000
+#define BATTERY_PERCENT_STEPS 2
 bool evaluate_battery_io(object* o, void* d)
 {
   int32_t bv = gpio_read(ADC_CHANNEL);
@@ -413,11 +413,13 @@ bool evaluate_user(object* o, void* touchevent)
 #define SCREEN_WIDTH 235
 #define SCREEN_HEIGHT 235
 
-#define BATTERY_LOW     GFX_RGB256(200,0,0)
-#define BATTERY_MED     GFX_RGB256(200,200,0)
-#define BATTERY_HIGH    GFX_RGB256(0,200,0)
-#define BATTERY_CHG     GFX_RGB256(200,200,200)
-#define BLE_CONNECTED   GFX_RGB256(0,0,255)
+#define BATTERY_LOW      LV_COLOR_RED
+#define BATTERY_MED      LV_COLOR_ORANGE
+#define BATTERY_HIGH     LV_COLOR_GREEN
+#define BATTERY_CHARGING LV_COLOR_WHITE
+
+#define BLE_CONNECTED    LV_COLOR_BLUE
+#define BLE_DISCONNECTED LV_COLOR_GRAY
 
 void draw_area_and_ready(lv_disp_drv_t * disp, const lv_area_t* area, lv_color_t* color_p)
 {
@@ -433,6 +435,8 @@ static lv_color_t lv_buf2[LV_BUF_SIZE];
 
 static lv_obj_t* time_label;
 static lv_obj_t* date_label;
+static lv_obj_t* battery_level;
+static lv_obj_t* ble_rssi;
 static lv_obj_t* boot_label;
 static lv_obj_t* build_label;
 static lv_obj_t* log_label;
@@ -466,6 +470,14 @@ static void build_home()
   lv_obj_set_height(date_label, 200);
   lv_label_set_align(date_label, LV_LABEL_ALIGN_CENTER);
   lv_obj_align(date_label, home_screen, LV_ALIGN_CENTER, -5, 50);
+
+  battery_level = lv_bar_create(home_screen, 0);
+  lv_obj_set_size(battery_level, 235, 4);
+  lv_obj_align(battery_level, home_screen, LV_ALIGN_IN_TOP_LEFT, 0, 0);
+
+  ble_rssi = lv_bar_create(home_screen, 0);
+  lv_obj_set_size(ble_rssi, 235, 4);
+  lv_obj_align(ble_rssi, home_screen, LV_ALIGN_IN_TOP_LEFT, 0, 6);
 }
 
 static void build_about()
@@ -495,6 +507,9 @@ static void build_about()
 }
 
 static lv_style_t screen_style;
+static lv_style_t meter_bg_style;
+static lv_style_t battery_level_style;
+static lv_style_t ble_rssi_style;
 static lv_style_t time_label_style;
 static lv_style_t log_label_style;
 static lv_style_t build_label_style;
@@ -508,6 +523,29 @@ static void style_everything()
   screen_style.image.color     = LV_COLOR_WHITE;
   lv_label_set_style(home_screen, LV_LABEL_STYLE_MAIN, &screen_style);
   lv_label_set_style(about_screen, LV_LABEL_STYLE_MAIN, &screen_style);
+
+  lv_style_copy(&meter_bg_style, &screen_style);
+  meter_bg_style.body.radius=0;
+  meter_bg_style.body.main_color=LV_COLOR_GRAY;
+  meter_bg_style.body.grad_color=LV_COLOR_GRAY;
+
+  lv_style_copy(&battery_level_style, &screen_style);
+  battery_level_style.body.radius = 0;
+  battery_level_style.body.padding.top = 0;
+  battery_level_style.body.padding.bottom = 0;
+  battery_level_style.body.padding.left = 0;
+  battery_level_style.body.padding.right = 0;
+  battery_level_style.body.main_color = LV_COLOR_GREEN;
+  battery_level_style.body.grad_color = LV_COLOR_GREEN;
+
+  lv_style_copy(&ble_rssi_style, &battery_level_style);
+  ble_rssi_style.body.main_color = LV_COLOR_BLUE;
+  ble_rssi_style.body.grad_color = LV_COLOR_BLUE;
+
+  lv_bar_set_style(battery_level, LV_BAR_STYLE_INDIC, &battery_level_style);
+  lv_bar_set_style(battery_level, LV_BAR_STYLE_BG,    &meter_bg_style);
+  lv_bar_set_style(ble_rssi,      LV_BAR_STYLE_INDIC, &ble_rssi_style);
+  lv_bar_set_style(ble_rssi,      LV_BAR_STYLE_BG,    &meter_bg_style);
 
   lv_style_copy(&time_label_style, &screen_style);
   time_label_style.text.font= &noto_sans_numeric_80;
@@ -595,26 +633,22 @@ void draw_home()
   if(pcnum<5) pcnum=5;
   if(pcnum>100) pcnum=100;
 
-  uint16_t batt_col;
-  if(ch)       batt_col=BATTERY_CHG;
-  else
-  if(pcnum>67) batt_col=BATTERY_HIGH;
-  else
+  lv_color_t batt_col;
+  if(ch)       batt_col=BATTERY_CHARGING; else
+  if(pcnum>67) batt_col=BATTERY_HIGH;     else
   if(pcnum>33) batt_col=BATTERY_MED;
   else         batt_col=BATTERY_LOW;
 
-  int8_t blnum=(int8_t)50;
-  uint16_t ble_col=bl? BLE_CONNECTED: GFX_GREY_7;
+  int8_t blnum=(int8_t)100;
+  lv_color_t ble_col=bl? BLE_CONNECTED: BLE_DISCONNECTED;
 
-  #define INDICATOR_PAD    2
-  #define INDICATOR_HEIGHT 2
-  #define INDICATOR_WIDTH  (SCREEN_WIDTH-2*INDICATOR_PAD)
+  battery_level_style.body.main_color=batt_col;
+  battery_level_style.body.grad_color=batt_col;
+  lv_bar_set_value(battery_level, pcnum, LV_ANIM_OFF);
 
-  gfx_rect_fill(INDICATOR_PAD,0,                 INDICATOR_WIDTH,            INDICATOR_HEIGHT, GFX_GREY_3);
-  gfx_rect_fill(INDICATOR_PAD,0,                (INDICATOR_WIDTH*pcnum)/100, INDICATOR_HEIGHT, batt_col);
-
-  gfx_rect_fill(INDICATOR_PAD,INDICATOR_HEIGHT+INDICATOR_PAD,  INDICATOR_WIDTH,            INDICATOR_HEIGHT, GFX_GREY_3);
-  gfx_rect_fill(INDICATOR_PAD,INDICATOR_HEIGHT+INDICATOR_PAD, (INDICATOR_WIDTH*blnum)/100, INDICATOR_HEIGHT, ble_col);
+  ble_rssi_style.body.main_color=ble_col;
+  ble_rssi_style.body.grad_color=ble_col;
+  lv_bar_set_value(ble_rssi, blnum, LV_ANIM_OFF);
 }
 
 void draw_about()

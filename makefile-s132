@@ -91,6 +91,8 @@ EXTERNAL_SOURCES = \
 ./external/lvgl/src/lv_draw/lv_draw_rect.c \
 ./external/lvgl/src/lv_draw/lv_draw_line.c \
 ./external/lvgl/src/lv_objx/lv_label.c \
+./external/lvgl/src/lv_objx/lv_bar.c \
+./external/lvgl/src/lv_objx/lv_lmeter.c \
 ./external/lvgl/src/lv_themes/lv_theme_default.c \
 ./external/lvgl/src/lv_themes/lv_theme.c \
 
