@@ -357,21 +357,30 @@ bool evaluate_button_io(object* o, void* d)
 bool evaluate_backlight_io(object* o, void* d)
 {
   if(object_property_is(backlight, "light", "on")){
-    backlight_on=true;
+
+    display_wake();
+
     bool mid =object_property_is(backlight, "level", "mid");
     bool high=object_property_is(backlight, "level", "high");
-  //touch_wake();
-  //display_wake();
     gpio_set(LCD_BACKLIGHT_LOW,               LEDS_ACTIVE_STATE);
     gpio_set(LCD_BACKLIGHT_MID,  (mid||high)? LEDS_ACTIVE_STATE: !LEDS_ACTIVE_STATE);
     gpio_set(LCD_BACKLIGHT_HIGH, (high)?      LEDS_ACTIVE_STATE: !LEDS_ACTIVE_STATE);
+
+  //touch_wake();
+
+    backlight_on=true;
+
   } else {
+
     backlight_on=false;
+
+  //touch_sleep();
+
     gpio_set(LCD_BACKLIGHT_LOW,  !LEDS_ACTIVE_STATE);
     gpio_set(LCD_BACKLIGHT_MID,  !LEDS_ACTIVE_STATE);
     gpio_set(LCD_BACKLIGHT_HIGH, !LEDS_ACTIVE_STATE);
-  //display_sleep();
-  //touch_sleep();
+
+    display_sleep();
   }
   return true;
 }
