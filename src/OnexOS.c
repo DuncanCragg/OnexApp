@@ -430,16 +430,16 @@ bool evaluate_user(object* o, void* touchevent)
 #define BLE_CONNECTED    LV_COLOR_BLUE
 #define BLE_DISCONNECTED LV_COLOR_GRAY
 
-lv_disp_drv_t* disp_4_cb=0;
+lv_disp_drv_t* disp_for_flush_ready=0;
 
 void area_drawn()
 {
-  lv_disp_flush_ready(disp_4_cb);
+  lv_disp_flush_ready(disp_for_flush_ready);
 }
 
-void draw_area_and_ready(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_p)
+void initiate_display_flush(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_p)
 {
-  disp_4_cb=disp;
+  disp_for_flush_ready=disp;
   display_draw_area(area->x1, area->x2, area->y1, area->y2, (uint16_t*)color_p, area_drawn);
 }
 
@@ -465,7 +465,7 @@ static void wire_display_and_touch()
 
   lv_disp_drv_t disp_drv;
   lv_disp_drv_init(&disp_drv);
-  disp_drv.flush_cb = draw_area_and_ready;
+  disp_drv.flush_cb = initiate_display_flush;
   disp_drv.buffer = &disp_buf;
   lv_disp_drv_register(&disp_drv);
 
