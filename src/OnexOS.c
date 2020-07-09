@@ -470,6 +470,7 @@ static lv_obj_t* battery_level;
 static lv_obj_t* ble_rssi;
 static lv_obj_t* boot_label;
 static lv_obj_t* build_label;
+static lv_obj_t* cpu_label;
 static lv_obj_t* log_label;
 
 static void wire_display_and_touch()
@@ -528,6 +529,13 @@ static void build_about()
   lv_obj_set_height(build_label, 100);
   lv_label_set_align(build_label, LV_LABEL_ALIGN_LEFT);
   lv_obj_align(build_label, about_screen, LV_ALIGN_IN_TOP_LEFT, 5, 226);
+
+  cpu_label=lv_label_create(about_screen, 0);
+  lv_label_set_long_mode(cpu_label, LV_LABEL_LONG_CROP);
+  lv_obj_set_width(cpu_label, 50);
+  lv_obj_set_height(cpu_label, 100);
+  lv_label_set_align(cpu_label, LV_LABEL_ALIGN_LEFT);
+  lv_obj_align(cpu_label, about_screen, LV_ALIGN_IN_TOP_LEFT, 120, 226);
 
   log_label=lv_label_create(about_screen, 0);
   lv_label_set_long_mode(log_label, LV_LABEL_LONG_CROP);
@@ -591,6 +599,8 @@ static void style_everything()
   build_label_style.text.font= &lv_font_roboto_12;
   build_label_style.text.color= LV_COLOR_ORANGE;
   lv_label_set_style(build_label, LV_LABEL_STYLE_MAIN, &build_label_style);
+
+  lv_label_set_style(cpu_label, LV_LABEL_STYLE_MAIN, &build_label_style);
 }
 
 static void set_initial_values()
@@ -600,6 +610,7 @@ static void set_initial_values()
   lv_label_set_text(boot_label, "OnexOS update");
   snprintf(buf, 32, "%lu %lu", (unsigned long)&__BUILD_TIMESTAMP, (unsigned long)&__BOOTLOADER_NUMBER);
   lv_label_set_text(build_label, buf);
+  lv_label_set_text(cpu_label, "--");
   lv_label_set_text(log_label, "--");
 
   lv_scr_load(home_screen);
@@ -686,5 +697,7 @@ void draw_home()
 
 void draw_about()
 {
+  snprintf(buf, 16, "%d%%", boot_cpu());
+  lv_label_set_text(cpu_label, buf);
 }
 
