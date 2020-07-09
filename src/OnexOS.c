@@ -256,28 +256,28 @@ int main()
   while(1){
 
     if(!onex_loop()){
-
+      gpio_sleep(); // will gpio_wake() when ADC read
       spi_sleep();  // will spi_wake() as soon as spi_tx called
       i2c_sleep();  // will i2c_wake() in irq to read values
-      gpio_sleep(); // will gpio_wake() when ADC read
-
       boot_sleep();
-
     }
 
     if(event_dfu){
       boot_dfu_start();
     }
+
     if(event_tick_10ms){
       event_tick_10ms=false;
       lv_task_handler();
     }
+
 #if defined(LOG_TO_GFX)
     if(event_log_buffer){
       draw_log();
       event_log_buffer=0;
     }
 #endif
+
   }
 }
 

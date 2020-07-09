@@ -107,14 +107,12 @@ ONEXOS_OBJECTS = \
 SRC_FILES += \
   $(SDK_ROOT)/modules/nrfx/mdk/gcc_startup_nrf52.S \
   $(SDK_ROOT)/components/libraries/mem_manager/mem_manager.c \
-  $(SDK_ROOT)/integration/nrfx/legacy/nrf_drv_spi.c \
   $(SDK_ROOT)/external/thedotfactory_fonts/orkney8pts.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_twi.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_spim.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_saadc.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_rtt.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_serial.c \
-  $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_uart.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_default_backends.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_frontend.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_str_formatter.c \
