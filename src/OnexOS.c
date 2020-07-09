@@ -256,6 +256,12 @@ int main()
 
     uint64_t ct=time_ms();
 
+#if defined(LOG_LOOP_TIME)
+    static uint64_t lt=0;
+    if(lt) log_write("loop time %ldms", (uint32_t)(ct-lt));
+    lt=ct;
+#endif
+
     static uint64_t feeding_time=0;
     if(ct>feeding_time && gpio_get(BUTTON_1)!=BUTTONS_ACTIVE_STATE){
       boot_feed_watchdog();
