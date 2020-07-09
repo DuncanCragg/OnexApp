@@ -46,7 +46,6 @@ static char* watchfaceuid;
 static char* homeuid;
 static char* aboutuid;
 
-static volatile bool          event_dfu=false;
 static volatile bool          event_tick_10ms=false;
 static volatile touch_info_t  touch_info;
 static volatile uint16_t      touch_info_stroke=0;
@@ -275,10 +274,6 @@ int main()
       boot_sleep();
     }
 
-    if(event_dfu){
-      boot_dfu_start();
-    }
-
     if(event_tick_10ms){
       event_tick_10ms=false;
       lv_task_handler();
@@ -419,7 +414,7 @@ bool evaluate_user(object* o, void* touchevent)
     }
     else
     if(touch_info.gesture==TOUCH_GESTURE_TAP_LONG && object_property_is(user, "viewing", aboutuid)){
-      event_dfu=true;
+      boot_dfu_start();
     }
   }
   draw_ui();
