@@ -63,7 +63,6 @@ static void every_10ms(){
 }
 
 static void every_second(){
-  if(gpio_get(BUTTON_1)!=BUTTONS_ACTIVE_STATE) boot_feed_watchdog();
   onex_run_evaluators(clockuid, 0);
 }
 
@@ -254,6 +253,14 @@ int main()
   time_ticker(every_10s,    10000);
 
   while(1){
+
+    uint64_t ct=time_ms();
+
+    static uint64_t feeding_time=0;
+    if(ct>feeding_time && gpio_get(BUTTON_1)!=BUTTONS_ACTIVE_STATE){
+      boot_feed_watchdog();
+      feeding_time=ct+1000;
+    }
 
     if(!onex_loop()){
       gpio_sleep(); // will gpio_wake() when ADC read
