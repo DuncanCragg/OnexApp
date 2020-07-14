@@ -154,12 +154,12 @@ int main()
   gpio_init();
   blenus_init(0, blechanged);
 
-  init_lv();
-
   display_init();
 
   touch_init(touched);
   motion_init(moved);
+
+  init_lv();
 
   gpio_mode_cb(BUTTON_1, INPUT_PULLDOWN, RISING_AND_FALLING, button_changed);
   gpio_mode(   BUTTON_ENABLE, OUTPUT);
@@ -602,18 +602,26 @@ static void set_initial_values()
 {
   lv_label_set_text(time_label, "00:00");
   lv_label_set_text(date_label, "Onex");
+
   lv_label_set_text(boot_label, "OnexOS update");
   snprintf(buf, 32, "%lu %lu", (unsigned long)&__BUILD_TIMESTAMP, (unsigned long)&__BOOTLOADER_NUMBER);
   lv_label_set_text(build_label, buf);
+
   lv_label_set_text(cpu_label, "--");
   lv_label_set_text(log_label, "--");
 
   lv_scr_load(home_screen);
 }
 
+void log_lv(signed char ch,  const char * st, long unsigned int in,  const char * st2)
+{
+  log_write("log_lv: [%d] [%s] [%ld] [%s]", ch, st, in, st2);
+}
+
 void init_lv()
 {
   lv_init();
+  lv_log_register_print_cb(log_lv);
   wire_display_and_touch();
   build_home();
   build_about();
