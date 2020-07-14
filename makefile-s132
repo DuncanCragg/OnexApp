@@ -373,6 +373,7 @@ $(info Building for release)
 else
 CFLAGS += -O1 -ggdb -DDEBUG -DDEBUG_NRF
 CFLAGS += -DLOG_TO_RTT
+CFLAGS += -Wno-unused-function -Wno-unused-variable
 $(info Building for debug)
 endif
 
