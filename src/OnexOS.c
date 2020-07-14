@@ -451,6 +451,19 @@ void initiate_display_flush(lv_disp_drv_t* disp, const lv_area_t* area, lv_color
   display_draw_area(area->x1, area->x2, area->y1, area->y2, (uint16_t*)color_p, area_drawn);
 }
 
+static bool read_touch(lv_indev_drv_t* indev, lv_indev_data_t* data)
+{
+  if(backlight_on && touch_info.action==TOUCH_ACTION_CONTACT){
+    data->state = LV_INDEV_STATE_PR;
+    touch_info=touch_get_info();
+  }
+  else{
+    data->state = LV_INDEV_STATE_REL;
+  }
+  data->point.x=touch_info.x;
+  data->point.y=touch_info.y;
+  return false;
+}
 
 static lv_disp_buf_t disp_buf;
 
@@ -477,6 +490,11 @@ static void wire_display_and_touch()
   disp_drv.buffer = &disp_buf;
   lv_disp_drv_register(&disp_drv);
 
+  lv_indev_drv_t indev_drv;
+  lv_indev_drv_init(&indev_drv);
+  indev_drv.type = LV_INDEV_TYPE_POINTER;
+  indev_drv.read_cb = read_touch;
+  lv_indev_drv_register(&indev_drv);
 }
 
 static void build_home()
