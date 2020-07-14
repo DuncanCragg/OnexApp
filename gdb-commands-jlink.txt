@@ -1,4 +1,4 @@
-target remote localhost:2331
+target extended-remote localhost:2331
 mon speed 10000
 mon flash download=1
 file _build/OnexOS.out

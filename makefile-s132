@@ -463,7 +463,7 @@ normal:
 	nrfjprog -f nrf52 --pinreset
 
 gdb_commands: default
-	@echo "target remote localhost:2331" > $(GDB_CMD_PATH)
+	@echo "target extended-remote localhost:2331" > $(GDB_CMD_PATH)
 	@echo "mon speed 10000" >> $(GDB_CMD_PATH)
 	@echo "mon flash download=1" >> $(GDB_CMD_PATH)
 	@echo "file $(OUTPUT_DIRECTORY)/$(PROJECT_NAME).out" >> $(GDB_CMD_PATH)
