@@ -451,7 +451,6 @@ void initiate_display_flush(lv_disp_drv_t* disp, const lv_area_t* area, lv_color
   display_draw_area(area->x1, area->x2, area->y1, area->y2, (uint16_t*)color_p, area_drawn);
 }
 
-}
 
 static lv_disp_buf_t disp_buf;
 
