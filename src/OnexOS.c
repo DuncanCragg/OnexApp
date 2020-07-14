@@ -667,7 +667,7 @@ void draw_home()
   lv_label_set_text(date_label, t);
 
   int8_t pcnum=(int8_t)strtol(pc,&e,10);
-  if(pcnum<5) pcnum=5;
+  if(pcnum<0) pcnum=0;
   if(pcnum>100) pcnum=100;
 
   lv_color_t batt_col;
@@ -676,17 +676,17 @@ void draw_home()
   if(pcnum>33) batt_col=BATTERY_MED;
   else         batt_col=BATTERY_LOW;
 
-  static bool force_redraw=false;
-  force_redraw=!force_redraw;
-  int8_t blnum=100-force_redraw;
+  int8_t blnum=100;
   lv_color_t ble_col=bl? BLE_CONNECTED: BLE_DISCONNECTED;
 
   battery_level_style.body.main_color=batt_col;
   battery_level_style.body.grad_color=batt_col;
+  lv_obj_refresh_style(battery_level);
   lv_bar_set_value(battery_level, pcnum, LV_ANIM_OFF);
 
   ble_rssi_style.body.main_color=ble_col;
   ble_rssi_style.body.grad_color=ble_col;
+  lv_obj_refresh_style(ble_rssi);
   lv_bar_set_value(ble_rssi, blnum, LV_ANIM_OFF);
 }
 
