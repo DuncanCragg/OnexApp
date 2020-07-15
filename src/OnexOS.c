@@ -46,7 +46,7 @@ static char* watchfaceuid;
 static char* homeuid;
 static char* aboutuid;
 
-static volatile bool          event_tick_10ms=false;
+static volatile bool          event_tick_5ms=false;
 static volatile touch_info_t  touch_info;
 static volatile uint16_t      touch_info_stroke=0;
 static volatile motion_info_t motion_info;
@@ -57,8 +57,8 @@ extern char __BOOTLOADER_NUMBER;
 
 static char buf[64];
 
-static void every_10ms(){
-  event_tick_10ms=true;
+static void every_5ms(){
+  event_tick_5ms=true;
 }
 
 static void every_second(){
@@ -247,7 +247,7 @@ int main()
   onex_run_evaluators(clockuid, 0);
   onex_run_evaluators(backlightuid, 0);
 
-  time_ticker(every_10ms,      10);
+  time_ticker(every_5ms,        5);
   time_ticker(every_second,  1000);
   time_ticker(every_10s,    10000);
 
@@ -271,11 +271,12 @@ int main()
       gpio_sleep(); // will gpio_wake() when ADC read
       spi_sleep();  // will spi_wake() as soon as spi_tx called
       i2c_sleep();  // will i2c_wake() in irq to read values
+      // stop every_5ms timer!!
       boot_sleep();
     }
 
-    if(event_tick_10ms){
-      event_tick_10ms=false;
+    if(event_tick_5ms){
+      event_tick_5ms=false;
       lv_task_handler();
     }
 
