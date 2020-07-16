@@ -14,11 +14,11 @@ NRF5_INCLUDES = \
 ./external \
 ./external/fonts \
 ./external/lvgl \
-./external/lvgl/src/lv_font/ \
+./external/lvgl/src/lv_font \
 ./OnexLang/include \
 ./OnexKernel/include \
-./OnexKernel/src/ \
-./OnexKernel/src/onp/ \
+./OnexKernel/src \
+./OnexKernel/src/onp \
 ./OnexKernel/src/platforms/nRF5/s132 \
 
 
