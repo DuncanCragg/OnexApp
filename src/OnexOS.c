@@ -75,7 +75,7 @@ static void blechanged(blenus_info_t bi)
   onex_run_evaluators(bluetoothuid, 0);
 }
 
-static bool backlight_on=true;
+static bool user_active=true;
 
 static void touched(touch_info_t ti)
 {
@@ -106,7 +106,7 @@ static void touched(touch_info_t ti)
 
   static uint8_t  disable_user_touch=0;
 
-  if(!backlight_on         && touch_info.action==TOUCH_ACTION_CONTACT) disable_user_touch=1;
+  if(!user_active          && touch_info.action==TOUCH_ACTION_CONTACT) disable_user_touch=1;
   if(disable_user_touch==1 && touch_info.action!=TOUCH_ACTION_CONTACT) disable_user_touch=2;
   if(disable_user_touch==2 && touch_info.action==TOUCH_ACTION_CONTACT) disable_user_touch=0;
 
@@ -365,7 +365,9 @@ bool evaluate_button_io(object* o, void* d)
 
 bool evaluate_backlight_io(object* o, void* d)
 {
-  if(object_property_is(backlight, "light", "on")){
+  bool light_on=object_property_is(backlight, "light", "on");
+
+  if(light_on && !user_active){
 
     display_wake();
 
@@ -377,11 +379,13 @@ bool evaluate_backlight_io(object* o, void* d)
 
   //touch_wake();
 
-    backlight_on=true;
+    user_active=true;
 
-  } else {
+  }
+  else
+  if(!light_on && user_active){
 
-    backlight_on=false;
+    user_active=false;
 
   //touch_sleep();
 
@@ -454,7 +458,7 @@ void initiate_display_flush(lv_disp_drv_t* disp, const lv_area_t* area, lv_color
 
 static bool read_touch(lv_indev_drv_t* indev, lv_indev_data_t* data)
 {
-  if(backlight_on && touch_info.action==TOUCH_ACTION_CONTACT){
+  if(user_active && touch_info.action==TOUCH_ACTION_CONTACT){
     data->state = LV_INDEV_STATE_PR;
     touch_info=touch_get_info();
   }
@@ -656,7 +660,7 @@ void draw_log()
 
 void draw_ui()
 {
-  if(!backlight_on) return;
+  if(!user_active) return;
   if(object_property_is(user, "viewing", homeuid))  draw_home();
   if(object_property_is(user, "viewing", aboutuid)) draw_about();
 }
