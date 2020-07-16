@@ -381,6 +381,7 @@ bool evaluate_backlight_io(object* o, void* d)
 
     user_active=true;
 
+    onex_run_evaluators(useruid, 0);
   }
   else
   if(!light_on && user_active){
