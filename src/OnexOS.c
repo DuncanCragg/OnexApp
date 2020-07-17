@@ -299,6 +299,74 @@ int main()
   }
 }
 
+// ------------ LVGL ----------------------------
+
+lv_disp_drv_t* disp_for_flush_ready=0;
+
+void area_drawn()
+{
+  lv_disp_flush_ready(disp_for_flush_ready);
+}
+
+void initiate_display_flush(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_p)
+{
+  disp_for_flush_ready=disp;
+  display_draw_area(area->x1, area->x2, area->y1, area->y2, (uint16_t*)color_p, area_drawn);
+}
+
+static bool read_touch(lv_indev_drv_t* indev, lv_indev_data_t* data)
+{
+  if(user_active && touch_info.action==TOUCH_ACTION_CONTACT){
+    data->state = LV_INDEV_STATE_PR;
+    touch_info=touch_get_info();
+  }
+  else{
+    data->state = LV_INDEV_STATE_REL;
+  }
+  data->point.x=touch_info.x;
+  data->point.y=touch_info.y;
+  return false;
+}
+
+static lv_disp_buf_t disp_buf;
+
+#define LV_BUF_SIZE (LV_HOR_RES_MAX * 6)
+static lv_color_t lv_buf1[LV_BUF_SIZE];
+static lv_color_t lv_buf2[LV_BUF_SIZE];
+
+void log_lv(signed char ch,  const char * st, long unsigned int in,  const char * st2)
+{
+  log_write("log_lv: [%d] [%s] [%ld] [%s]", ch, st, in, st2);
+}
+
+static lv_style_t screen_style;
+
+void init_lv()
+{
+  lv_init();
+  lv_log_register_print_cb(log_lv);
+
+  lv_disp_buf_init(&disp_buf, lv_buf1, lv_buf2, LV_BUF_SIZE);
+
+  lv_disp_drv_t disp_drv;
+  lv_disp_drv_init(&disp_drv);
+  disp_drv.flush_cb = initiate_display_flush;
+  disp_drv.buffer = &disp_buf;
+  lv_disp_drv_register(&disp_drv);
+
+  lv_indev_drv_t indev_drv;
+  lv_indev_drv_init(&indev_drv);
+  indev_drv.type = LV_INDEV_TYPE_POINTER;
+  indev_drv.read_cb = read_touch;
+  lv_indev_drv_register(&indev_drv);
+
+  lv_style_copy(&screen_style, &lv_style_plain);
+  screen_style.body.main_color = LV_COLOR_BLACK;
+  screen_style.body.grad_color = LV_COLOR_BLACK;
+  screen_style.text.color      = LV_COLOR_WHITE;
+  screen_style.image.color     = LV_COLOR_WHITE;
+}
+
 // ------------------- evaluators ----------------
 
 bool evaluate_default(object* o, void* d)
@@ -428,74 +496,6 @@ bool evaluate_backlight_out(object* o, void* d)
     display_sleep();
   }
   return true;
-}
-
-// ------------ LVGL ----------------------------
-
-lv_disp_drv_t* disp_for_flush_ready=0;
-
-void area_drawn()
-{
-  lv_disp_flush_ready(disp_for_flush_ready);
-}
-
-void initiate_display_flush(lv_disp_drv_t* disp, const lv_area_t* area, lv_color_t* color_p)
-{
-  disp_for_flush_ready=disp;
-  display_draw_area(area->x1, area->x2, area->y1, area->y2, (uint16_t*)color_p, area_drawn);
-}
-
-static bool read_touch(lv_indev_drv_t* indev, lv_indev_data_t* data)
-{
-  if(user_active && touch_info.action==TOUCH_ACTION_CONTACT){
-    data->state = LV_INDEV_STATE_PR;
-    touch_info=touch_get_info();
-  }
-  else{
-    data->state = LV_INDEV_STATE_REL;
-  }
-  data->point.x=touch_info.x;
-  data->point.y=touch_info.y;
-  return false;
-}
-
-static lv_disp_buf_t disp_buf;
-
-#define LV_BUF_SIZE (LV_HOR_RES_MAX * 6)
-static lv_color_t lv_buf1[LV_BUF_SIZE];
-static lv_color_t lv_buf2[LV_BUF_SIZE];
-
-void log_lv(signed char ch,  const char * st, long unsigned int in,  const char * st2)
-{
-  log_write("log_lv: [%d] [%s] [%ld] [%s]", ch, st, in, st2);
-}
-
-static lv_style_t screen_style;
-
-void init_lv()
-{
-  lv_init();
-  lv_log_register_print_cb(log_lv);
-
-  lv_disp_buf_init(&disp_buf, lv_buf1, lv_buf2, LV_BUF_SIZE);
-
-  lv_disp_drv_t disp_drv;
-  lv_disp_drv_init(&disp_drv);
-  disp_drv.flush_cb = initiate_display_flush;
-  disp_drv.buffer = &disp_buf;
-  lv_disp_drv_register(&disp_drv);
-
-  lv_indev_drv_t indev_drv;
-  lv_indev_drv_init(&indev_drv);
-  indev_drv.type = LV_INDEV_TYPE_POINTER;
-  indev_drv.read_cb = read_touch;
-  lv_indev_drv_register(&indev_drv);
-
-  lv_style_copy(&screen_style, &lv_style_plain);
-  screen_style.body.main_color = LV_COLOR_BLACK;
-  screen_style.body.grad_color = LV_COLOR_BLACK;
-  screen_style.text.color      = LV_COLOR_WHITE;
-  screen_style.image.color     = LV_COLOR_WHITE;
 }
 
 // -------------------- User --------------------------
