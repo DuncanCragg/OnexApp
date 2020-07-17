@@ -30,6 +30,7 @@ static object* button;
 static object* backlight;
 static object* oclock;
 static object* watchface;
+static object* viewlist;
 static object* home;
 static object* about;
 
@@ -43,6 +44,7 @@ static char* buttonuid;
 static char* backlightuid;
 static char* clockuid;
 static char* watchfaceuid;
+static char* viewlistuid;
 static char* homeuid;
 static char* aboutuid;
 
@@ -200,6 +202,7 @@ int main()
   backlight=object_new(0, "backlight", "light editable", 9);
   oclock   =object_new(0, "clock",     "clock event", 12);
   watchface=object_new(0, "editable",  "watchface editable", 6);
+  viewlist =object_new(0, "editable",  "list editable", 4);
   home     =object_new(0, "default",   "home", 4);
   about    =object_new(0, "about",     "about", 4);
 
@@ -213,6 +216,7 @@ int main()
   backlightuid=object_property(backlight, "UID");
   clockuid    =object_property(oclock, "UID");
   watchfaceuid=object_property(watchface, "UID");
+  viewlistuid =object_property(viewlist, "UID");
   homeuid     =object_property(home, "UID");
   aboutuid    =object_property(about, "UID");
 
@@ -231,11 +235,14 @@ int main()
   object_property_set(watchface, "clock", clockuid);
   object_property_set(watchface, "ampm-24hr", "ampm");
 
+  object_property_add(viewlist, (char*)"list", homeuid);
+  object_property_add(viewlist, (char*)"list", aboutuid);
+
   object_property_set(home, (char*)"battery", batteryuid);
   object_property_set(home, (char*)"bluetooth", bluetoothuid);
   object_property_set(home, (char*)"watchface", watchfaceuid);
 
-  object_property_set(user, "viewing", homeuid);
+  object_property_set(user, "viewing", viewlistuid);
 
   object_property_add(onex_device_object, (char*)"user", useruid);
   object_property_add(onex_device_object, (char*)"io",   batteryuid);
@@ -421,23 +428,6 @@ bool evaluate_backlight_out(object* o, void* d)
   return true;
 }
 
-static void draw_ui();
-
-bool evaluate_user(object* o, void* touchevent)
-{
-  if(touchevent){
-    if(touch_info.gesture==TOUCH_GESTURE_LEFT  && touch_info_stroke > 50 && object_property_is(user, "viewing", homeuid )){
-      object_property_set(user, "viewing", aboutuid);
-    }
-    else
-    if(touch_info.gesture==TOUCH_GESTURE_RIGHT && touch_info_stroke > 50 && object_property_is(user, "viewing", aboutuid)){
-      object_property_set(user, "viewing", homeuid);
-    }
-  }
-  if(user_active) draw_ui();
-  return true;
-}
-
 #define PADDING 2
 #define L_PADDING 5
 #define T_PADDING 5
@@ -521,13 +511,49 @@ void init_lv()
   screen_style.image.color     = LV_COLOR_WHITE;
 }
 
-static void draw_home();
-static void draw_about();
+static void draw_ui();
+static void draw_list();
+static void draw_home(char* path);
+static void draw_about(char* path);
+
+static uint8_t list_index=1;
+
+bool evaluate_user(object* o, void* touchevent)
+{
+  if(touchevent){
+    if(touch_info.gesture==TOUCH_GESTURE_LEFT  && touch_info_stroke > 50){
+      list_index++; if(list_index==3) list_index=2;
+    }
+    else
+    if(touch_info.gesture==TOUCH_GESTURE_RIGHT && touch_info_stroke > 50){
+      list_index--; if(list_index==0) list_index=1;
+    }
+  }
+  if(user_active) draw_ui();
+  return true;
+}
 
 void draw_ui()
 {
-  if(object_property_contains(user, "viewing:is", "home"))  draw_home();
-  if(object_property_contains(user, "viewing:is", "about")) draw_about();
+  if(object_property_contains(user, "viewing:is", "list"))  draw_list();
+  if(object_property_contains(user, "viewing:is", "home"))  draw_home("viewing");
+  if(object_property_contains(user, "viewing:is", "about")) draw_about("viewing");
+}
+
+static char path[64];
+
+void draw_list()
+{
+  snprintf(path, 32, "viewing:list:%d:is", list_index);
+  if(object_property_contains(user, path, "home")){
+    snprintf(path, 32, "viewing:list:%d", list_index);
+    draw_home(path);
+  }
+  else
+  if(object_property_contains(user, path, "about")){
+    snprintf(path, 32, "viewing:list:%d", list_index);
+    draw_about(path);
+  }
 }
 
 static lv_obj_t* home_screen;
@@ -542,7 +568,7 @@ static lv_style_t meter_bg_style;
 static lv_style_t battery_level_style;
 static lv_style_t ble_rssi_style;
 
-void draw_home()
+void draw_home(char* path)
 {
   if(!home_screen){
     home_screen  = lv_obj_create(0,0);
@@ -601,12 +627,12 @@ void draw_home()
   if(lv_scr_act()!=home_screen){
     lv_scr_load(home_screen);
   }
-  char* pc=object_property(   user, "viewing:battery:percent");
-  bool  ch=object_property_is(user, "viewing:battery:status", "charging");
-  bool  bl=object_property_is(user, "viewing:bluetooth:connected", "yes");
-  char* ts=object_property(   user, "viewing:watchface:clock:ts");
-  char* tz=object_property(   user, "viewing:watchface:clock:tz:2");
-  bool h24=object_property_is(user, "viewing:watchface:ampm-24hr", "24hr");
+  snprintf(buf, 64, "%s:battery:percent", path);      char* pc=object_property(   user, buf);
+  snprintf(buf, 64, "%s:battery:status", path);       bool  ch=object_property_is(user, buf, "charging");
+  snprintf(buf, 64, "%s:bluetooth:connected", path);  bool  bl=object_property_is(user, buf, "yes");
+  snprintf(buf, 64, "%s:watchface:clock:ts", path);   char* ts=object_property(   user, buf);
+  snprintf(buf, 64, "%s:watchface:clock:tz:2", path); char* tz=object_property(   user, buf);
+  snprintf(buf, 64, "%s:watchface:ampm-24hr", path);  bool h24=object_property_is(user, buf, "24hr");
 
   if(!ts) return;
 
@@ -664,7 +690,7 @@ static lv_obj_t* log_label;
 static lv_style_t log_label_style;
 static lv_style_t build_label_style;
 
-void draw_about()
+void draw_about(char* path)
 {
   if(!about_screen){
     about_screen = lv_obj_create(0,0);
@@ -716,8 +742,8 @@ void draw_about()
   if(lv_scr_act()!=about_screen){
     lv_scr_load(about_screen);
   }
-  char* bnf=object_property_values(user, "viewing:build-info");
-  char* cpu=object_property(       user, "viewing:cpu");
+  snprintf(buf, 64, "%s:build-info", path); char* bnf=object_property_values(user, buf);
+  snprintf(buf, 64, "%s:cpu", path);        char* cpu=object_property(       user, buf);
 
   lv_label_set_text(about_title, "About device");
 
