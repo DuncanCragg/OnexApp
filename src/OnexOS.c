@@ -54,9 +54,6 @@ static volatile uint16_t      touch_info_stroke=0;
 static volatile motion_info_t motion_info;
 static volatile blenus_info_t ble_info={ .connected=false, .rssi=-100 };
 
-extern char __BUILD_TIMESTAMP;
-extern char __BOOTLOADER_NUMBER;
-
 static char buf[64];
 
 static void every_5ms(){
@@ -142,14 +139,14 @@ static bool evaluate_button_in(object* o, void* d);
 static bool evaluate_about_in(object* o, void* d);
 static bool evaluate_backlight_out(object* o, void* d);
 
-#define ADC_CHANNEL 0
-
 static void init_lv();
 
 #if defined(LOG_TO_GFX)
 extern volatile char* event_log_buffer;
 static void draw_log();
 #endif
+
+#define ADC_CHANNEL 0
 
 int main()
 {
@@ -302,6 +299,8 @@ int main()
   }
 }
 
+// ------------------- evaluators ----------------
+
 bool evaluate_default(object* o, void* d)
 {
   log_write("evaluate_default data=%p\n", d); object_log(o);
@@ -381,6 +380,9 @@ bool evaluate_button_in(object* o, void* d)
   return true;
 }
 
+extern char __BUILD_TIMESTAMP;
+extern char __BOOTLOADER_NUMBER;
+
 bool evaluate_about_in(object* o, void* d)
 {
   snprintf(buf, 32, "%lu %lu", (unsigned long)&__BUILD_TIMESTAMP, (unsigned long)&__BOOTLOADER_NUMBER);
@@ -428,22 +430,7 @@ bool evaluate_backlight_out(object* o, void* d)
   return true;
 }
 
-#define PADDING 2
-#define L_PADDING 5
-#define T_PADDING 5
-#define ROW_HEIGHT 26
-#define PROPERTY_WIDTH 100
-#define VALUE_WIDTH 130
-#define SCREEN_WIDTH 235
-#define SCREEN_HEIGHT 235
-
-#define BATTERY_LOW      LV_COLOR_RED
-#define BATTERY_MED      LV_COLOR_ORANGE
-#define BATTERY_HIGH     LV_COLOR_GREEN
-#define BATTERY_CHARGING LV_COLOR_WHITE
-
-#define BLE_CONNECTED    LV_COLOR_BLUE
-#define BLE_DISCONNECTED LV_COLOR_GRAY
+// ------------ LVGL ----------------------------
 
 lv_disp_drv_t* disp_for_flush_ready=0;
 
@@ -478,12 +465,12 @@ static lv_disp_buf_t disp_buf;
 static lv_color_t lv_buf1[LV_BUF_SIZE];
 static lv_color_t lv_buf2[LV_BUF_SIZE];
 
-static lv_style_t screen_style;
-
 void log_lv(signed char ch,  const char * st, long unsigned int in,  const char * st2)
 {
   log_write("log_lv: [%d] [%s] [%ld] [%s]", ch, st, in, st2);
 }
+
+static lv_style_t screen_style;
 
 void init_lv()
 {
@@ -510,6 +497,8 @@ void init_lv()
   screen_style.text.color      = LV_COLOR_WHITE;
   screen_style.image.color     = LV_COLOR_WHITE;
 }
+
+// -------------------- User --------------------------
 
 static void draw_ui();
 static void draw_list();
@@ -568,10 +557,19 @@ static lv_style_t meter_bg_style;
 static lv_style_t battery_level_style;
 static lv_style_t ble_rssi_style;
 
+#define BATTERY_LOW      LV_COLOR_RED
+#define BATTERY_MED      LV_COLOR_ORANGE
+#define BATTERY_HIGH     LV_COLOR_GREEN
+#define BATTERY_CHARGING LV_COLOR_WHITE
+
+#define BLE_CONNECTED    LV_COLOR_BLUE
+#define BLE_DISCONNECTED LV_COLOR_GRAY
+
 void draw_home(char* path)
 {
   if(!home_screen){
     home_screen  = lv_obj_create(0,0);
+    lv_label_set_style(home_screen, LV_LABEL_STYLE_MAIN, &screen_style);
 
     time_label=lv_label_create(home_screen, 0);
     lv_label_set_long_mode(time_label, LV_LABEL_LONG_BREAK);
@@ -594,8 +592,6 @@ void draw_home(char* path)
     ble_rssi = lv_bar_create(home_screen, 0);
     lv_obj_set_size(ble_rssi, 235, 4);
     lv_obj_align(ble_rssi, home_screen, LV_ALIGN_IN_TOP_LEFT, 0, 6);
-
-    lv_label_set_style(home_screen, LV_LABEL_STYLE_MAIN, &screen_style);
 
     lv_style_copy(&time_label_style, &screen_style);
     time_label_style.text.font= &noto_sans_numeric_80;
@@ -694,6 +690,7 @@ void draw_about(char* path)
 {
   if(!about_screen){
     about_screen = lv_obj_create(0,0);
+    lv_label_set_style(about_screen, LV_LABEL_STYLE_MAIN, &screen_style);
 
     about_title=lv_label_create(about_screen, 0);
     lv_label_set_long_mode(about_title, LV_LABEL_LONG_BREAK);
@@ -724,8 +721,6 @@ void draw_about(char* path)
     lv_obj_align(log_label, about_screen, LV_ALIGN_IN_TOP_LEFT, 5, 215);
 
     lv_label_set_text(log_label, "");
-
-    lv_label_set_style(about_screen, LV_LABEL_STYLE_MAIN, &screen_style);
 
     lv_style_copy(&log_label_style, &screen_style);
     log_label_style.text.font= &lv_font_roboto_12;
