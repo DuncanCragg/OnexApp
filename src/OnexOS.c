@@ -192,11 +192,11 @@ int main()
   touch    =object_new(0, "touch",     "touch", 6);
   motion   =object_new(0, "motion",    "motion", 8);
   button   =object_new(0, "button",    "button", 4);
-  backlight=object_new(0, "backlight", "editable light", 9);
+  backlight=object_new(0, "backlight", "light editable", 9);
   oclock   =object_new(0, "clock",     "clock event", 12);
-  watchface=object_new(0, "editable",  "editable watchface", 6);
-  home     =object_new(0, "editable",  "editable", 4);
-  about    =object_new(0, "editable",  "editable", 4);
+  watchface=object_new(0, "editable",  "watchface editable", 6);
+  home     =object_new(0, "editable",  "home editable ", 4);
+  about    =object_new(0, "editable",  "about editable", 4);
 
   deviceuid   =object_property(onex_device_object, "UID");
   useruid     =object_property(user, "UID");
@@ -410,20 +410,14 @@ bool evaluate_user(object* o, void* touchevent)
 {
   if(touchevent){
     if(touch_info.gesture==TOUCH_GESTURE_LEFT  && touch_info_stroke > 50 && object_property_is(user, "viewing", homeuid )){
-      lv_scr_load(about_screen); // switching screens should be by viewing:is detection, and knowing what you're on
       object_property_set(user, "viewing", aboutuid);
     }
     else
     if(touch_info.gesture==TOUCH_GESTURE_RIGHT && touch_info_stroke > 50 && object_property_is(user, "viewing", aboutuid)){
-      lv_scr_load(home_screen);
       object_property_set(user, "viewing", homeuid);
     }
-    else
-    if(touch_info.gesture==TOUCH_GESTURE_TAP_LONG && object_property_is(user, "viewing", aboutuid)){
-      boot_dfu_start();
-    }
   }
-  draw_ui();
+  if(user_active) draw_ui();
   return true;
 }
 
@@ -561,6 +555,7 @@ static void build_about()
   lv_obj_set_height(log_label, 100);
   lv_label_set_align(log_label, LV_LABEL_ALIGN_LEFT);
   lv_obj_align(log_label, about_screen, LV_ALIGN_IN_TOP_LEFT, 5, 215);
+  lv_label_set_text(log_label, "--");
 }
 
 static lv_style_t screen_style;
@@ -621,21 +616,6 @@ static void style_everything()
   lv_label_set_style(cpu_label, LV_LABEL_STYLE_MAIN, &build_label_style);
 }
 
-static void set_initial_values()
-{
-  lv_label_set_text(time_label, "00:00");
-  lv_label_set_text(date_label, "Onex");
-
-  lv_label_set_text(boot_label, "OnexOS update");
-  snprintf(buf, 32, "%lu %lu", (unsigned long)&__BUILD_TIMESTAMP, (unsigned long)&__BOOTLOADER_NUMBER);
-  lv_label_set_text(build_label, buf);
-
-  lv_label_set_text(cpu_label, "--");
-  lv_label_set_text(log_label, "--");
-
-  lv_scr_load(home_screen);
-}
-
 void log_lv(signed char ch,  const char * st, long unsigned int in,  const char * st2)
 {
   log_write("log_lv: [%d] [%s] [%ld] [%s]", ch, st, in, st2);
@@ -649,7 +629,6 @@ void init_lv()
   build_home();
   build_about();
   style_everything();
-  set_initial_values();
 }
 
 #if defined(LOG_TO_GFX)
@@ -661,13 +640,20 @@ void draw_log()
 
 void draw_ui()
 {
-  if(!user_active) return;
-  if(object_property_is(user, "viewing", homeuid))  draw_home();
-  if(object_property_is(user, "viewing", aboutuid)) draw_about();
+  if(object_property_contains(user, "viewing:is", "home"))  draw_home();
+  if(object_property_contains(user, "viewing:is", "about")) draw_about();
 }
+
+bool showing_home=false;
+bool showing_about=false;
 
 void draw_home()
 {
+  if(!showing_home){
+    lv_scr_load(home_screen);
+    showing_about=false;
+    showing_home=true;
+  }
   char* pc=object_property(   user, "viewing:battery:percent");
   bool  ch=object_property_is(user, "viewing:battery:status", "charging");
   bool  bl=object_property_is(user, "viewing:bluetooth:connected", "yes");
@@ -723,7 +709,19 @@ void draw_home()
 
 void draw_about()
 {
+  if(!showing_about){
+    lv_scr_load(about_screen);
+    showing_home=false;
+    showing_about=true;
+  }
+  lv_label_set_text(boot_label, "OnexOS update");
+
+  snprintf(buf, 32, "%lu %lu", (unsigned long)&__BUILD_TIMESTAMP, (unsigned long)&__BOOTLOADER_NUMBER);
+  lv_label_set_text(build_label, buf);
+
   snprintf(buf, 16, "%d%%", boot_cpu());
   lv_label_set_text(cpu_label, buf);
+
+//boot_dfu_start();
 }
 
