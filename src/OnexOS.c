@@ -500,40 +500,42 @@ void init_lv()
 
 // -------------------- User --------------------------
 
-static void draw_ui();
-static void draw_list();
+static void draw_list(bool touchevent);
 static void draw_home(char* path);
 static void draw_about(char* path);
-
-static uint8_t list_index=1;
+static void draw_default(char* path);
 
 bool evaluate_user(object* o, void* touchevent)
 {
-  if(touchevent){
-    if(touch_info.gesture==TOUCH_GESTURE_LEFT  && touch_info_stroke > 50){
-      list_index++; if(list_index==3) list_index=2;
-    }
-    else
-    if(touch_info.gesture==TOUCH_GESTURE_RIGHT && touch_info_stroke > 50){
-      list_index--; if(list_index==0) list_index=1;
-    }
+  if(user_active){
+    if(object_property_contains(user, "viewing:is", "list"))  draw_list(!!touchevent); else
+    if(object_property_contains(user, "viewing:is", "home"))  draw_home("viewing"); else
+    if(object_property_contains(user, "viewing:is", "about")) draw_about("viewing");
+    else                                                      draw_default("viewing");
   }
-  if(user_active) draw_ui();
   return true;
 }
 
-void draw_ui()
-{
-  if(object_property_contains(user, "viewing:is", "list"))  draw_list();
-  if(object_property_contains(user, "viewing:is", "home"))  draw_home("viewing");
-  if(object_property_contains(user, "viewing:is", "about")) draw_about("viewing");
-}
+static uint8_t list_index=1;
+static char    path[64];
 
-static char path[64];
-
-void draw_list()
+void draw_list(bool touchevent)
 {
+  if(touchevent){
+    if(touch_info.gesture==TOUCH_GESTURE_LEFT  && touch_info_stroke > 50){
+      list_index++;
+    }
+    else
+    if(touch_info.gesture==TOUCH_GESTURE_RIGHT && touch_info_stroke > 50){
+      list_index--;
+    }
+  }
+  uint8_t list_len=object_property_length(user, "viewing:list");
+  if(list_index<1       ) list_index=list_len;
+  if(list_index>list_len) list_index=1;
+
   snprintf(path, 32, "viewing:list:%d:is", list_index);
+
   if(object_property_contains(user, path, "home")){
     snprintf(path, 32, "viewing:list:%d", list_index);
     draw_home(path);
@@ -542,6 +544,10 @@ void draw_list()
   if(object_property_contains(user, path, "about")){
     snprintf(path, 32, "viewing:list:%d", list_index);
     draw_about(path);
+  }
+  else {
+    snprintf(path, 32, "viewing:list:%d", list_index);
+    draw_default(path);
   }
 }
 
@@ -747,6 +753,38 @@ void draw_about(char* path)
   lv_label_set_text(cpu_label, cpu);
 
 //boot_dfu_start();
+}
+
+static lv_obj_t* default_screen;
+
+static lv_obj_t* is_label;
+
+static lv_style_t is_label_style;
+
+void draw_default(char* path)
+{
+  if(!default_screen){
+    default_screen = lv_obj_create(0,0);
+    lv_label_set_style(default_screen, LV_LABEL_STYLE_MAIN, &screen_style);
+
+    is_label=lv_label_create(default_screen, 0);
+    lv_label_set_long_mode(is_label, LV_LABEL_LONG_BREAK);
+    lv_obj_set_width(is_label, 200);
+    lv_obj_set_height(is_label, 200);
+    lv_label_set_align(is_label, LV_LABEL_ALIGN_CENTER);
+    lv_obj_align(is_label, default_screen, LV_ALIGN_CENTER, -5, -50);
+
+    lv_style_copy(&is_label_style, &screen_style);
+    is_label_style.text.color= LV_COLOR_TEAL;
+    lv_label_set_style(is_label, LV_LABEL_STYLE_MAIN, &is_label_style);
+  }
+  if(lv_scr_act()!=default_screen){
+    lv_scr_load(default_screen);
+  }
+
+  snprintf(buf, 64, "%s:is", path); char* is=object_property(user, buf);
+
+  lv_label_set_text(is_label, is);
 }
 
 #if defined(LOG_TO_GFX)
