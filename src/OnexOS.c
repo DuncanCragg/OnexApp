@@ -488,17 +488,18 @@ static lv_disp_buf_t disp_buf;
 static lv_color_t lv_buf1[LV_BUF_SIZE];
 static lv_color_t lv_buf2[LV_BUF_SIZE];
 
-static lv_obj_t* time_label;
-static lv_obj_t* date_label;
-static lv_obj_t* battery_level;
-static lv_obj_t* ble_rssi;
-static lv_obj_t* boot_label;
-static lv_obj_t* build_label;
-static lv_obj_t* cpu_label;
-static lv_obj_t* log_label;
+static lv_style_t screen_style;
 
-static void wire_display_and_touch()
+void log_lv(signed char ch,  const char * st, long unsigned int in,  const char * st2)
 {
+  log_write("log_lv: [%d] [%s] [%ld] [%s]", ch, st, in, st2);
+}
+
+void init_lv()
+{
+  lv_init();
+  lv_log_register_print_cb(log_lv);
+
   lv_disp_buf_init(&disp_buf, lv_buf1, lv_buf2, LV_BUF_SIZE);
 
   lv_disp_drv_t disp_drv;
@@ -512,151 +513,13 @@ static void wire_display_and_touch()
   indev_drv.type = LV_INDEV_TYPE_POINTER;
   indev_drv.read_cb = read_touch;
   lv_indev_drv_register(&indev_drv);
-}
 
-static lv_obj_t* home_screen;
-static lv_obj_t* about_screen;
-
-static void build_home()
-{
-  home_screen  = lv_obj_create(0,0);
-
-  time_label=lv_label_create(home_screen, 0);
-  lv_label_set_long_mode(time_label, LV_LABEL_LONG_BREAK);
-  lv_obj_set_width(time_label, 240);
-  lv_obj_set_height(time_label, 200);
-  lv_label_set_align(time_label, LV_LABEL_ALIGN_CENTER);
-  lv_obj_align(time_label, home_screen, LV_ALIGN_CENTER, -5, -20);
-
-  date_label=lv_label_create(home_screen, 0);
-  lv_label_set_long_mode(date_label, LV_LABEL_LONG_BREAK);
-  lv_obj_set_width(date_label, 200);
-  lv_obj_set_height(date_label, 200);
-  lv_label_set_align(date_label, LV_LABEL_ALIGN_CENTER);
-  lv_obj_align(date_label, home_screen, LV_ALIGN_CENTER, -5, 50);
-
-  battery_level = lv_bar_create(home_screen, 0);
-  lv_obj_set_size(battery_level, 235, 4);
-  lv_obj_align(battery_level, home_screen, LV_ALIGN_IN_TOP_LEFT, 0, 0);
-
-  ble_rssi = lv_bar_create(home_screen, 0);
-  lv_obj_set_size(ble_rssi, 235, 4);
-  lv_obj_align(ble_rssi, home_screen, LV_ALIGN_IN_TOP_LEFT, 0, 6);
-}
-
-static void build_about()
-{
-  about_screen = lv_obj_create(0,0);
-
-  boot_label=lv_label_create(about_screen, 0);
-  lv_label_set_long_mode(boot_label, LV_LABEL_LONG_BREAK);
-  lv_obj_set_width(boot_label, 200);
-  lv_obj_set_height(boot_label, 200);
-  lv_label_set_align(boot_label, LV_LABEL_ALIGN_CENTER);
-  lv_obj_align(boot_label, about_screen, LV_ALIGN_CENTER, -5, -50);
-
-  build_label=lv_label_create(about_screen, 0);
-  lv_label_set_long_mode(build_label, LV_LABEL_LONG_CROP);
-  lv_obj_set_width(build_label, 230);
-  lv_obj_set_height(build_label, 100);
-  lv_label_set_align(build_label, LV_LABEL_ALIGN_LEFT);
-  lv_obj_align(build_label, about_screen, LV_ALIGN_IN_TOP_LEFT, 5, 226);
-
-  cpu_label=lv_label_create(about_screen, 0);
-  lv_label_set_long_mode(cpu_label, LV_LABEL_LONG_CROP);
-  lv_obj_set_width(cpu_label, 50);
-  lv_obj_set_height(cpu_label, 100);
-  lv_label_set_align(cpu_label, LV_LABEL_ALIGN_LEFT);
-  lv_obj_align(cpu_label, about_screen, LV_ALIGN_IN_TOP_LEFT, 120, 226);
-
-  log_label=lv_label_create(about_screen, 0);
-  lv_label_set_long_mode(log_label, LV_LABEL_LONG_CROP);
-  lv_obj_set_width(log_label, 230);
-  lv_obj_set_height(log_label, 100);
-  lv_label_set_align(log_label, LV_LABEL_ALIGN_LEFT);
-  lv_obj_align(log_label, about_screen, LV_ALIGN_IN_TOP_LEFT, 5, 215);
-  lv_label_set_text(log_label, "--");
-}
-
-static lv_style_t screen_style;
-static lv_style_t meter_bg_style;
-static lv_style_t battery_level_style;
-static lv_style_t ble_rssi_style;
-static lv_style_t time_label_style;
-static lv_style_t log_label_style;
-static lv_style_t build_label_style;
-
-static void style_everything()
-{
   lv_style_copy(&screen_style, &lv_style_plain);
   screen_style.body.main_color = LV_COLOR_BLACK;
   screen_style.body.grad_color = LV_COLOR_BLACK;
   screen_style.text.color      = LV_COLOR_WHITE;
   screen_style.image.color     = LV_COLOR_WHITE;
-  lv_label_set_style(home_screen, LV_LABEL_STYLE_MAIN, &screen_style);
-  lv_label_set_style(about_screen, LV_LABEL_STYLE_MAIN, &screen_style);
-
-  lv_style_copy(&meter_bg_style, &screen_style);
-  meter_bg_style.body.radius=0;
-  meter_bg_style.body.main_color=LV_COLOR_GRAY;
-  meter_bg_style.body.grad_color=LV_COLOR_GRAY;
-
-  lv_style_copy(&battery_level_style, &screen_style);
-  battery_level_style.body.radius = 0;
-  battery_level_style.body.padding.top = 0;
-  battery_level_style.body.padding.bottom = 0;
-  battery_level_style.body.padding.left = 0;
-  battery_level_style.body.padding.right = 0;
-  battery_level_style.body.main_color = LV_COLOR_GREEN;
-  battery_level_style.body.grad_color = LV_COLOR_GREEN;
-
-  lv_style_copy(&ble_rssi_style, &battery_level_style);
-  ble_rssi_style.body.main_color = LV_COLOR_BLUE;
-  ble_rssi_style.body.grad_color = LV_COLOR_BLUE;
-
-  lv_bar_set_style(battery_level, LV_BAR_STYLE_INDIC, &battery_level_style);
-  lv_bar_set_style(battery_level, LV_BAR_STYLE_BG,    &meter_bg_style);
-  lv_bar_set_style(ble_rssi,      LV_BAR_STYLE_INDIC, &ble_rssi_style);
-  lv_bar_set_style(ble_rssi,      LV_BAR_STYLE_BG,    &meter_bg_style);
-
-  lv_style_copy(&time_label_style, &screen_style);
-  time_label_style.text.font= &noto_sans_numeric_80;
-  lv_label_set_style(time_label, LV_LABEL_STYLE_MAIN, &time_label_style);
-
-  lv_style_copy(&log_label_style, &screen_style);
-  log_label_style.text.font= &lv_font_roboto_12;
-  log_label_style.text.color= LV_COLOR_TEAL;
-  lv_label_set_style(log_label, LV_LABEL_STYLE_MAIN, &log_label_style);
-
-  lv_style_copy(&build_label_style, &screen_style);
-  build_label_style.text.font= &lv_font_roboto_12;
-  build_label_style.text.color= LV_COLOR_ORANGE;
-  lv_label_set_style(build_label, LV_LABEL_STYLE_MAIN, &build_label_style);
-
-  lv_label_set_style(cpu_label, LV_LABEL_STYLE_MAIN, &build_label_style);
 }
-
-void log_lv(signed char ch,  const char * st, long unsigned int in,  const char * st2)
-{
-  log_write("log_lv: [%d] [%s] [%ld] [%s]", ch, st, in, st2);
-}
-
-void init_lv()
-{
-  lv_init();
-  lv_log_register_print_cb(log_lv);
-  wire_display_and_touch();
-  build_home();
-  build_about();
-  style_everything();
-}
-
-#if defined(LOG_TO_GFX)
-void draw_log()
-{
-  lv_label_set_text(log_label, (const char*)event_log_buffer);
-}
-#endif
 
 static void draw_home();
 static void draw_about();
@@ -667,11 +530,77 @@ void draw_ui()
   if(object_property_contains(user, "viewing:is", "about")) draw_about();
 }
 
+static lv_obj_t* home_screen;
+
+static lv_obj_t* time_label;
+static lv_obj_t* date_label;
+static lv_obj_t* battery_level;
+static lv_obj_t* ble_rssi;
+
+static lv_style_t time_label_style;
+static lv_style_t meter_bg_style;
+static lv_style_t battery_level_style;
+static lv_style_t ble_rssi_style;
+
 bool showing_home=false;
 bool showing_about=false;
 
 void draw_home()
 {
+  if(!home_screen){
+    home_screen  = lv_obj_create(0,0);
+
+    time_label=lv_label_create(home_screen, 0);
+    lv_label_set_long_mode(time_label, LV_LABEL_LONG_BREAK);
+    lv_obj_set_width(time_label, 240);
+    lv_obj_set_height(time_label, 200);
+    lv_label_set_align(time_label, LV_LABEL_ALIGN_CENTER);
+    lv_obj_align(time_label, home_screen, LV_ALIGN_CENTER, -5, -20);
+
+    date_label=lv_label_create(home_screen, 0);
+    lv_label_set_long_mode(date_label, LV_LABEL_LONG_BREAK);
+    lv_obj_set_width(date_label, 200);
+    lv_obj_set_height(date_label, 200);
+    lv_label_set_align(date_label, LV_LABEL_ALIGN_CENTER);
+    lv_obj_align(date_label, home_screen, LV_ALIGN_CENTER, -5, 50);
+
+    battery_level = lv_bar_create(home_screen, 0);
+    lv_obj_set_size(battery_level, 235, 4);
+    lv_obj_align(battery_level, home_screen, LV_ALIGN_IN_TOP_LEFT, 0, 0);
+
+    ble_rssi = lv_bar_create(home_screen, 0);
+    lv_obj_set_size(ble_rssi, 235, 4);
+    lv_obj_align(ble_rssi, home_screen, LV_ALIGN_IN_TOP_LEFT, 0, 6);
+
+    lv_label_set_style(home_screen, LV_LABEL_STYLE_MAIN, &screen_style);
+
+    lv_style_copy(&time_label_style, &screen_style);
+    time_label_style.text.font= &noto_sans_numeric_80;
+    lv_label_set_style(time_label, LV_LABEL_STYLE_MAIN, &time_label_style);
+
+    lv_style_copy(&meter_bg_style, &screen_style);
+    meter_bg_style.body.radius=0;
+    meter_bg_style.body.main_color=LV_COLOR_GRAY;
+    meter_bg_style.body.grad_color=LV_COLOR_GRAY;
+
+    lv_style_copy(&battery_level_style, &screen_style);
+    battery_level_style.body.radius = 0;
+    battery_level_style.body.padding.top = 0;
+    battery_level_style.body.padding.bottom = 0;
+    battery_level_style.body.padding.left = 0;
+    battery_level_style.body.padding.right = 0;
+    battery_level_style.body.main_color = LV_COLOR_GREEN;
+    battery_level_style.body.grad_color = LV_COLOR_GREEN;
+
+    lv_style_copy(&ble_rssi_style, &battery_level_style);
+    ble_rssi_style.body.main_color = LV_COLOR_BLUE;
+    ble_rssi_style.body.grad_color = LV_COLOR_BLUE;
+
+    lv_bar_set_style(battery_level, LV_BAR_STYLE_INDIC, &battery_level_style);
+    lv_bar_set_style(battery_level, LV_BAR_STYLE_BG,    &meter_bg_style);
+    lv_bar_set_style(ble_rssi,      LV_BAR_STYLE_INDIC, &ble_rssi_style);
+    lv_bar_set_style(ble_rssi,      LV_BAR_STYLE_BG,    &meter_bg_style);
+  }
   if(!showing_home){
     lv_scr_load(home_screen);
     showing_about=false;
@@ -730,8 +659,65 @@ void draw_home()
   lv_bar_set_value(ble_rssi, blnum, LV_ANIM_OFF);
 }
 
+static lv_obj_t* about_screen;
+
+static lv_obj_t* boot_label;
+static lv_obj_t* build_label;
+static lv_obj_t* cpu_label;
+static lv_obj_t* log_label;
+
+static lv_style_t log_label_style;
+static lv_style_t build_label_style;
+
 void draw_about()
 {
+  if(!about_screen){
+    about_screen = lv_obj_create(0,0);
+
+    boot_label=lv_label_create(about_screen, 0);
+    lv_label_set_long_mode(boot_label, LV_LABEL_LONG_BREAK);
+    lv_obj_set_width(boot_label, 200);
+    lv_obj_set_height(boot_label, 200);
+    lv_label_set_align(boot_label, LV_LABEL_ALIGN_CENTER);
+    lv_obj_align(boot_label, about_screen, LV_ALIGN_CENTER, -5, -50);
+
+    build_label=lv_label_create(about_screen, 0);
+    lv_label_set_long_mode(build_label, LV_LABEL_LONG_CROP);
+    lv_obj_set_width(build_label, 230);
+    lv_obj_set_height(build_label, 100);
+    lv_label_set_align(build_label, LV_LABEL_ALIGN_LEFT);
+    lv_obj_align(build_label, about_screen, LV_ALIGN_IN_TOP_LEFT, 5, 226);
+
+    cpu_label=lv_label_create(about_screen, 0);
+    lv_label_set_long_mode(cpu_label, LV_LABEL_LONG_CROP);
+    lv_obj_set_width(cpu_label, 50);
+    lv_obj_set_height(cpu_label, 100);
+    lv_label_set_align(cpu_label, LV_LABEL_ALIGN_LEFT);
+    lv_obj_align(cpu_label, about_screen, LV_ALIGN_IN_TOP_LEFT, 120, 226);
+
+    log_label=lv_label_create(about_screen, 0);
+    lv_label_set_long_mode(log_label, LV_LABEL_LONG_CROP);
+    lv_obj_set_width(log_label, 230);
+    lv_obj_set_height(log_label, 100);
+    lv_label_set_align(log_label, LV_LABEL_ALIGN_LEFT);
+    lv_obj_align(log_label, about_screen, LV_ALIGN_IN_TOP_LEFT, 5, 215);
+
+    lv_label_set_text(log_label, "--");
+
+    lv_label_set_style(about_screen, LV_LABEL_STYLE_MAIN, &screen_style);
+
+    lv_style_copy(&log_label_style, &screen_style);
+    log_label_style.text.font= &lv_font_roboto_12;
+    log_label_style.text.color= LV_COLOR_TEAL;
+    lv_label_set_style(log_label, LV_LABEL_STYLE_MAIN, &log_label_style);
+
+    lv_style_copy(&build_label_style, &screen_style);
+    build_label_style.text.font= &lv_font_roboto_12;
+    build_label_style.text.color= LV_COLOR_ORANGE;
+    lv_label_set_style(build_label, LV_LABEL_STYLE_MAIN, &build_label_style);
+
+    lv_label_set_style(cpu_label, LV_LABEL_STYLE_MAIN, &build_label_style);
+  }
   if(!showing_about){
     lv_scr_load(about_screen);
     showing_home=false;
@@ -748,4 +734,11 @@ void draw_about()
 
 //boot_dfu_start();
 }
+
+#if defined(LOG_TO_GFX)
+void draw_log()
+{
+  lv_label_set_text(log_label, (const char*)event_log_buffer);
+}
+#endif
 
