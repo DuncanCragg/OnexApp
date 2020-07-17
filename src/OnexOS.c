@@ -261,12 +261,6 @@ int main()
     lt=ct;
 #endif
 
-    static uint64_t feeding_time=0;
-    if(ct>feeding_time && gpio_get(BUTTON_1)!=BUTTONS_ACTIVE_STATE){
-      boot_feed_watchdog();
-      feeding_time=ct+1000;
-    }
-
     if(!onex_loop()){
       gpio_sleep(); // will gpio_wake() when ADC read
       spi_sleep();  // will spi_wake() as soon as spi_tx called
@@ -287,6 +281,11 @@ int main()
     }
 #endif
 
+    static uint64_t feeding_time=0;
+    if(ct>feeding_time && gpio_get(BUTTON_1)!=BUTTONS_ACTIVE_STATE){
+      boot_feed_watchdog();
+      feeding_time=ct+1000;
+    }
   }
 }
 
@@ -399,12 +398,7 @@ bool evaluate_backlight_out(object* o, void* d)
   return true;
 }
 
-static lv_obj_t* home_screen;
-static lv_obj_t* about_screen;
-
 static void draw_ui();
-static void draw_home();
-static void draw_about();
 
 bool evaluate_user(object* o, void* touchevent)
 {
@@ -496,6 +490,9 @@ static void wire_display_and_touch()
   indev_drv.read_cb = read_touch;
   lv_indev_drv_register(&indev_drv);
 }
+
+static lv_obj_t* home_screen;
+static lv_obj_t* about_screen;
 
 static void build_home()
 {
@@ -637,6 +634,9 @@ void draw_log()
   lv_label_set_text(log_label, (const char*)event_log_buffer);
 }
 #endif
+
+static void draw_home();
+static void draw_about();
 
 void draw_ui()
 {
