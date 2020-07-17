@@ -530,10 +530,6 @@ void draw_ui()
   if(object_property_contains(user, "viewing:is", "about")) draw_about();
 }
 
-static const char* showing_home ="showing home";
-static const char* showing_about="showing about";
-static const char* showing=0;
-
 static lv_obj_t* home_screen;
 
 static lv_obj_t* time_label;
@@ -602,9 +598,8 @@ void draw_home()
     lv_bar_set_style(ble_rssi,      LV_BAR_STYLE_INDIC, &ble_rssi_style);
     lv_bar_set_style(ble_rssi,      LV_BAR_STYLE_BG,    &meter_bg_style);
   }
-  if(showing!=showing_home){
+  if(lv_scr_act()!=home_screen){
     lv_scr_load(home_screen);
-    showing=showing_home;
   }
   char* pc=object_property(   user, "viewing:battery:percent");
   bool  ch=object_property_is(user, "viewing:battery:status", "charging");
@@ -718,9 +713,8 @@ void draw_about()
 
     lv_label_set_style(cpu_label, LV_LABEL_STYLE_MAIN, &build_label_style);
   }
-  if(showing!=showing_about){
+  if(lv_scr_act()!=about_screen){
     lv_scr_load(about_screen);
-    showing=showing_about;
   }
   char* bnf=object_property_values(user, "viewing:build-info");
   char* cpu=object_property(       user, "viewing:cpu");
