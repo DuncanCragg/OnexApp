@@ -681,19 +681,19 @@ void draw_about()
     lv_label_set_align(about_title, LV_LABEL_ALIGN_CENTER);
     lv_obj_align(about_title, about_screen, LV_ALIGN_CENTER, -5, -50);
 
-    build_label=lv_label_create(about_screen, 0);
-    lv_label_set_long_mode(build_label, LV_LABEL_LONG_CROP);
-    lv_obj_set_width(build_label, 230);
-    lv_obj_set_height(build_label, 100);
-    lv_label_set_align(build_label, LV_LABEL_ALIGN_LEFT);
-    lv_obj_align(build_label, about_screen, LV_ALIGN_IN_TOP_LEFT, 5, 226);
-
     cpu_label=lv_label_create(about_screen, 0);
     lv_label_set_long_mode(cpu_label, LV_LABEL_LONG_CROP);
     lv_obj_set_width(cpu_label, 50);
     lv_obj_set_height(cpu_label, 100);
     lv_label_set_align(cpu_label, LV_LABEL_ALIGN_LEFT);
-    lv_obj_align(cpu_label, about_screen, LV_ALIGN_IN_TOP_LEFT, 120, 226);
+    lv_obj_align(cpu_label, about_screen, LV_ALIGN_IN_TOP_LEFT, 50, 160);
+
+    build_label=lv_label_create(about_screen, 0);
+    lv_label_set_long_mode(build_label, LV_LABEL_LONG_CROP);
+    lv_obj_set_width(build_label, 230);
+    lv_obj_set_height(build_label, 100);
+    lv_label_set_align(build_label, LV_LABEL_ALIGN_LEFT);
+    lv_obj_align(build_label, about_screen, LV_ALIGN_IN_TOP_LEFT, 50, 200);
 
     log_label=lv_label_create(about_screen, 0);
     lv_label_set_long_mode(log_label, LV_LABEL_LONG_CROP);
@@ -702,7 +702,7 @@ void draw_about()
     lv_label_set_align(log_label, LV_LABEL_ALIGN_LEFT);
     lv_obj_align(log_label, about_screen, LV_ALIGN_IN_TOP_LEFT, 5, 215);
 
-    lv_label_set_text(log_label, "--");
+    lv_label_set_text(log_label, "");
 
     lv_label_set_style(about_screen, LV_LABEL_STYLE_MAIN, &screen_style);
 
