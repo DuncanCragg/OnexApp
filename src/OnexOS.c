@@ -63,6 +63,7 @@ static void every_5ms(){
 
 static void every_second(){
   onex_run_evaluators(clockuid, 0);
+  onex_run_evaluators(aboutuid, 0);
 }
 
 static void every_10s(){
@@ -129,12 +130,14 @@ static void charging_changed(uint8_t pin, uint8_t type){
   onex_run_evaluators(batteryuid, 0);
 }
 
+static bool evaluate_default(object* o, void* d);
 static bool evaluate_user(object* o, void* d);
 static bool evaluate_battery_in(object* o, void* d);
 static bool evaluate_bluetooth_in(object* o, void* d);
 static bool evaluate_touch_in(object* o, void* d);
 static bool evaluate_motion_in(object* o, void* d);
 static bool evaluate_button_in(object* o, void* d);
+static bool evaluate_about_in(object* o, void* d);
 static bool evaluate_backlight_out(object* o, void* d);
 
 #define ADC_CHANNEL 0
@@ -173,6 +176,7 @@ int main()
 
   onex_init("");
 
+  onex_set_evaluators("default",   evaluate_default, 0);
   onex_set_evaluators("device",    evaluate_device_logic, 0);
   onex_set_evaluators("user",      evaluate_user, 0);
   onex_set_evaluators("battery",   evaluate_battery_in, 0);
@@ -180,6 +184,7 @@ int main()
   onex_set_evaluators("touch",     evaluate_touch_in, 0);
   onex_set_evaluators("motion",    evaluate_motion_in, 0);
   onex_set_evaluators("button",    evaluate_button_in, 0);
+  onex_set_evaluators("about",     evaluate_about_in, 0);
   onex_set_evaluators("backlight", evaluate_edit_rule, evaluate_light_logic, evaluate_backlight_out, 0);
   onex_set_evaluators("clock",     evaluate_clock_sync, evaluate_clock, 0);
   onex_set_evaluators("editable",  evaluate_edit_rule, 0);
@@ -195,8 +200,8 @@ int main()
   backlight=object_new(0, "backlight", "light editable", 9);
   oclock   =object_new(0, "clock",     "clock event", 12);
   watchface=object_new(0, "editable",  "watchface editable", 6);
-  home     =object_new(0, "editable",  "home editable ", 4);
-  about    =object_new(0, "editable",  "about editable", 4);
+  home     =object_new(0, "default",   "home", 4);
+  about    =object_new(0, "about",     "about", 4);
 
   deviceuid   =object_property(onex_device_object, "UID");
   useruid     =object_property(user, "UID");
@@ -246,6 +251,7 @@ int main()
   onex_run_evaluators(bluetoothuid, 0);
   onex_run_evaluators(clockuid, 0);
   onex_run_evaluators(backlightuid, 0);
+  onex_run_evaluators(aboutuid, 0);
 
   time_ticker(every_5ms,        5);
   time_ticker(every_second,  1000);
@@ -287,6 +293,12 @@ int main()
       feeding_time=ct+1000;
     }
   }
+}
+
+bool evaluate_default(object* o, void* d)
+{
+  log_write("evaluate_default data=%p\n", d); object_log(o);
+  return true;
 }
 
 #define BATTERY_ZERO_PERCENT 3400
@@ -359,6 +371,17 @@ bool evaluate_button_in(object* o, void* d)
 {
   bool button_pressed=(gpio_get(BUTTON_1)==BUTTONS_ACTIVE_STATE);
   object_property_set(button, "state", button_pressed? "down": "up");
+  return true;
+}
+
+bool evaluate_about_in(object* o, void* d)
+{
+  snprintf(buf, 32, "%lu %lu", (unsigned long)&__BUILD_TIMESTAMP, (unsigned long)&__BOOTLOADER_NUMBER);
+  object_property_set(about, "build-info", buf);
+
+  snprintf(buf, 16, "%d%%", boot_cpu());
+  object_property_set(about, "cpu", buf);
+
   return true;
 }
 
@@ -714,13 +737,14 @@ void draw_about()
     showing_home=false;
     showing_about=true;
   }
-  lv_label_set_text(boot_label, "OnexOS update");
+  char* bnf=object_property_values(user, "viewing:build-info");
+  char* cpu=object_property(       user, "viewing:cpu");
 
-  snprintf(buf, 32, "%lu %lu", (unsigned long)&__BUILD_TIMESTAMP, (unsigned long)&__BOOTLOADER_NUMBER);
-  lv_label_set_text(build_label, buf);
+  lv_label_set_text(boot_label, "About device");
 
-  snprintf(buf, 16, "%d%%", boot_cpu());
-  lv_label_set_text(cpu_label, buf);
+  lv_label_set_text(build_label, bnf);
+
+  lv_label_set_text(cpu_label, cpu);
 
 //boot_dfu_start();
 }
