@@ -661,7 +661,7 @@ void draw_home()
 
 static lv_obj_t* about_screen;
 
-static lv_obj_t* boot_label;
+static lv_obj_t* about_title;
 static lv_obj_t* build_label;
 static lv_obj_t* cpu_label;
 static lv_obj_t* log_label;
@@ -674,12 +674,12 @@ void draw_about()
   if(!about_screen){
     about_screen = lv_obj_create(0,0);
 
-    boot_label=lv_label_create(about_screen, 0);
-    lv_label_set_long_mode(boot_label, LV_LABEL_LONG_BREAK);
-    lv_obj_set_width(boot_label, 200);
-    lv_obj_set_height(boot_label, 200);
-    lv_label_set_align(boot_label, LV_LABEL_ALIGN_CENTER);
-    lv_obj_align(boot_label, about_screen, LV_ALIGN_CENTER, -5, -50);
+    about_title=lv_label_create(about_screen, 0);
+    lv_label_set_long_mode(about_title, LV_LABEL_LONG_BREAK);
+    lv_obj_set_width(about_title, 200);
+    lv_obj_set_height(about_title, 200);
+    lv_label_set_align(about_title, LV_LABEL_ALIGN_CENTER);
+    lv_obj_align(about_title, about_screen, LV_ALIGN_CENTER, -5, -50);
 
     build_label=lv_label_create(about_screen, 0);
     lv_label_set_long_mode(build_label, LV_LABEL_LONG_CROP);
@@ -726,7 +726,7 @@ void draw_about()
   char* bnf=object_property_values(user, "viewing:build-info");
   char* cpu=object_property(       user, "viewing:cpu");
 
-  lv_label_set_text(boot_label, "About device");
+  lv_label_set_text(about_title, "About device");
 
   lv_label_set_text(build_label, bnf);
 
