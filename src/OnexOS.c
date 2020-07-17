@@ -130,12 +130,12 @@ static void charging_changed(uint8_t pin, uint8_t type){
 }
 
 static bool evaluate_user(object* o, void* d);
-static bool evaluate_battery_io(object* o, void* d);
-static bool evaluate_bluetooth_io(object* o, void* d);
-static bool evaluate_touch_io(object* o, void* d);
-static bool evaluate_motion_io(object* o, void* d);
-static bool evaluate_button_io(object* o, void* d);
-static bool evaluate_backlight_io(object* o, void* d);
+static bool evaluate_battery_in(object* o, void* d);
+static bool evaluate_bluetooth_in(object* o, void* d);
+static bool evaluate_touch_in(object* o, void* d);
+static bool evaluate_motion_in(object* o, void* d);
+static bool evaluate_button_in(object* o, void* d);
+static bool evaluate_backlight_out(object* o, void* d);
 
 #define ADC_CHANNEL 0
 
@@ -175,12 +175,12 @@ int main()
 
   onex_set_evaluators("device",    evaluate_device_logic, 0);
   onex_set_evaluators("user",      evaluate_user, 0);
-  onex_set_evaluators("battery",   evaluate_battery_io, 0);
-  onex_set_evaluators("bluetooth", evaluate_bluetooth_io, 0);
-  onex_set_evaluators("touch",     evaluate_touch_io, 0);
-  onex_set_evaluators("motion",    evaluate_motion_io, 0);
-  onex_set_evaluators("button",    evaluate_button_io, 0);
-  onex_set_evaluators("backlight", evaluate_edit_rule, evaluate_light_logic, evaluate_backlight_io, 0);
+  onex_set_evaluators("battery",   evaluate_battery_in, 0);
+  onex_set_evaluators("bluetooth", evaluate_bluetooth_in, 0);
+  onex_set_evaluators("touch",     evaluate_touch_in, 0);
+  onex_set_evaluators("motion",    evaluate_motion_in, 0);
+  onex_set_evaluators("button",    evaluate_button_in, 0);
+  onex_set_evaluators("backlight", evaluate_edit_rule, evaluate_light_logic, evaluate_backlight_out, 0);
   onex_set_evaluators("clock",     evaluate_clock_sync, evaluate_clock, 0);
   onex_set_evaluators("editable",  evaluate_edit_rule, 0);
 
@@ -293,7 +293,7 @@ int main()
 #define BATTERY_ZERO_PERCENT 3400
 #define BATTERY_100_PERCENT 4000
 #define BATTERY_PERCENT_STEPS 2
-bool evaluate_battery_io(object* o, void* d)
+bool evaluate_battery_in(object* o, void* d)
 {
   int32_t bv = gpio_read(ADC_CHANNEL);
   int32_t mv = bv*2000/(1024/(33/10));
@@ -311,7 +311,7 @@ bool evaluate_battery_io(object* o, void* d)
   return true;
 }
 
-bool evaluate_bluetooth_io(object* o, void* d)
+bool evaluate_bluetooth_in(object* o, void* d)
 {
   object_property_set(bluetooth, "connected", ble_info.connected? "yes": "no");
   snprintf(buf, 16, "%3d", ble_info.rssi);
@@ -319,7 +319,7 @@ bool evaluate_bluetooth_io(object* o, void* d)
   return true;
 }
 
-bool evaluate_touch_io(object* o, void* d)
+bool evaluate_touch_in(object* o, void* d)
 {
   snprintf(buf, 64, "%3d %3d", touch_info.x, touch_info.y);
   object_property_set(touch, "coords", buf);
@@ -333,7 +333,7 @@ bool evaluate_touch_io(object* o, void* d)
   return true;
 }
 
-bool evaluate_motion_io(object* o, void* d)
+bool evaluate_motion_in(object* o, void* d)
 {
   static int16_t prevx=0;
   static int16_t prevm=0;
@@ -356,14 +356,14 @@ bool evaluate_motion_io(object* o, void* d)
   return true;
 }
 
-bool evaluate_button_io(object* o, void* d)
+bool evaluate_button_in(object* o, void* d)
 {
   bool button_pressed=(gpio_get(BUTTON_1)==BUTTONS_ACTIVE_STATE);
   object_property_set(button, "state", button_pressed? "down": "up");
   return true;
 }
 
-bool evaluate_backlight_io(object* o, void* d)
+bool evaluate_backlight_out(object* o, void* d)
 {
   bool light_on=object_property_is(backlight, "light", "on");
 
