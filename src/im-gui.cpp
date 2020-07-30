@@ -84,6 +84,7 @@ int texWidth, texHeight;
 
 extern object* config;
 extern object* user;
+extern object* responses;
 extern char* userUID;
 
 bool evaluate_default(object* o, void* d)
@@ -239,6 +240,26 @@ void set_scaling()
 
 // ---------------
 
+object* get_or_create_edit(char* uid)
+{
+  object* edit;
+  char* editUID=object_property(responses, uid);
+  if(editUID){
+    edit=onex_get_from_cache(editUID);
+  }
+  else{
+    edit=object_new(0, 0, (char*)"edit rule", 5);
+
+    object_property_set(edit, (char*)"edit-target", uid);
+    object_property_set(edit, (char*)"edit-user",   userUID);
+    object_property_add(edit, (char*)"Notifying",   uid);
+
+    editUID=object_property(edit, (char*)"UID");
+    object_property_set(responses, uid, editUID);
+  }
+  return edit;
+}
+
 void invoke_single_set(char* uid, char* key, char* val)
 {
   char* colon=strrchr(key, ':');
@@ -275,8 +296,6 @@ void invoke_single_set(char* uid, char* key, char* val)
     }
   }
   else{
-    object* edit=object_new(0, 0, (char*)"editable edit rule", 3);
-    object_property_add(edit, (char*)"Notifying", uid);
     char upd[128];
     if(i){
       if(!*val){
@@ -289,6 +308,7 @@ void invoke_single_set(char* uid, char* key, char* val)
       else log_write("**** trying to set list indexed value! *** \n");
     }
     else snprintf(upd, 128, "=> %s", val? val: "");
+    object* edit=get_or_create_edit(uid);
     object_property_set(edit, key, upd);
   }
   if(colon){
@@ -309,9 +329,8 @@ void invoke_single_add(char* uid, char* key, char* val)
     onex_run_evaluators(uid, update);
   }
   else{
-    object* edit=object_new(0, 0, (char*)"editable edit rule", 3);
-    object_property_add(edit, (char*)"Notifying", uid);
     char upd[128]; snprintf(upd, 128, "=> @. %s", val);
+    object* edit=get_or_create_edit(uid);
     object_property_set(edit, key, upd);
   }
 }

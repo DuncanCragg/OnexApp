@@ -12,6 +12,7 @@ extern "C" {
 
 object* config;
 object* user;
+object* responses;
 object* oclock;
 object* bluetooth;
 
@@ -76,6 +77,9 @@ char* init_onex()
     user=object_new(0, (char*)"user", (char*)"user", 8);
     userUID=object_property(user, (char*)"UID");
 
+    responses=object_new(0, (char*)"default", (char*)"user responses", 12);
+    char* responsesUID=object_property(responses, (char*)"UID");
+
     oclock=object_new(0, (char*)"clock", (char*)"clock event", 12);
     object_property_set(oclock, (char*)"title", (char*)"OnexApp Clock");
     clockUID=object_property(oclock, (char*)"UID");
@@ -92,6 +96,7 @@ char* init_onex()
     object_property_add(onex_device_object, (char*)"io", bluetoothUID);
 
     object_property_set(user, (char*)"viewing-l", deviceUID);
+    object_property_set(user, (char*)"responses", responsesUID);
 
     config=object_new((char*)"uid-0", 0, (char*)"config", 10);
     object_property_set(config, (char*)"user",      userUID);
