@@ -45,7 +45,7 @@ ImVec4 schemeLightPurple(0.8f, 0.7f, 0.9f, 1.0f);
 ImVec4 schemeDarkerPurple(0.73f, 0.63f, 0.83f, 1.0f);
 ImVec4 schemePlum(230.0f/255, 179.0f/255, 230.0f/255, 1.0f);
 
-#define DARKEN_DEPTH 3
+#define DARKEN_DEPTH 4
 
 uint16_t buttonHeight=0;
 uint16_t paddingHeight=0;
