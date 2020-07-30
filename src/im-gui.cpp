@@ -309,6 +309,8 @@ void invoke_single_set(char* uid, char* key, char* val)
     }
     else snprintf(upd, 128, "=> %s", val? val: "");
     object* edit=get_or_create_edit(uid);
+    char* oldkey=object_property_key(edit, (char*)":", 4);
+    if(oldkey) object_property_set(edit, oldkey, "");
     object_property_set(edit, key, upd);
   }
   if(colon){
@@ -331,6 +333,8 @@ void invoke_single_add(char* uid, char* key, char* val)
   else{
     char upd[128]; snprintf(upd, 128, "=> @. %s", val);
     object* edit=get_or_create_edit(uid);
+    char* oldkey=object_property_key(edit, (char*)":", 4);
+    if(oldkey) object_property_set(edit, oldkey, "");
     object_property_set(edit, key, upd);
   }
 }
