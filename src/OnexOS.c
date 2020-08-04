@@ -32,6 +32,7 @@ static object* oclock;
 static object* watchface;
 static object* viewlist;
 static object* home;
+static object* calendar;
 static object* about;
 
 static char* deviceuid;
@@ -46,6 +47,7 @@ static char* clockuid;
 static char* watchfaceuid;
 static char* viewlistuid;
 static char* homeuid;
+static char* calendaruid;
 static char* aboutuid;
 
 static volatile bool          event_tick_5ms=false;
@@ -201,6 +203,7 @@ int main()
   watchface=object_new(0, "editable",  "watchface editable", 6);
   viewlist =object_new(0, "editable",  "list editable", 4);
   home     =object_new(0, "default",   "home", 4);
+  calendar =object_new(0, "editable",  "event list editable", 4);
   about    =object_new(0, "about",     "about", 4);
 
   deviceuid   =object_property(onex_device_object, "UID");
@@ -215,6 +218,7 @@ int main()
   watchfaceuid=object_property(watchface, "UID");
   viewlistuid =object_property(viewlist, "UID");
   homeuid     =object_property(home, "UID");
+  calendaruid =object_property(calendar, "UID");
   aboutuid    =object_property(about, "UID");
 
   object_property_set(backlight, "light", "on");
@@ -233,6 +237,7 @@ int main()
   object_property_set(watchface, "ampm-24hr", "ampm");
 
   object_property_add(viewlist, (char*)"list", homeuid);
+  object_property_add(viewlist, (char*)"list", calendaruid);
   object_property_add(viewlist, (char*)"list", aboutuid);
 
   object_property_set(home, (char*)"battery",   batteryuid);
@@ -502,6 +507,8 @@ bool evaluate_backlight_out(object* o, void* d)
 
 static void draw_by_type(char* path, bool touchevent);
 static void draw_home(char* path);
+static void draw_calendar(char* path);
+static void draw_event(char* path);
 static void draw_about(char* path);
 static void draw_list(char* p, bool touchevent);
 static void draw_default(char* path);
@@ -520,6 +527,9 @@ void draw_by_type(char* p, bool touchevent)
   snprintf(pi, 32, "%s:is", p);
 
   if(object_property_contains(user, pi, "home"))  draw_home(p);               else
+  if(object_property_contains(user, pi, "event") &&
+     object_property_contains(user, pi, "list") ) draw_calendar(p);           else
+  if(object_property_contains(user, pi, "event")) draw_event(p);              else
   if(object_property_contains(user, pi, "about")) draw_about(p);              else
   if(object_property_contains(user, pi, "list"))  draw_list(p, !!touchevent); else
                                                   draw_default(p);
@@ -676,6 +686,23 @@ void draw_home(char* path)
   ble_rssi_style.body.grad_color=ble_col;
   lv_obj_refresh_style(ble_rssi);
   lv_bar_set_value(ble_rssi, blnum, LV_ANIM_OFF);
+}
+
+static lv_obj_t* calendar_screen;
+
+void draw_calendar(char* path)
+{
+  if(!calendar_screen){
+    calendar_screen = lv_obj_create(0,0);
+    lv_label_set_style(calendar_screen, LV_LABEL_STYLE_MAIN, &screen_style);
+  }
+  if(lv_scr_act()!=calendar_screen){
+    lv_scr_load(calendar_screen);
+  }
+}
+
+void draw_event(char* path)
+{
 }
 
 static lv_obj_t* about_screen;
