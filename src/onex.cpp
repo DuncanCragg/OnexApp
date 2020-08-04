@@ -11,14 +11,18 @@ extern "C" {
 }
 
 object* config;
+
 object* user;
 object* responses;
 object* oclock;
 object* bluetooth;
+object* taglookup;
 
 char* userUID=0;
+char* responsesUID=0;
 char* clockUID=0;
 char* bluetoothUID=0;
+char* taglookupUID;
 
 extern bool evaluate_default(object* o, void* d);
 extern bool evaluate_user(object* o, void* d);
@@ -63,13 +67,13 @@ char* init_onex()
     object* tagceleb=object_new_from((char*)"is: tag  title: celebrate icon: 🎉  colour: red", 5);
     object* taglove =object_new_from((char*)"is: tag  title: love      icon: 😍  colour: red", 5);
 
-    object* taglookup=object_new_from((char*)"is: tag lookup", 100);
+    taglookup=object_new_from((char*)"is: tag lookup", 100);
     object_property_set(taglookup, (char*)"birthday",  object_property(tagbirth, (char*)"UID"));
     object_property_set(taglookup, (char*)"party",     object_property(tagparty, (char*)"UID"));
     object_property_set(taglookup, (char*)"train",     object_property(tagtrain, (char*)"UID"));
     object_property_set(taglookup, (char*)"celebrate", object_property(tagceleb, (char*)"UID"));
     object_property_set(taglookup, (char*)"love",      object_property(taglove,  (char*)"UID"));
-    char* taglookupUID=object_property(taglookup, (char*)"UID");
+    taglookupUID=object_property(taglookup, (char*)"UID");
 /*
     object* links=object_new(0, (char*)"default", (char*)"links list", 4);
     object_property_set(links, (char*)"list", object_property(taglookup, (char*)"UID"));
@@ -100,18 +104,23 @@ char* init_onex()
 
     config=object_new((char*)"uid-0", 0, (char*)"config", 10);
     object_property_set(config, (char*)"user",      userUID);
+    object_property_set(config, (char*)"responses", responsesUID);
     object_property_set(config, (char*)"clock",     clockUID);
     object_property_set(config, (char*)"bluetooth", bluetoothUID);
     object_property_set(config, (char*)"taglookup", taglookupUID);
   }
   else{
     userUID=     object_property(config, (char*)"user");
+    responsesUID=object_property(config, (char*)"responses");
     clockUID=    object_property(config, (char*)"clock");
     bluetoothUID=object_property(config, (char*)"bluetooth");
+    taglookupUID=object_property(config, (char*)"taglookup");
 
     user     =onex_get_from_cache(userUID);
+    responses=onex_get_from_cache(responsesUID);
     oclock   =onex_get_from_cache(clockUID);
     bluetooth=onex_get_from_cache(bluetoothUID);
+    taglookup=onex_get_from_cache(taglookupUID);
 
     ble_mac=mem_strdup(object_property(bluetooth, (char*)"mac"));
   }
