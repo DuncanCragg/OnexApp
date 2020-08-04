@@ -235,7 +235,7 @@ int main()
   object_property_add(viewlist, (char*)"list", homeuid);
   object_property_add(viewlist, (char*)"list", aboutuid);
 
-  object_property_set(home, (char*)"battery", batteryuid);
+  object_property_set(home, (char*)"battery",   batteryuid);
   object_property_set(home, (char*)"bluetooth", bluetoothuid);
   object_property_set(home, (char*)"watchface", watchfaceuid);
 
@@ -500,26 +500,34 @@ bool evaluate_backlight_out(object* o, void* d)
 
 // -------------------- User --------------------------
 
-static void draw_list(bool touchevent);
+static void draw_by_type(char* path, bool touchevent);
 static void draw_home(char* path);
 static void draw_about(char* path);
+static void draw_list(char* p, bool touchevent);
 static void draw_default(char* path);
 
 bool evaluate_user(object* o, void* touchevent)
 {
-  if(user_active){
-    if(object_property_contains(user, "viewing:is", "list"))  draw_list(!!touchevent); else
-    if(object_property_contains(user, "viewing:is", "home"))  draw_home("viewing"); else
-    if(object_property_contains(user, "viewing:is", "about")) draw_about("viewing");
-    else                                                      draw_default("viewing");
-  }
+  if(user_active) draw_by_type("viewing", !!touchevent);
   return true;
 }
 
-static uint8_t list_index=1;
-static char    path[64];
+static char pi[64];
+static char pl[64];
 
-void draw_list(bool touchevent)
+void draw_by_type(char* p, bool touchevent)
+{
+  snprintf(pi, 32, "%s:is", p);
+
+  if(object_property_contains(user, pi, "home"))  draw_home(p);               else
+  if(object_property_contains(user, pi, "about")) draw_about(p);              else
+  if(object_property_contains(user, pi, "list"))  draw_list(p, !!touchevent); else
+                                                  draw_default(p);
+}
+
+static uint8_t list_index=1;
+
+void draw_list(char* p, bool touchevent)
 {
   if(touchevent){
     if(touch_info.gesture==TOUCH_GESTURE_LEFT  && touch_info_stroke > 50){
@@ -534,21 +542,9 @@ void draw_list(bool touchevent)
   if(list_index<1       ) list_index=list_len;
   if(list_index>list_len) list_index=1;
 
-  snprintf(path, 32, "viewing:list:%d:is", list_index);
+  snprintf(pl, 32, "%s:list:%d", p, list_index); // all goes wrong if this recurses (list:list) !
 
-  if(object_property_contains(user, path, "home")){
-    snprintf(path, 32, "viewing:list:%d", list_index);
-    draw_home(path);
-  }
-  else
-  if(object_property_contains(user, path, "about")){
-    snprintf(path, 32, "viewing:list:%d", list_index);
-    draw_about(path);
-  }
-  else {
-    snprintf(path, 32, "viewing:list:%d", list_index);
-    draw_default(path);
-  }
+  draw_by_type(pl, false);
 }
 
 static lv_obj_t* home_screen;
