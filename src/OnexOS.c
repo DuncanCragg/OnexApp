@@ -113,6 +113,7 @@ static void touched(touch_info_t ti)
   if(disable_user_touch==2 && touch_info.action==TOUCH_ACTION_CONTACT) disable_user_touch=0;
 
   if(!disable_user_touch){
+    log_write("eval user from touched %d\n", is_gesture);
     onex_run_evaluators(useruid, (void*)1);
   }
 }
@@ -690,15 +691,55 @@ void draw_home(char* path)
 
 static lv_obj_t* calendar_screen;
 
+static lv_obj_t* calendar_title;
+static lv_obj_t* len_label;
+static lv_obj_t* plus_button;
+static lv_obj_t* plus_button_label;
+
+static void plus_button_event(lv_obj_t * obj, lv_event_t event)
+{
+  if(event==LV_EVENT_CLICKED) {
+    log_write("Plus button pressed\n");
+  }
+}
+
 void draw_calendar(char* path)
 {
   if(!calendar_screen){
     calendar_screen = lv_obj_create(0,0);
     lv_label_set_style(calendar_screen, LV_LABEL_STYLE_MAIN, &screen_style);
+
+    calendar_title=lv_label_create(calendar_screen, 0);
+    lv_label_set_long_mode(calendar_title, LV_LABEL_LONG_BREAK);
+    lv_obj_set_width(calendar_title, 200);
+    lv_obj_set_height(calendar_title, 200);
+    lv_label_set_align(calendar_title, LV_LABEL_ALIGN_CENTER);
+    lv_obj_align(calendar_title, calendar_screen, LV_ALIGN_CENTER, -5, -50);
+
+    len_label=lv_label_create(calendar_screen, 0);
+    lv_label_set_long_mode(len_label, LV_LABEL_LONG_CROP);
+    lv_obj_set_width(len_label, 150);
+    lv_obj_set_height(len_label, 100);
+    lv_label_set_align(len_label, LV_LABEL_ALIGN_LEFT);
+    lv_obj_align(len_label, calendar_screen, LV_ALIGN_IN_TOP_LEFT, 50, 160);
+
+    plus_button = lv_btn_create(calendar_screen, 0);
+    lv_obj_set_event_cb(plus_button, plus_button_event);
+    lv_obj_align(plus_button, 0, LV_ALIGN_CENTER, 0, -40);
+
+    plus_button_label = lv_label_create(plus_button, 0);
+    lv_label_set_text(plus_button_label, "+");
   }
   if(lv_scr_act()!=calendar_screen){
     lv_scr_load(calendar_screen);
   }
+  snprintf(buf, 64, "%s:title", path); char* title=object_property_values(user, buf);
+  snprintf(buf, 64, "%s:list",  path); int n=object_property_length(user, buf);
+
+  snprintf(buf, 64, "len: (%d)", n);
+
+  lv_label_set_text(calendar_title, title? title: "Calendar");
+  lv_label_set_text(len_label, buf);
 }
 
 void draw_event(char* path)
