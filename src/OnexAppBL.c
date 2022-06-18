@@ -11,7 +11,7 @@
 #include <onex-kernel/gfx.h>
 #include <onex-kernel/touch.h>
 #endif
-#include <onf.h>
+#include <onn.h>
 #include <onr.h>
 
 object* button;

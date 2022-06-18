@@ -6,7 +6,7 @@ extern "C" {
 #include <onex-kernel/time.h>
 #include <onex-kernel/log.h>
 #include <onex-kernel/mem.h>
-#include <onf.h>
+#include <onn.h>
 #include <onr.h>
 }
 

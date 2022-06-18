@@ -14,7 +14,7 @@
 #include <onex-kernel/display.h>
 #include <onex-kernel/touch.h>
 #include <onex-kernel/motion.h>
-#include <onf.h>
+#include <onn.h>
 #include <onr.h>
 #include <lvgl.h>
 #include <lv_font.h>
