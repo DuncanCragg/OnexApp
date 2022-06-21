@@ -19,7 +19,7 @@ object* light;
 char* buttonuid;
 char* lightuid;
 
-void button_changed(int);
+static void button_changed(uint8_t pin, uint8_t type);
 
 #if defined(BOARD_PINETIME)
 static touch_info_t ti;
@@ -46,7 +46,7 @@ int main()
 #if defined(HAS_SERIAL)
   serial_init(0,0);
 #endif
-  blenus_init(0);
+  blenus_init(0,0);
 
 #if defined(BOARD_PINETIME)
   gfx_init();
@@ -59,11 +59,11 @@ int main()
   onex_init("");
 
 #if defined(BOARD_PCA10059)
-  gpio_mode_cb(BUTTON_1, INPUT_PULLUP, button_changed);
+  gpio_mode_cb(BUTTON_1, INPUT_PULLUP, RISING_AND_FALLING, button_changed);
   gpio_mode(LED1_G, OUTPUT);
   gpio_mode(LED2_B, OUTPUT);
 #elif defined(BOARD_PINETIME)
-  gpio_mode_cb(BUTTON_1, INPUT_PULLDOWN, button_changed);
+  gpio_mode_cb(BUTTON_1, INPUT_PULLDOWN, RISING_AND_FALLING, button_changed);
   gpio_mode(   BUTTON_ENABLE, OUTPUT);
   gpio_set(    BUTTON_ENABLE, 1);
   gpio_mode(LCD_BACKLIGHT_HIGH, OUTPUT);
@@ -114,13 +114,13 @@ int main()
   }
 }
 
-void button_changed(int pressed)
-{
+static void button_changed(uint8_t pin, uint8_t type){
+  bool button_pressed=(gpio_get(pin)==BUTTONS_ACTIVE_STATE);
 #if defined(BOARD_PINETIME)
   gfx_pos(10, 110);
-  gfx_text(pressed? "X": "O");
+  gfx_text(button_pressed? "X": "O");
 #endif
-  onex_run_evaluators(buttonuid, (void*)(bool)pressed);
+  onex_run_evaluators(buttonuid, (void*)(bool)button_pressed);
 }
 
 bool evaluate_button_io(object* button, void* pressed)
