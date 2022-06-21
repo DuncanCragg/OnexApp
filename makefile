@@ -90,7 +90,6 @@ SRC_FILES += \
   $(SDK_ROOT)/integration/nrfx/legacy/nrf_drv_uart.c \
   $(SDK_ROOT)/modules/nrfx/soc/nrfx_atomic.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_clock.c \
-  $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_gpiote.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/prs/nrfx_prs.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_systick.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_power.c \
@@ -119,6 +118,7 @@ SRC_FILES += \
 
 # Include folders common to all targets
 INC_FOLDERS += \
+  $(SDK_ROOT)/modules/nrfx/soc/ \
   $(SDK_ROOT)/components/nfc/ndef/generic/message \
   $(SDK_ROOT)/components/nfc/t2t_lib \
   $(SDK_ROOT)/components/nfc/t4t_parser/hl_detection_procedure \
@@ -347,7 +347,7 @@ PRIVATE_PEM = ~/the-u-web/OnexKernel/doc/local/private.pem
 flash: default
 	@echo Flashing: $(OUTPUT_DIRECTORY)/OnexApp.hex
 	nrfutil pkg generate --hw-version 52 --sd-req 0xCA --application-version 1 --application _build/OnexApp.hex --key-file $(PRIVATE_PEM) dfu.zip
-	nrfutil dfu usb-serial -pkg dfu.zip -p /dev/ttyACM1 -b 115200
+	nrfutil dfu usb-serial -pkg dfu.zip -p /dev/ttyACM0 -b 115200
 
 # Flash softdevice
 flash_softdevice:
@@ -366,3 +366,5 @@ CMSIS_CONFIG_TOOL := $(SDK_ROOT)/external_tools/cmsisconfig/CMSIS_Configuration_
 sdk_config:
 	java -jar $(CMSIS_CONFIG_TOOL) $(SDK_CONFIG_FILE)
 
+cleanx:
+	rm -rf _build dfu.zip
