@@ -7,7 +7,7 @@ PRETTY  = 1
 SDK_ROOT := ./sdk
 
 $(OUTPUT_DIRECTORY)/OnexOS.out: \
-  LINKER_SCRIPT  := ./OnexKernel/src/platforms/nRF5/s132/onex.ld
+  LINKER_SCRIPT  := ./OnexKernel/src/platforms/nRF5/pinetime/onex.ld
 
 
 NRF5_INCLUDES = \
@@ -19,7 +19,7 @@ NRF5_INCLUDES = \
 ./OnexKernel/include \
 ./OnexKernel/src \
 ./OnexKernel/src/onp \
-./OnexKernel/src/platforms/nRF5/s132 \
+./OnexKernel/src/platforms/nRF5/pinetime \
 
 
 LIB_OBJECTS = \

@@ -156,7 +156,7 @@ void draw_display(char* path, int16_t width, int16_t height)
   size_t l=strlen(path);
   int j; for(j=1; j<=ln; j++){
     if(!is_uid(object_property_get_n(user, path, j))) continue;
-    snprintf(path+l, 128-l, ":%d", j);
+    snprintf(path+l, 128-l, ":%d", j); // oops, not 128 long! (see im-gui.cpp)
     char pathis[128]; snprintf(pathis, 128, "%s:is", path);
     if(object_property_contains(user, pathis, (char*)"light")) draw_light(path, width);
     if(object_property_contains(user, pathis, (char*)"button")) draw_button(path, width);
