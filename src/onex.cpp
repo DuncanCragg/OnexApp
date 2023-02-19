@@ -21,12 +21,14 @@ object* config;
 
 object* user;
 object* responses;
+object* home;
 object* oclock;
 object* bluetooth;
 object* taglookup;
 
 char* userUID=0;
 char* responsesUID=0;
+char* homeUID=0;
 char* clockUID=0;
 char* bluetoothUID=0;
 char* taglookupUID;
@@ -47,6 +49,7 @@ static char* ble_mac=0;
 
 char* init_onex()
 {
+  onex_set_evaluators((char*)"editable",                         evaluate_object_setter, 0);
   onex_set_evaluators((char*)"default",                          evaluate_object_setter, evaluate_default, 0);
   onex_set_evaluators((char*)"device",                                                   evaluate_device_logic, 0);
   onex_set_evaluators((char*)"user",                                                     evaluate_user, 0);
@@ -91,6 +94,9 @@ char* init_onex()
     responses=object_new(0, (char*)"default", (char*)"user responses", 12);
     char* responsesUID=object_property(responses, (char*)"UID");
 
+    home=object_new(0, (char*)"editable",  (char*)"list editable", 4);
+    homeUID=object_property(home, (char*)"UID");
+
     oclock=object_new(0, (char*)"clock", (char*)"clock event", 12);
     object_property_set(oclock, (char*)"title", (char*)"OnexApp Clock");
     clockUID=object_property(oclock, (char*)"UID");
@@ -106,7 +112,6 @@ char* init_onex()
     object_property_add(onex_device_object, (char*)"io", clockUID);
     object_property_add(onex_device_object, (char*)"io", bluetoothUID);
 
-    object_property_set(user, (char*)"viewing-l", deviceUID);
     object_property_set(user, (char*)"responses", responsesUID);
 
     config=object_new((char*)"uid-0", 0, (char*)"config", 10);
@@ -115,6 +120,12 @@ char* init_onex()
     object_property_set(config, (char*)"clock",     clockUID);
     object_property_set(config, (char*)"bluetooth", bluetoothUID);
     object_property_set(config, (char*)"taglookup", taglookupUID);
+
+    object_property_add(home, (char*)"list", clockUID);
+    object_property_add(home, (char*)"list", userUID);
+    object_property_add(home, (char*)"list", deviceUID);
+
+    object_property_set(user, (char*)"viewing-l", homeUID);
   }
   else{
     userUID=     object_property(config, (char*)"user");
