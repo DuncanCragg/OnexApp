@@ -8,15 +8,17 @@ PRETTY  = 1
 SDK_ROOT := ./sdk
 
 $(OUTPUT_DIRECTORY)/OnexApp.out: \
-  LINKER_SCRIPT  := ./OnexKernel/src/platforms/nRF5/onex.ld
+  LINKER_SCRIPT  := ./OnexKernel/src/onl/nRF5/dongle/onex.ld
 
 
 NRF5_INCLUDES = \
+./OnexKernel/mod-sdk/components/boards \
 ./OnexLang/include \
 ./OnexKernel/include \
 ./OnexKernel/src/ \
 ./OnexKernel/src/onp/ \
-./OnexKernel/src/platforms/nRF5/ \
+./OnexKernel/src/onl/nRF5/ \
+./OnexKernel/src/onl/nRF5/dongle/ \
 
 
 LIB_OBJECTS = \
@@ -28,15 +30,15 @@ LIB_OBJECTS = \
 
 
 NRF5_C_SOURCE_FILES = \
-./OnexKernel/src/platforms/nRF5/properties.c \
-./OnexKernel/src/platforms/nRF5/time.c \
-./OnexKernel/src/platforms/nRF5/random.c \
-./OnexKernel/src/platforms/nRF5/gpio.c \
-./OnexKernel/src/platforms/nRF5/serial.c \
-./OnexKernel/src/platforms/nRF5/blenus.c \
-./OnexKernel/src/platforms/nRF5/log.c \
-./OnexKernel/src/platforms/nRF5/mem.c \
-./OnexKernel/src/platforms/nRF5/channel-serial.c \
+./OnexKernel/src/onl/nRF5/properties.c \
+./OnexKernel/src/onl/nRF5/time.c \
+./OnexKernel/src/onl/nRF5/random.c \
+./OnexKernel/src/onl/nRF5/gpio.c \
+./OnexKernel/src/onl/nRF5/serial.c \
+./OnexKernel/src/onl/nRF5/blenus.c \
+./OnexKernel/src/onl/nRF5/log.c \
+./OnexKernel/src/onl/nRF5/mem.c \
+./OnexKernel/src/onl/nRF5/channel-serial.c \
 
 
 ONEXAPP_IOT_OBJECTS = \
@@ -46,7 +48,7 @@ ONEXAPP_IOT_OBJECTS = \
 # Source files common to all targets
 SRC_FILES += \
   $(SDK_ROOT)/modules/nrfx/mdk/gcc_startup_nrf52840.S \
-  $(SDK_ROOT)/components/libraries/mem_manager/mem_manager.c \
+  ./OnexKernel/mod-sdk/components/libraries/mem_manager/mem_manager.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_rtt.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_serial.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_uart.c \
@@ -113,11 +115,24 @@ SRC_FILES += \
   $(SDK_ROOT)/components/ble/ble_link_ctx_manager/ble_link_ctx_manager.c \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh.c \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh_ble.c \
+  $(SDK_ROOT)/components/libraries/crypto/nrf_crypto_init.c \
+  $(SDK_ROOT)/components/libraries/crypto/nrf_crypto_rng.c \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh_soc.c \
   $(NRF5_C_SOURCE_FILES) $(LIB_OBJECTS) $(ONEXAPP_IOT_OBJECTS)
 
 # Include folders common to all targets
 INC_FOLDERS += \
+  ./OnexKernel/mod-sdk/components/libraries/mem_manager \
+  $(SDK_ROOT)/components/libraries/stack_info/ \
+  $(SDK_ROOT)/components/libraries/crypto/backend/cc310/ \
+  $(SDK_ROOT)/components/libraries/crypto/backend/cc310_bl/ \
+  $(SDK_ROOT)/components/libraries/crypto/backend/mbedtls/ \
+  $(SDK_ROOT)/components/libraries/crypto/backend/oberon \
+  $(SDK_ROOT)/components/libraries/crypto/backend/cifra \
+  $(SDK_ROOT)/components/libraries/crypto/backend/micro_ecc \
+  $(SDK_ROOT)/components/libraries/crypto/backend/optiga \
+  $(SDK_ROOT)/components/libraries/crypto/backend/nrf_sw \
+  $(SDK_ROOT)/components/libraries/crypto/backend/nrf_hw \
   $(SDK_ROOT)/modules/nrfx/soc/ \
   $(SDK_ROOT)/components/nfc/ndef/generic/message \
   $(SDK_ROOT)/components/nfc/t2t_lib \
@@ -218,7 +233,6 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/libraries/usbd/class/audio \
   $(SDK_ROOT)/components/nfc/t4t_lib \
   $(SDK_ROOT)/components/ble/peer_manager \
-  $(SDK_ROOT)/components/libraries/mem_manager \
   $(SDK_ROOT)/components/libraries/ringbuf \
   $(SDK_ROOT)/components/ble/ble_services/ble_tps \
   $(SDK_ROOT)/components/nfc/ndef/parser/message \
@@ -361,7 +375,7 @@ erase:
 reset:
 	nrfjprog -f nrf52 --reset
 
-SDK_CONFIG_FILE := ./OnexKernel/src/platforms/nRF5/sdk_config.h
+SDK_CONFIG_FILE := ./OnexKernel/src/onl/nRF5/dongle/sdk_config.h
 CMSIS_CONFIG_TOOL := $(SDK_ROOT)/external_tools/cmsisconfig/CMSIS_Configuration_Wizard.jar
 sdk_config:
 	java -jar $(CMSIS_CONFIG_TOOL) $(SDK_CONFIG_FILE)
