@@ -49,14 +49,14 @@ static char* ble_mac=0;
 
 char* init_onex()
 {
-  onex_set_evaluators((char*)"editable",                         evaluate_object_setter, 0);
-  onex_set_evaluators((char*)"default",                          evaluate_object_setter, evaluate_default, 0);
-  onex_set_evaluators((char*)"device",                                                   evaluate_device_logic, 0);
-  onex_set_evaluators((char*)"user",                                                     evaluate_user, 0);
-  onex_set_evaluators((char*)"clock",                            evaluate_object_setter, evaluate_clock, 0);
-  onex_set_evaluators((char*)"event",                            evaluate_object_setter, evaluate_event, 0);
-  onex_set_evaluators((char*)"light",                            evaluate_object_setter, evaluate_light_logic, 0);
-  onex_set_evaluators((char*)"bluetooth", evaluate_bluetooth_in, evaluate_object_setter,                       evaluate_bluetooth_out, 0);
+  onex_set_evaluators((char*)"editable",                         evaluate_edit_rule, 0);
+  onex_set_evaluators((char*)"default",                          evaluate_edit_rule, evaluate_default, 0);
+  onex_set_evaluators((char*)"device",                                               evaluate_device_logic, 0);
+  onex_set_evaluators((char*)"user",                                                 evaluate_user, 0);
+  onex_set_evaluators((char*)"clock",                            evaluate_edit_rule  evaluate_clock, 0);
+  onex_set_evaluators((char*)"event",                            evaluate_edit_rule, evaluate_event, 0);
+  onex_set_evaluators((char*)"light",                            evaluate_edit_rule, evaluate_light_logic, 0);
+  onex_set_evaluators((char*)"bluetooth", evaluate_bluetooth_in, evaluate_edit_rule,                       evaluate_bluetooth_out, 0);
 
 #if defined(__ANDROID__)
   char dbpath[128];

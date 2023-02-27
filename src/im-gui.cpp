@@ -268,75 +268,35 @@ void invoke_single_set(char* uid, char* key, char* val)
     *colon=0;
     i=strtol(colon+1,0,10);
   }
-  if(is_local(uid)){
-    properties* update = properties_new(1);
-    list*       li=list_new(i? i+1: 2);
-    if(i){
-      if(!*val){
-        for(int x=1; x<i; x++){
-          list_add(li, value_new((char*)"something"));
-        }
-        list_add(li, value_new((char*)"(=>)"));
-      }
-      else log_write("**** trying to set list indexed value! *** \n");
-    }
-    else{
-      list_add(li, value_new((char*)"=>"));
-      if(val && *val) list_add(li, value_new(val));
-    }
-    properties_set(update, key, li);
-    onex_run_evaluators(uid, update);
-    if(!strcmp(key, (char*)"is")){
-      char* evaluator;
-      if(strstr(val, (char*)"light")) evaluator=(char*)"light"; else
-      if(strstr(val, (char*)"event")) evaluator=(char*)"event";
-      else                            evaluator=(char*)"default";
-      object* o = onex_get_from_cache(uid);
-      object_set_evaluator(o, evaluator);
+  char upd[128];
+  if(i){
+    if(!*val){
+      size_t s=0;
+      for(int x=1; x<i; x++) s+=snprintf(upd+s, 128, "something ");
+      snprintf(upd+s, 128, "(=>)");
     }
   }
-  else{
-    char upd[128];
-    if(i){
-      if(!*val){
-        size_t s=0;
-        for(int x=1; x<i; x++){
-          s+=snprintf(upd+s, 128, "something ");
-        }
-        snprintf(upd+s, 128, "(=>)");
-      }
-      else log_write("**** trying to set list indexed value! *** \n");
-    }
-    else snprintf(upd, 128, "=> %s", val? val: "");
-    object* edit=get_or_create_edit(uid);
-    char* oldkey=object_property_key(edit, (char*)":", 4);
-    if(oldkey) object_property_set(edit, oldkey, (char*)"");
-    object_property_set(edit, key, upd);
-  }
-  if(colon){
-    *colon=':';
-  }
+  else snprintf(upd, 128, "=> %s", val? val: "");
+
+  object* edit=get_or_create_edit(uid);
+
+  char* oldkey=object_property_key(edit, (char*)":", 4);
+  if(oldkey) object_property_set(edit, oldkey, (char*)"");
+  object_property_set(edit, key, upd);
+
+  if(colon) *colon=':';
 }
 
-void invoke_single_add(char* uid, char* key, char* val)
-{
+void invoke_single_add(char* uid, char* key, char* val) {
+
   if(!val || !*val) return;
-  if(is_local(uid)){
-    properties* update = properties_new(1);
-    list*       li=list_new(3);
-    list_add(li, value_new((char*)"=>"));
-    list_add(li, value_new((char*)"@."));
-    list_add(li, value_new(val));
-    properties_set(update, key, li);
-    onex_run_evaluators(uid, update);
-  }
-  else{
-    char upd[128]; snprintf(upd, 128, "=> @. %s", val);
-    object* edit=get_or_create_edit(uid);
-    char* oldkey=object_property_key(edit, (char*)":", 4);
-    if(oldkey) object_property_set(edit, oldkey, (char*)"");
-    object_property_set(edit, key, upd);
-  }
+  char upd[128]; snprintf(upd, 128, "=> @. %s", val);
+
+  object* edit=get_or_create_edit(uid);
+
+  char* oldkey=object_property_key(edit, (char*)":", 4);
+  if(oldkey) object_property_set(edit, oldkey, (char*)"");
+  object_property_set(edit, key, upd);
 }
 
 void set_new_tag(char* path, char* tag)
