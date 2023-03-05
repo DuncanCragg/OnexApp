@@ -285,6 +285,17 @@ void invoke_single_set(char* uid, char* key, char* val)
   object_property_set(edit, key, upd);
 
   if(colon) *colon=':';
+
+  if(false && is_local(uid) && !strcmp(key, (char*)"is")){
+    char* evaluator;
+    if(strstr(val, (char*)"light")) evaluator=(char*)"light"; else
+    if(strstr(val, (char*)"event")) evaluator=(char*)"event";
+    else                            evaluator=(char*)"default";
+    object* o = onex_get_from_cache(uid); // XXX
+    object_set_evaluator(o, evaluator);
+    log_write("set evaluator of is=%s to %s\n", val, evaluator);
+    object_log(o);
+  }
 }
 
 void invoke_single_add(char* uid, char* key, char* val) {
