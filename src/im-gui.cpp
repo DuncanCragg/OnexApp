@@ -272,8 +272,8 @@ void invoke_single_set(char* uid, char* key, char* val)
   if(i){
     if(!*val){
       size_t s=0;
-      for(int x=1; x<i; x++) s+=snprintf(upd+s, 128, "something ");
-      snprintf(upd+s, 128, "(=>)");
+      for(int x=1; x<i; x++) s+=snprintf(upd+s, 128-s, "something ");
+      snprintf(upd+s, 128-s, "(=>)");
     }
   }
   else snprintf(upd, 128, "=> %s", val? val: "");
