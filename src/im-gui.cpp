@@ -262,18 +262,10 @@ object* get_or_create_edit(char* uid)
 
 void invoke_single_set(char* uid, char* key, char* val)
 {
-  char* colon=strrchr(key, ':');
-  int i=0;
-  if(colon){
-    *colon=0;
-    i=strtol(colon+1,0,10);
-  }
   char upd[128];
-  if(i){
-    if(!*val){
-      size_t s=0;
-      for(int x=1; x<i; x++) s+=snprintf(upd+s, 128-s, "something ");
-      snprintf(upd+s, 128-s, "(=>)");
+  if(strrchr(key, ':')){
+    if(!val || !*val){
+      snprintf(upd, 128, "=>");
     }
   }
   else snprintf(upd, 128, "=> %s", val? val: "");
@@ -283,8 +275,6 @@ void invoke_single_set(char* uid, char* key, char* val)
   char* oldkey=object_property_key(edit, (char*)":", 4);
   if(oldkey) object_property_set(edit, oldkey, (char*)"");
   object_property_set(edit, key, upd);
-
-  if(colon) *colon=':';
 
   if(false && is_local(uid) && !strcmp(key, (char*)"is")){
     char* evaluator;
