@@ -24,6 +24,7 @@ object* responses;
 object* home;
 object* oclock;
 object* bluetooth;
+object* button;
 object* taglookup;
 
 char* userUID=0;
@@ -31,6 +32,7 @@ char* responsesUID=0;
 char* homeUID=0;
 char* clockUID=0;
 char* bluetoothUID=0;
+char* buttonUID=0;
 char* taglookupUID;
 
 extern bool evaluate_default(object* o, void* d);
@@ -105,12 +107,17 @@ char* init_onex()
     object_property_set(bluetooth, (char*)"state", (char*)"BLE disconnected");
     bluetoothUID=object_property(bluetooth, (char*)"UID");
 
+    button=object_new(0, (char*)"editable", (char*)"button", 6);
+    object_property_set(button, (char*)"state", (char*)"up");
+    buttonUID=object_property(button, (char*)"UID");
+
     object_set_evaluator(onex_device_object, (char*)"device");
     char* deviceUID=object_property(onex_device_object, (char*)"UID");
 
     object_property_add(onex_device_object, (char*)"user", userUID);
     object_property_add(onex_device_object, (char*)"io", clockUID);
     object_property_add(onex_device_object, (char*)"io", bluetoothUID);
+    object_property_add(onex_device_object, (char*)"io", buttonUID);
 
     object_property_set(user, (char*)"responses", responsesUID);
 
