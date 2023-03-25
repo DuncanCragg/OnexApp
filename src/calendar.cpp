@@ -147,11 +147,11 @@ void save_days(char* path)
   int j; for(j=1; j<=ln; j++){
     char* val=object_property_get_n(user, path, j);
     if(!is_uid(val)) continue;
-    char calpath[128]; snprintf(calpath, 128, "%s:%d", path, j);
+    char calpath[112]; snprintf(calpath, 112, "%s:%d", path, j);
     char ispath[128]; snprintf(ispath, 128, "%s:is", calpath);
     if(!object_property_contains(user, ispath, (char*)"event")) continue;
     if(object_property_contains(user, ispath, (char*)"list")){
-      char listpath[128]; snprintf(listpath, 128, "%s:list", calpath);
+      char listpath[117]; snprintf(listpath, 117, "%s:list", calpath);
       uint16_t ln2 = object_property_length(user, listpath);
       int k; for(k=1; k<=ln2; k++){
         char* val=object_property_get_n(user, listpath, k);
@@ -171,7 +171,7 @@ void save_days(char* path)
   if(col==1) for(j=1; j<=ln; j++){
     char* val=object_property_get_n(user, path, j);
     if(!is_uid(val)) continue;
-    char calpath[128]; snprintf(calpath, 128, "%s:%d", path, j);
+    char calpath[125]; snprintf(calpath, 125, "%s:%d", path, j);
     char ispath[128]; snprintf(ispath, 128, "%s:is", calpath);
     if(!object_property_contains(user, ispath, (char*)"event")) continue;
     if(!object_property_contains(user, ispath, (char*)"list")){
@@ -249,8 +249,12 @@ void draw_calendar(char* path, int16_t width, int16_t height)
       }
 
       char tagicons[512]=""; get_tag_icons(tagicons, 512, &thisdate, 4);
-      char dayId[256];
-      snprintf(dayId, 256, "%s %d\n%s%s## %d %s:", daytable[thisdate.tm_wday], thisdate.tm_mday, (thisdate.tm_mday==1 || day==0)? monthtable[thisdate.tm_mon]: "", tagicons, day, path);
+      char dayId[1024];
+      snprintf(dayId, 1024, "%s %d\n%s%s## %d %s:",
+                            daytable[thisdate.tm_wday],
+                            thisdate.tm_mday,
+                            (thisdate.tm_mday==1 || day==0)? monthtable[thisdate.tm_mon]: "",
+                            tagicons, day, path);
       ImGui::Button(dayId, ImVec2(COLUMN_WIDTH, buttonHeight*2));
       track_drag(dayId, true);
 
@@ -447,7 +451,7 @@ void draw_day_cell(char* path, struct tm* thisdate, int day, int col, int16_t wi
   if(!editing){
     get_cell_titles(titles, thisdate, col);
     if(*titles){
-      char evtId[256]; snprintf(evtId, 256, "%s##%d %d %s:", titles, day, col, path);
+      char evtId[1024]; snprintf(evtId, 1024, "%s##%d %d %s:", titles, day, col, path);
       if(ImGui::Button(evtId, ImVec2(2*COLUMN_WIDTH-smallButtonWidth, buttonHeight*2)) && !dragPathId){
         get_cell_events_and_show_open(path, thisdate, col);
         calendarView=false;
