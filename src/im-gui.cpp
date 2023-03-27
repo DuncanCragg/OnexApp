@@ -700,7 +700,7 @@ void draw_padding(char* path, int16_t width, int16_t height, int8_t depth)
 void draw_new_value_or_object_button(char* path, int16_t width, int j, int8_t depth, bool valueToo)
 {
   bool nodarken=depth<DARKEN_DEPTH;
-  char pathj[256]; snprintf(pathj, 256, "%s:%d", path, j);
+  char pathj[245]; snprintf(pathj, 245, "%s:%d", path, j);
   char* propname=strrchr(path, ':');
   if(propname) propname++;
   if(valueToo || (propname && !strcmp(propname, "tags"))){
