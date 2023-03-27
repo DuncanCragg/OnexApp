@@ -340,13 +340,13 @@ void draw_calendar(char* path, int16_t width, int16_t height)
 void ensure_alarm(object* o, time_t t)
 {
   setAlarm(t, object_property(o, (char*)"UID"));
-  object_keep_active(o, true);
+  object_set_cache(o, (char*)"keep-active");
 }
 
 void cancel_alarm(object* o)
 {
   setAlarm(0, object_property(o, (char*)"UID"));
-  object_keep_active(o, false);
+  object_set_cache(o, (char*)"");
 }
 
 bool evaluate_event(object* o, void* d)
@@ -426,7 +426,7 @@ object* create_new_event(struct tm* thisdate, char* title)
   if(endtime){  object_property_set(r, (char*)"end-time", endtime);  free(endtime); }
   if(*tags) object_property_set(r, (char*)"tags", tags);
   else      object_property_set(r, (char*)"tags", (char*)"--");
-  object_keep_active(r, true);
+  object_set_cache(r, (char*)"keep-active");
   return r;
 }
 
