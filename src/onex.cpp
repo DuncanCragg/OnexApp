@@ -102,6 +102,7 @@ char* init_onex()
     oclock=object_new(0, (char*)"clock", (char*)"clock event", 12);
     object_property_set(oclock, (char*)"title", (char*)"OnexApp Clock");
     clockUID=object_property(oclock, (char*)"UID");
+    object_set_persist(oclock, (char*)"none");
 
     bluetooth=object_new(0, (char*)"bluetooth", (char*)"bluetooth", 6);
     object_property_set(bluetooth, (char*)"state", (char*)"BLE disconnected");
