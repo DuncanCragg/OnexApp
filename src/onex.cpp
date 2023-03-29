@@ -21,10 +21,7 @@ object* config;
 
 object* user;
 object* responses;
-object* home;
-object* oclock;
 object* bluetooth;
-object* button;
 object* taglookup;
 
 char* userUID=0;
@@ -96,10 +93,10 @@ char* init_onex()
     responses=object_new(0, (char*)"default", (char*)"user responses", 12);
     char* responsesUID=object_property(responses, (char*)"UID");
 
-    home=object_new(0, (char*)"editable",  (char*)"list editable", 4);
+    object* home=object_new(0, (char*)"editable",  (char*)"list editable", 4);
     homeUID=object_property(home, (char*)"UID");
 
-    oclock=object_new(0, (char*)"clock", (char*)"clock event", 12);
+    object* oclock=object_new(0, (char*)"clock", (char*)"clock event", 12);
     object_property_set(oclock, (char*)"title", (char*)"OnexApp Clock");
     clockUID=object_property(oclock, (char*)"UID");
     object_set_persist(oclock, (char*)"none");
@@ -108,7 +105,7 @@ char* init_onex()
     object_property_set(bluetooth, (char*)"state", (char*)"BLE disconnected");
     bluetoothUID=object_property(bluetooth, (char*)"UID");
 
-    button=object_new(0, (char*)"editable", (char*)"button", 6);
+    object* button=object_new(0, (char*)"editable", (char*)"button", 6);
     object_property_set(button, (char*)"state", (char*)"up");
     buttonUID=object_property(button, (char*)"UID");
 
@@ -144,7 +141,6 @@ char* init_onex()
 
     user     =onex_get_from_cache(userUID);
     responses=onex_get_from_cache(responsesUID);
-    oclock   =onex_get_from_cache(clockUID);
     bluetooth=onex_get_from_cache(bluetoothUID);
     taglookup=onex_get_from_cache(taglookupUID);
 
