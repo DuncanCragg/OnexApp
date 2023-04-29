@@ -19,7 +19,11 @@ extern void  on_alarm_recv(char*);
 extern "C" {
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
 
-extern void serial_on_recv(char*, int);
+// extern void serial_on_recv(char*, int);
+void serial_on_recv(char* b, size_t len)
+{
+  // was in deleted onl/android
+}
 
 static jclass eternalServiceClass;
 

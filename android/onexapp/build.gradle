@@ -12,6 +12,12 @@ android {
         ndk {
             abiFilters 'arm64-v8a'
         }
+        externalNativeBuild {
+            cmake {
+                cppFlags "-std=c++14"
+                arguments "-DANDROID_STL=c++_shared", '-DANDROID_TOOLCHAIN=clang'
+            }
+        }
     }
 
     buildTypes {
@@ -22,13 +28,12 @@ android {
     }
 
     externalNativeBuild {
-        ndkBuild {
-            path 'src/main/jni/Android.mk'
-            //arguments "-DFRUIT=banana", "-DVEG=courgette"
-            //cFlags "-banana"
-            //cppFlags "-DBanana"
+        cmake {
+            path "CMakeLists.txt"
         }
     }
+
+    ndkVersion "21.2.6472646"
 
     sourceSets {
       main {

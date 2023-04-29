@@ -55,7 +55,7 @@ public class EternalService extends Service {
 
         if(!initialised){
 
-          System.loadLibrary("onexapp");
+          System.loadLibrary("native-lib");
 
           new Thread(){
              @Override
