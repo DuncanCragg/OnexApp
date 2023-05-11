@@ -406,7 +406,7 @@ object* create_new_event(struct tm* thisdate, char* title)
     if(isdigit(*p)){
       struct tm parsed_time;
       if(get_time(&p, &parsed_time)){
-        char ts[32]; int n=strftime(ts, 32, "%I:%M%P", &parsed_time);
+        char ts[32]; strftime(ts, 32, "%I:%M%P", &parsed_time);
         char* tsd=strdup(ts);
         if(!time) time=tsd;
         else

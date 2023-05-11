@@ -766,8 +766,7 @@ VulkanBase::VulkanBase(bool enableValidation)
 
 #if defined(VK_USE_PLATFORM_ANDROID_KHR)
   // Vulkan library is loaded dynamically on Android
-  bool libLoaded = vks::android::loadVulkanLibrary();
-  assert(libLoaded);
+  vks::android::loadVulkanLibrary();
 #elif defined(_DIRECT2DISPLAY)
 
 #elif defined(VK_USE_PLATFORM_WAYLAND_KHR)
@@ -976,8 +975,7 @@ void VulkanBase::initVulkan()
   vkGetDeviceQueue(device, vulkanDevice->queueFamilyIndices.graphics, 0, &queue);
 
   // Find a suitable depth format
-  VkBool32 validDepthFormat = vks::tools::getSupportedDepthFormat(physicalDevice, &depthFormat);
-  assert(validDepthFormat);
+  vks::tools::getSupportedDepthFormat(physicalDevice, &depthFormat);
 
   swapChain.connect(instance, physicalDevice, device);
 
@@ -1360,7 +1358,6 @@ int32_t VulkanBase::handleAppInput(struct android_app* app, AInputEvent* event)
   {
     int32_t keyCode = AKeyEvent_getKeyCode((const AInputEvent*)event);
     int32_t action = AKeyEvent_getAction((const AInputEvent*)event);
-    int32_t button = 0;
 
     if (action == AKEY_EVENT_ACTION_UP){
       if(keyCode == KEY_BACKSPACE){ // AKEYCODE_BACKSPACE:

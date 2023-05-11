@@ -423,7 +423,7 @@ object* create_new_object_like_others(char* path)
 
 bool get_summary_from(char* path, char* summary, const char* key)
 {
-  char pathkey[128]; size_t l = snprintf(pathkey, 128, "%s:%s", path, key);
+  char pathkey[128]; snprintf(pathkey, 128, "%s:%s", path, key);
   char* vals=object_property_values(user, pathkey);
   if(!vals) return false;
   snprintf(summary, 128, "%s ", vals);
@@ -467,7 +467,7 @@ int16_t calculate_scroller_height(char* path, int16_t height)
   int8_t sz = object_property_size(user, pathcolon);
   if(sz>0) for(int i=1; i<=sz; i++){
     char* key=object_property_key(user, pathcolon, i);
-    char pathkey[128]; size_t l = snprintf(pathkey, 128, "%s:%s", path, key);
+    char pathkey[128]; snprintf(pathkey, 128, "%s:%s", path, key);
     uint16_t ln = object_property_length(user, pathkey);
     uint32_t wid=0;
     for(int j=1; j<=ln; j++){
@@ -633,7 +633,6 @@ void draw_object_footer(char* path, bool isEditable, int16_t width, int16_t keyW
     editing=false;
   }
   if(!editing){
-    int c=0;
     char prpId[256]; snprintf(prpId, 256, " +## property %s", path);
     bool nodarken=depth<DARKEN_DEPTH;
     ImGui::PushStyleColor(ImGuiCol_Text, propertyColour);

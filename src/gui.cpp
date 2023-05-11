@@ -390,7 +390,6 @@ void GUI::updateBuffers()
     vertexBuffer.map();
   }
 
-  VkDeviceSize indexSize = imDrawData->TotalIdxCount * sizeof(ImDrawIdx);
   if ((indexBuffer.buffer == VK_NULL_HANDLE) || (indexCount < imDrawData->TotalIdxCount)) {
     indexBuffer.unmap();
     indexBuffer.destroy();

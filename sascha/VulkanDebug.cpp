@@ -123,12 +123,11 @@ namespace vks
       dbgCreateInfo.pfnCallback = (PFN_vkDebugReportCallbackEXT)messageCallback;
       dbgCreateInfo.flags = flags;
 
-      VkResult err = CreateDebugReportCallback(
+      CreateDebugReportCallback(
         instance,
         &dbgCreateInfo,
         nullptr,
         (callBack != VK_NULL_HANDLE) ? &callBack : &msgCallback);
-      assert(!err);
     }
 
     void freeDebugCallback(VkInstance instance)
