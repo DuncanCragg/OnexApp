@@ -8,8 +8,8 @@ android {
 
     defaultConfig {
         applicationId "network.object.onexapp"
-        minSdkVersion 25
-        targetSdkVersion 26
+        minSdkVersion 29
+        targetSdkVersion 33
 
         ndk {
             abiFilters 'arm64-v8a'
@@ -49,6 +49,7 @@ android {
 
     dependencies {
         implementation 'com.github.felHR85:UsbSerial:6.1.0'
+        implementation 'androidx.core:core:1.10.1'
     }
 
     compileOptions {

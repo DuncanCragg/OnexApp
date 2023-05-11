@@ -3,7 +3,9 @@ package network.object.onexapp;
 
 import java.util.List;
 
+import android.Manifest;
 import android.os.*;
+import android.net.Uri;
 import android.view.inputmethod.*;
 import android.view.ViewGroup.LayoutParams;
 import android.view.KeyEvent;
@@ -11,9 +13,13 @@ import android.widget.*;
 import android.text.*;
 import android.content.*;
 import android.content.pm.*;
+import android.provider.Settings;
 import android.app.NativeActivity;
 import android.util.Log;
 import android.app.*;
+
+import androidx.core.content.ContextCompat;
+import androidx.core.app.ActivityCompat;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -54,9 +60,52 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
         super.onStart(); Log.d(LOGNAME, "onStart");
     }
 
+    static private int fileRWPerms = 0; // 0 waiting, 1 approved, -1 denied
+
+    private void checkAndRequestFileRWPermission() {
+
+        if(Build.VERSION.SDK_INT >= 30) {
+
+            if(Environment.isExternalStorageManager()){
+                Log.d(LOGNAME, "API 30+ has file RW permission");
+                fileRWPerms=1;
+                return;
+            }
+            try {
+                Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+                intent.addCategory("android.intent.category.DEFAULT");
+                intent.setData(Uri.parse(String.format("package:%s",getApplicationContext().getPackageName())));
+                startActivityForResult(intent, 5544);
+
+            } catch (Exception e) {
+                Intent intent = new Intent();
+                intent.setAction(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                startActivityForResult(intent, 5544);
+            }
+
+        } else {
+
+            int readext = ContextCompat.checkSelfPermission(OnexNativeActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE);
+            int writext = ContextCompat.checkSelfPermission(OnexNativeActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
+            if(readext==PackageManager.PERMISSION_GRANTED &&
+               writext==PackageManager.PERMISSION_GRANTED    ){
+
+                Log.d(LOGNAME, "API 29 has file RW permission");
+                fileRWPerms=1;
+                return;
+            }
+            ActivityCompat.requestPermissions(OnexNativeActivity.this, new String[]{ Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE }, 5544);
+        }
+    }
+
     @Override
     public void onResume(){
         super.onResume(); Log.d(LOGNAME, "onResume");
+
+        // relies on an onResume from the finishing of the file RW permissions dialogues
+
+        if(fileRWPerms==0) checkAndRequestFileRWPermission();
 
         restartEternal();
     }
@@ -80,6 +129,10 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
     static public void restartEternal(){
         if(self==null){
             Log.d(LOGNAME, "calling restartEternal without a running activity");
+            return;
+        }
+        if(fileRWPerms!=1){
+            Log.d(LOGNAME, "calling restartEternal without file RW permissions");
             return;
         }
         Intent intent = new Intent("network.object.onexapp.eternal.restart").setFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
@@ -119,8 +172,42 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
     }
 
     @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        if(requestCode==5544){
+            fileRWPerms= -1;
+            if (grantResults.length >= 1) {
+
+                int readext = grantResults[0];
+                int writext = grantResults[1];
+
+                if(readext==PackageManager.PERMISSION_GRANTED &&
+                   writext==PackageManager.PERMISSION_GRANTED    ){
+
+                    Log.d(LOGNAME, "API 29 file RW permission granted");
+                    fileRWPerms=1;
+                }
+            }
+        }
+    }
+
+    @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+      super.onActivityResult(requestCode, resultCode, data);
+
       Log.d(LOGNAME, "onActivityResult()");
+
+      if(requestCode==5544) {
+          fileRWPerms= -1;
+          if(Build.VERSION.SDK_INT >= 30) {
+              if(Environment.isExternalStorageManager()) {
+                  Log.d(LOGNAME, "API 30+ file RW permission granted");
+                  fileRWPerms=1;
+              }
+          }
+          return;
+      }
+
       switch (requestCode) {
         case REQUEST_ENABLE_BT:
             if (resultCode == Activity.RESULT_OK) {

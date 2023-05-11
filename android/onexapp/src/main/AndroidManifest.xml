@@ -9,7 +9,10 @@
   <uses-feature android:name="android.hardware.usb.host"/>
   <uses-feature android:name="android.hardware.bluetooth_le" android:required="true"/>
 
-  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+  <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
   <uses-permission android:name="android.permission.BLUETOOTH" />
   <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
   <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
@@ -20,6 +23,7 @@
   <application android:allowBackup="true"
                android:label="@string/app_display_name"
                android:icon="@drawable/icon"
+               android:requestLegacyExternalStorage="true"
                android:hasCode="true">
 
     <activity android:name="OnexNativeActivity"
