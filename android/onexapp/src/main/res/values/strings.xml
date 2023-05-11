@@ -22,6 +22,9 @@
   -->
 <resources>
 
+    <string name="app_icon_name">Onxidium</string>
+    <string name="app_display_name">Onex Onxidium</string>
+
     <string name="device_list_name">Onex devices</string>
     <string name="scan">Scan</string>
     <string name="cancel">Cancel</string>

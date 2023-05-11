@@ -2,6 +2,7 @@
 
 package network.object.onexapp;
 
+import java.util.List;
 import java.io.ByteArrayOutputStream;
 
 import android.os.*;
@@ -13,6 +14,7 @@ import android.text.*;
 import android.app.NativeActivity;
 import android.hardware.usb.*;
 import android.content.*;
+import android.content.pm.*;
 import android.util.Log;
 import android.app.*;
 
@@ -44,6 +46,23 @@ public class EternalService extends Service {
     static public native void   loopOnex();
     static public native void   setBLEMac(String blemac);
     static public native void   connectionState(String state);
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        Log.d(LOGNAME, "*onCreate");
+
+        String CHANNEL_ID = "onex-activity";
+
+        NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "Onex Activity", NotificationManager.IMPORTANCE_DEFAULT);
+        ((NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE)).createNotificationChannel(channel);
+
+        Notification.Builder notifbuilder = new Notification.Builder(this, CHANNEL_ID);
+        notifbuilder.setSmallIcon(R.drawable.icon)
+                    .setContentTitle("Onex is running")
+                    .setContentText("(long press for notif settings)");
+        startForeground(54321, notifbuilder.build());
+    }
 
     // onStartCommand may be called many times
     @Override
@@ -311,7 +330,15 @@ public class EternalService extends Service {
     public void onDestroy() {
         super.onDestroy();
         Log.d(LOGNAME, "*onDestroy");
-        sendBroadcast(new Intent("network.object.onexapp.eternal.restart"));
+
+        Intent intent = new Intent("network.object.onexapp.eternal.restart").setFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
+        PackageManager packageManager = getPackageManager();
+        List<ResolveInfo> broadcastReceivers = packageManager.queryBroadcastReceivers(intent, 0);
+        for(ResolveInfo broadcastReceiver: broadcastReceivers) {
+            ComponentName cn = new ComponentName(broadcastReceiver.activityInfo.packageName, broadcastReceiver.activityInfo.name);
+            intent.setComponent(cn);
+            sendBroadcast(intent);
+        }
         try {
             unregisterReceiver(NUSStatusChangeReceiver);
         } catch (Exception e) {
@@ -326,6 +353,14 @@ public class EternalService extends Service {
     public void onTaskRemoved(Intent rootIntent) {
         super.onTaskRemoved(rootIntent);
         Log.d(LOGNAME, "*onTaskRemoved");
-        sendBroadcast(new Intent("network.object.onexapp.eternal.restart"));
+
+        Intent intent = new Intent("network.object.onexapp.eternal.restart").setFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
+        PackageManager packageManager = getPackageManager();
+        List<ResolveInfo> broadcastReceivers = packageManager.queryBroadcastReceivers(intent, 0);
+        for(ResolveInfo broadcastReceiver: broadcastReceivers) {
+            ComponentName cn = new ComponentName(broadcastReceiver.activityInfo.packageName, broadcastReceiver.activityInfo.name);
+            intent.setComponent(cn);
+            sendBroadcast(intent);
+        }
     }
 }

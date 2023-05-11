@@ -2,8 +2,11 @@
 
 package network.object.onexapp;
 
+import java.util.List;
+
 import android.app.job.JobParameters;
-import android.content.Intent;
+import android.content.*;
+import android.content.pm.*;
 import android.util.Log;
 
 public class EternalServiceJob extends android.app.job.JobService {
@@ -12,6 +15,7 @@ public class EternalServiceJob extends android.app.job.JobService {
     @Override
     public boolean onStartJob(JobParameters jobParameters) {
         Log.d(LOGNAME, "*onStartJob");
+
         startForegroundService(new Intent(this, EternalService.class));
         return false;
     }
@@ -19,7 +23,15 @@ public class EternalServiceJob extends android.app.job.JobService {
     @Override
     public boolean onStopJob(JobParameters jobParameters) {
         Log.d(LOGNAME, "*onStopJob");
-        sendBroadcast(new Intent("network.object.onexapp.eternal.restart"));
+
+        Intent intent = new Intent("network.object.onexapp.eternal.restart").setFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
+        PackageManager packageManager = getPackageManager();
+        List<ResolveInfo> broadcastReceivers = packageManager.queryBroadcastReceivers(intent, 0);
+        for(ResolveInfo broadcastReceiver: broadcastReceivers) {
+            ComponentName cn = new ComponentName(broadcastReceiver.activityInfo.packageName, broadcastReceiver.activityInfo.name);
+            intent.setComponent(cn);
+            sendBroadcast(intent);
+        }
         return false;
     }
 }

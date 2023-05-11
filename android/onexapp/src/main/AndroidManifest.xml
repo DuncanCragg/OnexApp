@@ -18,13 +18,13 @@
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
 
   <application android:allowBackup="true"
-               android:label="onexapp"
+               android:label="@string/app_display_name"
                android:icon="@drawable/icon"
                android:hasCode="true">
 
     <activity android:name="OnexNativeActivity"
               android:exported="true"
-              android:label="OnexApp"
+              android:label="@string/app_icon_name"
               android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
               android:launchMode="singleTask"
               android:screenOrientation="landscape"

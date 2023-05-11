@@ -1,15 +1,17 @@
 
 package network.object.onexapp;
 
+import java.util.List;
+
 import android.os.*;
 import android.view.inputmethod.*;
 import android.view.ViewGroup.LayoutParams;
 import android.view.KeyEvent;
 import android.widget.*;
 import android.text.*;
-import android.content.Context;
-import android.app.NativeActivity;
 import android.content.*;
+import android.content.pm.*;
+import android.app.NativeActivity;
 import android.util.Log;
 import android.app.*;
 
@@ -55,7 +57,15 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
     @Override
     public void onResume(){
         super.onResume(); Log.d(LOGNAME, "onResume");
-        sendBroadcast(new Intent("network.object.onexapp.eternal.restart"));
+
+        Intent intent = new Intent("network.object.onexapp.eternal.restart").setFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
+        PackageManager packageManager = getPackageManager();
+        List<ResolveInfo> broadcastReceivers = packageManager.queryBroadcastReceivers(intent, 0);
+        for(ResolveInfo broadcastReceiver: broadcastReceivers) {
+            ComponentName cn = new ComponentName(broadcastReceiver.activityInfo.packageName, broadcastReceiver.activityInfo.name);
+            intent.setComponent(cn);
+            sendBroadcast(intent);
+        }
     }
 
     @Override
