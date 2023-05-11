@@ -57,10 +57,15 @@ public class EternalService extends Service {
         NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "Onex Activity", NotificationManager.IMPORTANCE_DEFAULT);
         ((NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE)).createNotificationChannel(channel);
 
+        Intent intent = new Intent(this, OnexNativeActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+
         Notification.Builder notifbuilder = new Notification.Builder(this, CHANNEL_ID);
         notifbuilder.setSmallIcon(R.drawable.icon)
                     .setContentTitle("Onex is running")
-                    .setContentText("(long press for notif settings)");
+                    .setContentText("(long press for notif settings)")
+                    .setContentIntent(pendingIntent)
+                    .setAutoCancel(true);
         startForeground(54321, notifbuilder.build());
     }
 
