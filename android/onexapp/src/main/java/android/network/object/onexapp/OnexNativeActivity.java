@@ -58,14 +58,7 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
     public void onResume(){
         super.onResume(); Log.d(LOGNAME, "onResume");
 
-        Intent intent = new Intent("network.object.onexapp.eternal.restart").setFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
-        PackageManager packageManager = getPackageManager();
-        List<ResolveInfo> broadcastReceivers = packageManager.queryBroadcastReceivers(intent, 0);
-        for(ResolveInfo broadcastReceiver: broadcastReceivers) {
-            ComponentName cn = new ComponentName(broadcastReceiver.activityInfo.packageName, broadcastReceiver.activityInfo.name);
-            intent.setComponent(cn);
-            sendBroadcast(intent);
-        }
+        restartEternal();
     }
 
     @Override
@@ -82,6 +75,22 @@ public class OnexNativeActivity extends NativeActivity implements KeyEvent.Callb
     public void onDestroy(){
         super.onDestroy(); Log.d(LOGNAME, "onDestroy");
         self=null;
+    }
+
+    static public void restartEternal(){
+        if(self==null){
+            Log.d(LOGNAME, "calling restartEternal without a running activity");
+            return;
+        }
+        Intent intent = new Intent("network.object.onexapp.eternal.restart").setFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
+        PackageManager packageManager = self.getPackageManager();
+        List<ResolveInfo> broadcastReceivers = packageManager.queryBroadcastReceivers(intent, 0);
+        for(ResolveInfo broadcastReceiver: broadcastReceivers) {
+            ComponentName cn = new ComponentName(broadcastReceiver.activityInfo.packageName, broadcastReceiver.activityInfo.name);
+            Log.d(LOGNAME, "restartEternal on "+cn);
+            intent.setComponent(cn);
+            self.sendBroadcast(intent);
+        }
     }
 
     // -----------------------------------------------------------

@@ -2,7 +2,6 @@
 
 package network.object.onexapp;
 
-import java.util.List;
 import java.io.ByteArrayOutputStream;
 
 import android.os.*;
@@ -14,7 +13,6 @@ import android.text.*;
 import android.app.NativeActivity;
 import android.hardware.usb.*;
 import android.content.*;
-import android.content.pm.*;
 import android.util.Log;
 import android.app.*;
 
@@ -336,14 +334,8 @@ public class EternalService extends Service {
         super.onDestroy();
         Log.d(LOGNAME, "*onDestroy");
 
-        Intent intent = new Intent("network.object.onexapp.eternal.restart").setFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
-        PackageManager packageManager = getPackageManager();
-        List<ResolveInfo> broadcastReceivers = packageManager.queryBroadcastReceivers(intent, 0);
-        for(ResolveInfo broadcastReceiver: broadcastReceivers) {
-            ComponentName cn = new ComponentName(broadcastReceiver.activityInfo.packageName, broadcastReceiver.activityInfo.name);
-            intent.setComponent(cn);
-            sendBroadcast(intent);
-        }
+        OnexNativeActivity.restartEternal();
+
         try {
             unregisterReceiver(NUSStatusChangeReceiver);
         } catch (Exception e) {
@@ -359,13 +351,6 @@ public class EternalService extends Service {
         super.onTaskRemoved(rootIntent);
         Log.d(LOGNAME, "*onTaskRemoved");
 
-        Intent intent = new Intent("network.object.onexapp.eternal.restart").setFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
-        PackageManager packageManager = getPackageManager();
-        List<ResolveInfo> broadcastReceivers = packageManager.queryBroadcastReceivers(intent, 0);
-        for(ResolveInfo broadcastReceiver: broadcastReceivers) {
-            ComponentName cn = new ComponentName(broadcastReceiver.activityInfo.packageName, broadcastReceiver.activityInfo.name);
-            intent.setComponent(cn);
-            sendBroadcast(intent);
-        }
+        OnexNativeActivity.restartEternal();
     }
 }
