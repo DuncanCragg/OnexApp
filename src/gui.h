@@ -20,14 +20,6 @@ extern void ImStrncpy(char* dst, const char* src, size_t count);
 
 extern "C" {
 #include <onex-kernel/log.h>
-#if defined(__ANDROID__)
-#include <android/log.h>
-#define log_init()
-#define log_loop() true
-#undef  log_write
-#define log_write(...) ((void)__android_log_print(ANDROID_LOG_INFO, "OnexApp", __VA_ARGS__))
-#define log_flush()
-#endif
 #include <onex-kernel/time.h>
 #include <onn.h>
 #include <items.h>
