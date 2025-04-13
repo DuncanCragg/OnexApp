@@ -95,7 +95,7 @@ function(buildExample SRC)
     target_link_libraries(${APP_NAME} sascha ${Vulkan_LIBRARY} ${WINLIBS})
   else(WIN32)
     add_executable(${APP_NAME} ${MAIN_CPP} ${SOURCE})
-    target_link_libraries(${APP_NAME} sascha onex-kernel-x86 onex-lang-x86)
+    target_link_libraries(${APP_NAME} sascha onex-kernel-xcb onex-lang-x86)
   endif(WIN32)
 endfunction(buildExample)
 

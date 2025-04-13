@@ -10,7 +10,6 @@
 #include <onex-kernel/gpio.h>
 #include <onex-kernel/i2c.h>
 #include <onex-kernel/spi.h>
-#include <onex-kernel/blenus.h>
 #include <onex-kernel/display.h>
 #include <onex-kernel/touch.h>
 #include <onex-kernel/motion.h>
@@ -54,7 +53,6 @@ static volatile bool          event_tick_5ms=false;
 static volatile touch_info_t  touch_info;
 static volatile uint16_t      touch_info_stroke=0;
 static volatile motion_info_t motion_info;
-static volatile blenus_info_t ble_info={ .connected=false, .rssi=-100 };
 
 static char buf[64];
 
@@ -69,12 +67,6 @@ static void every_second(){
 
 static void every_10s(){
   onex_run_evaluators(batteryuid, 0);
-}
-
-static void blechanged(blenus_info_t bi)
-{
-  ble_info=bi;
-  onex_run_evaluators(bluetoothuid, 0);
 }
 
 static bool user_active=true;
@@ -157,7 +149,6 @@ int main()
   log_init();
   time_init();
   gpio_init();
-  blenus_init(0, blechanged);
 
   display_init();
 

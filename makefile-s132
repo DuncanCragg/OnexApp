@@ -16,6 +16,7 @@ NRF5_INCLUDES = \
 ./external/lvgl \
 ./external/lvgl/src/lv_font \
 ./OnexLang/include \
+./OnexOS/include \
 ./OnexKernel/include \
 ./OnexKernel/src \
 ./OnexKernel/src/onp \
@@ -27,7 +28,7 @@ LIB_OBJECTS = \
 ./OnexKernel/src/lib/value.c \
 ./OnexKernel/src/onp/onp.c \
 ./OnexKernel/src/onn/onn.c \
-./OnexLang/src/behaviours.c \
+./OnexOS/src/ont/behaviours.c \
 
 
 NRF5_C_SOURCE_FILES = \
@@ -41,7 +42,6 @@ NRF5_C_SOURCE_FILES = \
 ./OnexKernel/src/platforms/nRF5/display-st7789.c \
 ./OnexKernel/src/platforms/nRF5/touch-cst816s.c \
 ./OnexKernel/src/platforms/nRF5/motion-bma421.c \
-./OnexKernel/src/platforms/nRF5/blenus.c \
 ./OnexKernel/src/platforms/nRF5/log.c \
 ./OnexKernel/src/platforms/nRF5/mem.c \
 ./OnexKernel/src/platforms/nRF5/channel-serial.c \
@@ -320,7 +320,6 @@ CFLAGS += -DNRF5
 CFLAGS += -DNRF_SD_BLE_API_VERSION=7
 CFLAGS += -DS132
 CFLAGS += -DSOFTDEVICE_PRESENT
-CFLAGS += -DONP_CHANNEL_SERIAL
 CFLAGS += -mcpu=cortex-m4
 CFLAGS += -mthumb -mabi=aapcs
 CFLAGS += -Wall -Werror -Wno-unused-but-set-variable

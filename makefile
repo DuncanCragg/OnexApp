@@ -14,31 +14,38 @@ $(OUTPUT_DIRECTORY)/OnexApp.out: \
 NRF5_INCLUDES = \
 ./OnexKernel/mod-sdk/components/boards \
 ./OnexLang/include \
+./OnexOS/include \
 ./OnexKernel/include \
 ./OnexKernel/src/ \
 ./OnexKernel/src/onp/ \
+./OnexKernel/src/onn/ \
 ./OnexKernel/src/onl/nRF5/ \
 ./OnexKernel/src/onl/nRF5/dongle/ \
 
 
 LIB_OBJECTS = \
+./OnexKernel/src/lib/lib.c \
 ./OnexKernel/src/lib/list.c \
 ./OnexKernel/src/lib/value.c \
+./OnexKernel/src/lib/properties-lite.c \
 ./OnexKernel/src/onp/onp.c \
 ./OnexKernel/src/onn/onn.c \
-./OnexLang/src/behaviours.c \
+./OnexLang/src/edit-rules.c \
+./OnexOS/src/ont/behaviours.c \
 
 
 NRF5_C_SOURCE_FILES = \
-./OnexKernel/src/onl/nRF5/properties.c \
 ./OnexKernel/src/onl/nRF5/time.c \
 ./OnexKernel/src/onl/nRF5/random.c \
 ./OnexKernel/src/onl/nRF5/gpio.c \
 ./OnexKernel/src/onl/nRF5/serial.c \
-./OnexKernel/src/onl/nRF5/blenus.c \
+./OnexKernel/src/onl/nRF5/radio.c \
 ./OnexKernel/src/onl/nRF5/log.c \
 ./OnexKernel/src/onl/nRF5/mem.c \
+./OnexKernel/src/onl/nRF5/persistence.c \
 ./OnexKernel/src/onl/nRF5/channel-serial.c \
+./OnexKernel/src/onl/nRF5/channel-radio.c \
+./OnexKernel/src/onl/nRF5/channel-ipv6.c \
 
 
 ONEXAPP_IOT_OBJECTS = \
@@ -115,6 +122,9 @@ SRC_FILES += \
   $(SDK_ROOT)/components/ble/ble_link_ctx_manager/ble_link_ctx_manager.c \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh.c \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh_ble.c \
+  $(SDK_ROOT)/components/libraries/crypto/backend/nrf_hw/nrf_hw_backend_rng.c \
+  $(SDK_ROOT)/integration/nrfx/legacy/nrf_drv_rng.c \
+  $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_rng.c \
   $(SDK_ROOT)/components/libraries/crypto/nrf_crypto_init.c \
   $(SDK_ROOT)/components/libraries/crypto/nrf_crypto_rng.c \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh_soc.c \
@@ -285,9 +295,7 @@ CFLAGS += -DNRF5
 CFLAGS += -DNRF_SD_BLE_API_VERSION=7
 CFLAGS += -DS140
 CFLAGS += -DSOFTDEVICE_PRESENT
-CFLAGS += -DHAS_SERIAL
-CFLAGS += -DONP_CHANNEL_SERIAL
-CFLAGS += -DONP_OVER_SERIAL
+CFLAGS += -DLOG_TO_SERIAL
 CFLAGS += -mcpu=cortex-m4
 CFLAGS += -mthumb -mabi=aapcs
 CFLAGS += -Wall -Werror
@@ -355,12 +363,12 @@ $(foreach target, $(TARGETS), $(call define_target, $(target)))
 
 .PHONY: flash flash_softdevice erase
 
-PRIVATE_PEM = ~/the-u-web/OnexKernel/doc/local/private.pem
+PRIVATE_PEM = ~/object.network/OnexKernel/doc/local/private.pem
 
 # Flash the program
 flash: default
 	@echo Flashing: $(OUTPUT_DIRECTORY)/OnexApp.hex
-	nrfutil pkg generate --hw-version 52 --sd-req 0xCA --application-version 1 --application _build/OnexApp.hex --key-file $(PRIVATE_PEM) dfu.zip
+	nrfutil pkg generate --hw-version 52 --sd-req 0x00 --application-version 1 --application _build/OnexApp.hex --key-file $(PRIVATE_PEM) dfu.zip
 	nrfutil dfu usb-serial -pkg dfu.zip -p /dev/ttyACM0 -b 115200
 
 # Flash softdevice

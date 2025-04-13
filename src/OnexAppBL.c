@@ -3,16 +3,15 @@
 #include <onex-kernel/log.h>
 #include <onex-kernel/time.h>
 #include <onex-kernel/gpio.h>
-#if defined(HAS_SERIAL)
 #include <onex-kernel/serial.h>
-#endif
-#include <onex-kernel/blenus.h>
+#include <onex-kernel/random.h>
 #if defined(BOARD_PINETIME)
 #include <onex-kernel/gfx.h>
 #include <onex-kernel/touch.h>
 #endif
 #include <onn.h>
 #include <onr.h>
+#include <ont.h>
 
 object* button;
 object* light;
@@ -43,10 +42,8 @@ int main()
   log_init();
   time_init();
   gpio_init();
-#if defined(HAS_SERIAL)
+  random_init();
   serial_init(0,0);
-#endif
-  blenus_init(0,0);
 
 #if defined(BOARD_PINETIME)
   gfx_init();
@@ -56,7 +53,7 @@ int main()
   touch_init(touched);
 #endif
 
-  onex_init("");
+  onex_init(0,list_new_from("radio serial", 2),0);
 
 #if defined(BOARD_PCA10059)
   gpio_mode_cb(BUTTON_1, INPUT_PULLUP, RISING_AND_FALLING, button_changed);
