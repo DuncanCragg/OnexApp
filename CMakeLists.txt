@@ -12,11 +12,14 @@ include_directories(external)
 include_directories(external/glm)
 include_directories(external/imgui)
 include_directories(sascha)
+
 include_directories(../OnexKernel/include)
 include_directories(../OnexLang/include)
+include_directories(../OnexOS/include)
 
 link_directories(../OnexKernel)
 link_directories(../OnexLang)
+link_directories(../OnexOS)
 
 OPTION(USE_D2D_WSI "Build the project using Direct to Display swapchain" OFF)
 OPTION(USE_WAYLAND_WSI "Build the project using Wayland swapchain" OFF)

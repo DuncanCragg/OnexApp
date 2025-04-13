@@ -8,6 +8,7 @@ extern "C" {
 #include <onex-kernel/mem.h>
 #include <onn.h>
 #include <onr.h>
+#include <ont.h>
 }
 
 object* config;
@@ -55,7 +56,7 @@ char* init_onex()
   sprintExternalStorageDirectory(dbpath, 128, "%s/Onex/onex.ondb");
   onex_init(dbpath);
 #else
-  onex_init((char*)"Onex/onex.ondb");
+  onex_init((char*)"Onex/onex.ondb",list_new_from((char*)"serial",1),0);
 #endif
 
   config=onex_get_from_cache((char*)"uid-0");
