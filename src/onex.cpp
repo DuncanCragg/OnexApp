@@ -32,7 +32,7 @@ extern bool evaluate_event(object* o, void* d);
 static bool evaluate_bluetooth_in(object* o, void* d);
 static bool evaluate_bluetooth_out(object* o, void* d);
 
-static void every_second(){ onex_run_evaluators(clockUID, 0); }
+static void every_second(void*){ onex_run_evaluators(clockUID, 0); }
 
 extern "C" void sprintExternalStorageDirectory(char* buf, int buflen, const char* format);
 extern "C" void ensureBluetoothConnecting();
@@ -51,13 +51,17 @@ char* init_onex()
   onex_set_evaluators((char*)"light",                            evaluate_edit_rule, evaluate_light_logic, 0);
   onex_set_evaluators((char*)"bluetooth", evaluate_bluetooth_in, evaluate_edit_rule,                       evaluate_bluetooth_out, 0);
 
+  properties* conf = properties_new(32);
 #if defined(__ANDROID__)
   char dbpath[128];
   sprintExternalStorageDirectory(dbpath, 128, "%s/Onex/onex.ondb");
-  onex_init(dbpath);
+  properties_set(conf, (char*)"dbpath", value_new(dbpath));
 #else
-  onex_init((char*)"Onex/onex.ondb",list_new_from((char*)"serial",1),0);
+  properties_set(conf, (char*)"dbpath", value_new((char*)"Onex/onex.ondb"));
+  properties_set(conf, (char*)"channels", list_new_from((char*)"serial",2));
+  properties_set(conf, (char*)"serial_ttys", list_new_from((char*)"/dev/ttyACM0",2));
 #endif
+  onex_init(conf);
 
   config=onex_get_from_cache((char*)"uid-0");
 
@@ -140,7 +144,7 @@ char* init_onex()
 
     ble_mac=mem_strdup(object_property(bluetooth, (char*)"mac"));
   }
-  time_ticker(every_second, 1000);
+  time_ticker(every_second, 0, 1000);
 
   return ble_mac;
 }

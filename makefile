@@ -19,6 +19,7 @@ NRF5_INCLUDES = \
 ./OnexKernel/src/ \
 ./OnexKernel/src/onp/ \
 ./OnexKernel/src/onn/ \
+./OnexKernel/src/onl/ \
 ./OnexKernel/src/onl/nRF5/ \
 ./OnexKernel/src/onl/nRF5/dongle/ \
 
@@ -300,6 +301,7 @@ CFLAGS += -mcpu=cortex-m4
 CFLAGS += -mthumb -mabi=aapcs
 CFLAGS += -Wall -Werror
 CFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
+CFLAGS += -Wno-incompatible-pointer-types -Wno-discarded-qualifiers -Wno-array-bounds -Wno-char-subscripts
 # keep every function in a separate section, this allows linker to discard unused ones
 CFLAGS += -ffunction-sections -fdata-sections -fno-strict-aliasing
 CFLAGS += -fno-builtin -fshort-enums

@@ -39,11 +39,14 @@ void* x;
 
 int main()
 {
-  log_init();
+  properties* config = properties_new(32);
+  properties_set(config, "channels", list_new_from("radio serial",2));
+
+  log_init(config);
   time_init();
   gpio_init();
   random_init();
-  serial_init(0,0);
+  serial_init(0,0,0);
 
 #if defined(BOARD_PINETIME)
   gfx_init();
@@ -53,7 +56,7 @@ int main()
   touch_init(touched);
 #endif
 
-  onex_init(0,list_new_from("radio serial", 2),0);
+  onex_init(config);
 
 #if defined(BOARD_PCA10059)
   gpio_mode_cb(BUTTON_1, INPUT_PULLUP, RISING_AND_FALLING, button_changed);
