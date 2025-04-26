@@ -110,6 +110,8 @@ char* init_onex()
     object_set_evaluator(onex_device_object, (char*)"device");
     char* deviceUID=object_property(onex_device_object, (char*)"UID");
 
+    object_property_add(onex_device_object, (char*)"name", (char*)"OnexApp");
+
     object_property_add(onex_device_object, (char*)"user", userUID);
     object_property_add(onex_device_object, (char*)"io", clockUID);
     object_property_add(onex_device_object, (char*)"io", bluetoothUID);
