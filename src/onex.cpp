@@ -60,6 +60,7 @@ char* init_onex()
   properties_set(conf, (char*)"dbpath", value_new((char*)"Onex/onex.ondb"));
   properties_set(conf, (char*)"channels", list_new_from((char*)"serial",2));
   properties_set(conf, (char*)"serial_ttys", list_new_from((char*)"/dev/ttyACM0",2));
+  properties_set(conf, (char*)"test-uid-prefix", value_new((char*)"app"));
 #endif
   onex_init(conf);
 
