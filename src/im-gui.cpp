@@ -421,8 +421,7 @@ object* create_new_object_like_others(char* path)
 
 // ---------------
 
-bool get_summary_from(char* path, char* summary, const char* key)
-{
+bool get_summary_from(char* path, char* summary, const char* key) {
   char pathkey[128]; snprintf(pathkey, 128, "%s:%s", path, key);
   char* vals=object_property_values(user, pathkey);
   if(!vals) return false;
@@ -430,8 +429,7 @@ bool get_summary_from(char* path, char* summary, const char* key)
   return true;
 }
 
-void get_summary(char* path, char* summary)
-{
+void get_summary(char* path, char* summary) {
   *summary=0;
   if(get_summary_from(path, summary, "title")) return;
   if(get_summary_from(path, summary, "name")) return;
@@ -440,6 +438,8 @@ void get_summary(char* path, char* summary)
   if(get_summary_from(path, summary, "text")) return;
   if(get_summary_from(path, summary, "content")) return;
   if(get_summary_from(path, summary, "is")) return;
+  if(get_summary_from(path, summary, "Obstime")) return;
+  if(get_summary_from(path, summary, "UID")) return;
 }
 
 // ---------------
