@@ -3,6 +3,7 @@
 #include <string.h>
 
 extern "C" {
+#include <onex-kernel/config.h>
 #include <onex-kernel/time.h>
 #include <onex-kernel/log.h>
 #include <onex-kernel/mem.h>
@@ -40,8 +41,20 @@ extern "C" void ensureBluetoothConnecting();
 static char* ble_state=0;
 static char* ble_mac=0;
 
-char* init_onex()
-{
+char* init_onex(const int argc, const char *argv[]) {
+
+#if defined(__ANDROID__)
+  properties* conf = properties_new(32);
+  char dbpath[128];
+  sprintExternalStorageDirectory(dbpath, 128, "%s/Onex/onex.ondb");
+  properties_set(conf, (char*)"dbpath", value_new(dbpath));
+#else
+  properties* conf = get_config(argc, (char**)argv, "Onex/onex", "log-onp");
+  if(!conf) return 0;
+#endif
+  log_init(conf);
+  onex_init(conf);
+
   onex_set_evaluators((char*)"editable",                         evaluate_edit_rule, 0);
   onex_set_evaluators((char*)"default",                          evaluate_edit_rule, evaluate_default, 0);
   onex_set_evaluators((char*)"device",                                               evaluate_device_logic, 0);
@@ -50,19 +63,6 @@ char* init_onex()
   onex_set_evaluators((char*)"event",                            evaluate_edit_rule, evaluate_event, 0);
   onex_set_evaluators((char*)"light",                            evaluate_edit_rule, evaluate_light_logic, 0);
   onex_set_evaluators((char*)"bluetooth", evaluate_bluetooth_in, evaluate_edit_rule,                       evaluate_bluetooth_out, 0);
-
-  properties* conf = properties_new(32);
-#if defined(__ANDROID__)
-  char dbpath[128];
-  sprintExternalStorageDirectory(dbpath, 128, "%s/Onex/onex.ondb");
-  properties_set(conf, (char*)"dbpath", value_new(dbpath));
-#else
-  properties_set(conf, (char*)"dbpath", value_new((char*)"Onex/onex.ondb"));
-  properties_set(conf, (char*)"channels", list_new_from_fixed((char*)"serial"));
-  properties_set(conf, (char*)"serial_ttys", list_new_from_fixed((char*)"/dev/ttyACM0")); // only 1 else fwd
-  properties_set(conf, (char*)"test-uid-prefix", value_new((char*)"app"));
-#endif
-  onex_init(conf);
 
   config=onex_get_from_cache((char*)"uid-0");
 

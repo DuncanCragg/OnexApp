@@ -10,7 +10,7 @@ bool keyboardUp = false;
 
 #define TEXTTYPE 1
 
-extern char* init_onex();
+extern char* init_onex(const int argc, const char *argv[]);
 extern void  loop_onex();
 extern void  connection_state(char*);
 extern void  set_ble_mac(char*);
@@ -106,7 +106,7 @@ void ensureBluetoothConnecting()
 
 JNIEXPORT jstring JNICALL Java_network_object_onexapp_EternalService_initOnex(JNIEnv* env, jclass clazz)
 {
-  char* blemac=init_onex();
+  char* blemac=init_onex(0,0);
   jstring jblemac = env->NewStringUTF(blemac);
   return jblemac;
 }
@@ -284,10 +284,9 @@ public:
     delete gui;
   }
 
-  void prepare()
-  {
+  void prepare(const int argc, const char *argv[]) {
 #if defined(VK_USE_PLATFORM_XCB_KHR)
-    init_onex();
+    init_onex(argc, argv);
     pthread_create(&loop_onex_thread_id, 0, loop_onex_thread, 0);
 #endif
     log_write("OnexApp----------------------\n");
@@ -472,7 +471,7 @@ int main(const int argc, const char *argv[])
   vulkanApp->initVulkan();
   vulkanApp->setupWindow();
   vulkanApp->initSwapchain();
-  vulkanApp->prepare();
+  vulkanApp->prepare(argc, argv);
   vulkanApp->renderLoop();
   delete(vulkanApp);
   return 0;
