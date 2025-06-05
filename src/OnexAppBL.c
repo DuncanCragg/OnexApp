@@ -40,7 +40,7 @@ void* x;
 int main()
 {
   properties* config = properties_new(32);
-  properties_set(config, "channels", list_new_from_fixed("radio serial"));
+  properties_set(config, "channels", list_vals_new_from_fixed("radio serial"));
 
   log_init(config);
   time_init();
