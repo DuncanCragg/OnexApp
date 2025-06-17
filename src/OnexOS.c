@@ -169,35 +169,35 @@ int main()
 
   onex_init("");
 
-  onex_set_evaluators("default",   evaluate_default, 0);
+  onex_set_evaluators("eval_default",   evaluate_default, 0);
+  onex_set_evaluators("eval_user",      evaluate_user, 0);
+  onex_set_evaluators("eval_battery",   evaluate_battery_in, 0);
+  onex_set_evaluators("eval_bluetooth", evaluate_bluetooth_in, 0);
+  onex_set_evaluators("eval_touch",     evaluate_touch_in, 0);
+  onex_set_evaluators("eval_motion",    evaluate_motion_in, 0);
+  onex_set_evaluators("eval_button",    evaluate_button_in, 0);
+  onex_set_evaluators("eval_about",     evaluate_about_in, 0);
   onex_set_evaluators("device",    evaluate_device_logic, 0);
-  onex_set_evaluators("user",      evaluate_user, 0);
-  onex_set_evaluators("battery",   evaluate_battery_in, 0);
-  onex_set_evaluators("bluetooth", evaluate_bluetooth_in, 0);
-  onex_set_evaluators("touch",     evaluate_touch_in, 0);
-  onex_set_evaluators("motion",    evaluate_motion_in, 0);
-  onex_set_evaluators("button",    evaluate_button_in, 0);
-  onex_set_evaluators("about",     evaluate_about_in, 0);
   onex_set_evaluators("backlight", evaluate_edit_rule, evaluate_light_logic, evaluate_backlight_out, 0);
   onex_set_evaluators("clock",     evaluate_clock_sync, evaluate_clock, 0);
-  onex_set_evaluators("editable",  evaluate_edit_rule, 0);
 
   object_set_evaluator(onex_device_object, "device");
 
-  user     =object_new(0, "user",      "user", 8);
-  battery  =object_new(0, "battery",   "battery", 4);
-  bluetooth=object_new(0, "bluetooth", "bluetooth", 4);
-  touch    =object_new(0, "touch",     "touch", 6);
-  motion   =object_new(0, "motion",    "motion", 8);
-  button   =object_new(0, "button",    "button", 4);
   backlight=object_new(0, "backlight", "light editable", 9);
   oclock   =object_new(0, "clock",     "clock event", 12);
-  watchface=object_new(0, "editable",  "watchface editable", 6);
-  viewlist =object_new(0, "editable",  "list editable", 4);
-  home     =object_new(0, "default",   "home", 4);
-  calendar =object_new(0, "editable",  "event list editable", 4);
-  about    =object_new(0, "about",     "about", 4);
+  onex_set_evaluators("eval_editable",  evaluate_edit_rule, 0);
 
+  user     =object_new(0, "eval_user",      "user", 8);
+  battery  =object_new(0, "eval_battery",   "battery", 4);
+  bluetooth=object_new(0, "eval_bluetooth", "bluetooth", 4);
+  touch    =object_new(0, "eval_touch",     "touch", 6);
+  motion   =object_new(0, "eval_motion",    "motion", 8);
+  button   =object_new(0, "eval_button",    "button", 4);
+  watchface=object_new(0, "eval_editable",  "watchface editable", 6);
+  viewlist =object_new(0, "eval_editable",  "list editable", 4);
+  home     =object_new(0, "eval_default",   "home", 4);
+  calendar =object_new(0, "eval_editable",  "event list editable", 4);
+  about    =object_new(0, "eval_about",     "about", 4);
   deviceuid   =object_property(onex_device_object, "UID");
   useruid     =object_property(user, "UID");
   batteryuid  =object_property(battery, "UID");

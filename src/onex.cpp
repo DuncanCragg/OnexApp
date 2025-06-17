@@ -55,14 +55,14 @@ char* init_onex(const int argc, const char *argv[]) {
   log_init(conf);
   onex_init(conf);
 
-  onex_set_evaluators((char*)"editable",                         evaluate_edit_rule, 0);
-  onex_set_evaluators((char*)"default",                          evaluate_edit_rule, evaluate_default, 0);
+  onex_set_evaluators((char*)"eval_editable",                         evaluate_edit_rule, 0);
+  onex_set_evaluators((char*)"eval_default",                          evaluate_edit_rule, evaluate_default, 0);
+  onex_set_evaluators((char*)"eval_user",                                                 evaluate_user, 0);
   onex_set_evaluators((char*)"device",                                               evaluate_device_logic, 0);
-  onex_set_evaluators((char*)"user",                                                 evaluate_user, 0);
   onex_set_evaluators((char*)"clock",                            evaluate_edit_rule, evaluate_clock, 0);
-  onex_set_evaluators((char*)"event",                            evaluate_edit_rule, evaluate_event, 0);
   onex_set_evaluators((char*)"light",                            evaluate_edit_rule, evaluate_light_logic, 0);
-  onex_set_evaluators((char*)"bluetooth", evaluate_bluetooth_in, evaluate_edit_rule,                       evaluate_bluetooth_out, 0);
+  onex_set_evaluators((char*)"eval_event",                            evaluate_edit_rule, evaluate_event, 0);
+  onex_set_evaluators((char*)"eval_bluetooth", evaluate_bluetooth_in, evaluate_edit_rule,                       evaluate_bluetooth_out, 0);
 
   config=onex_get_from_cache((char*)"uid-0");
 
@@ -83,16 +83,16 @@ char* init_onex(const int argc, const char *argv[]) {
     object_property_set(taglookup, (char*)"love",      object_property(taglove,  (char*)"UID"));
     taglookupUID=object_property(taglookup, (char*)"UID");
 /*
-    object* links=object_new(0, (char*)"default", (char*)"links list", 4);
+    object* links=object_new(0, (char*)"eval_default", (char*)"links list", 4);
     object_property_set(links, (char*)"list", object_property(taglookup, (char*)"UID"));
 */
-    user=object_new(0, (char*)"user", (char*)"user", 8);
+    user=object_new(0, (char*)"eval_user", (char*)"user", 8);
     userUID=object_property(user, (char*)"UID");
 
-    responses=object_new(0, (char*)"default", (char*)"user responses", 12);
+    responses=object_new(0, (char*)"eval_default", (char*)"user responses", 12);
     char* responsesUID=object_property(responses, (char*)"UID");
 
-    object* home=object_new(0, (char*)"editable",  (char*)"list editable", 4);
+    object* home=object_new(0, (char*)"eval_editable",  (char*)"list editable", 4);
     homeUID=object_property(home, (char*)"UID");
 
     object* oclock=object_new(0, (char*)"clock", (char*)"clock event", 12);
@@ -100,11 +100,11 @@ char* init_onex(const int argc, const char *argv[]) {
     clockUID=object_property(oclock, (char*)"UID");
     object_set_persist(oclock, (char*)"none");
 
-    bluetooth=object_new(0, (char*)"bluetooth", (char*)"bluetooth", 6);
+    bluetooth=object_new(0, (char*)"eval_bluetooth", (char*)"bluetooth", 6);
     object_property_set(bluetooth, (char*)"state", (char*)"BLE disconnected");
     bluetoothUID=object_property(bluetooth, (char*)"UID");
 
-    object* button=object_new(0, (char*)"editable", (char*)"button", 6);
+    object* button=object_new(0, (char*)"eval_editable", (char*)"button editable", 6);
     object_property_set(button, (char*)"state", (char*)"up");
     buttonUID=object_property(button, (char*)"UID");
 

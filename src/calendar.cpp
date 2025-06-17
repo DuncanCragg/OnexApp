@@ -354,7 +354,7 @@ bool evaluate_event(object* o, void* d)
   log_write("evaluate_event\n"); object_log(o);
   if(!object_property_contains(o, (char*)"is", (char*)"event")){   log_write("object is no longer an is: event\n");
     cancel_alarm(o);
-    object_set_evaluator(o, (char*)"default");
+    object_set_evaluator(o, (char*)"eval_default");
     return true;
   }
   struct tm date; time_t t=get_date_from_object(o, (char*)"date", &date);

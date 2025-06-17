@@ -279,8 +279,8 @@ void invoke_single_set(char* uid, char* key, char* val)
   if(false && is_local(uid) && !strcmp(key, (char*)"is")){
     char* evaluator;
     if(strstr(val, (char*)"light")) evaluator=(char*)"light"; else
-    if(strstr(val, (char*)"event")) evaluator=(char*)"event";
-    else                            evaluator=(char*)"default";
+    if(strstr(val, (char*)"event")) evaluator=(char*)"eval_event";
+    else                            evaluator=(char*)"eval_default";
     object* o = onex_get_from_cache(uid); // XXX
     object_set_evaluator(o, evaluator);
     log_write("set evaluator of is=%s to %s\n", val, evaluator);
@@ -374,7 +374,7 @@ void set_property_name_and_link(char* path , char* name)
 
 object* create_new_object_for_property_name(char* path, char* name)
 {
-  object* r=object_new(0, (char*)"default", 0, 4);
+  object* r=object_new(0, (char*)"eval_default", 0, 4);
   char* is;
   if(!strcmp(name,"Rules")) is=(char*)"Rule";
   else is=name;
@@ -395,7 +395,7 @@ object* create_new_object_like_others(char* path)
     path[l] = 0;
   }
   if(maxsz<4) maxsz=4;
-  r=object_new(0, (char*)"default", 0, maxsz);
+  r=object_new(0, (char*)"eval_default", 0, maxsz);
   char* is=0;
   for(int i=ln; i>=1; i--){
     size_t l=strlen(path);
