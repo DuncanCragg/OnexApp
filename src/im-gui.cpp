@@ -278,7 +278,7 @@ void invoke_single_set(char* uid, char* key, char* val)
 
   if(false && is_local(uid) && !strcmp(key, (char*)"is")){
     char* evaluator;
-    if(strstr(val, (char*)"light")) evaluator=(char*)"light"; else
+    if(strstr(val, (char*)"light")) evaluator=(char*)"eval_light"; else
     if(strstr(val, (char*)"event")) evaluator=(char*)"eval_event";
     else                            evaluator=(char*)"eval_default";
     object* o = onex_get_from_cache(uid); // XXX

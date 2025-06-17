@@ -28,25 +28,26 @@ LIB_OBJECTS = \
 ./OnexKernel/src/lib/lib.c \
 ./OnexKernel/src/lib/list.c \
 ./OnexKernel/src/lib/value.c \
-./OnexKernel/src/lib/properties-lite.c \
+./OnexKernel/src/lib/chunkbuf.c \
+./OnexKernel/src/lib/properties.c \
 ./OnexKernel/src/onp/onp.c \
+./src/behaviours_2.c \
 ./OnexKernel/src/onn/onn.c \
 ./OnexLang/src/edit-rules.c \
 ./OnexOS/src/ont/behaviours.c \
 
 
 NRF5_C_SOURCE_FILES = \
+./OnexKernel/src/onl/nRF5/boot.c \
 ./OnexKernel/src/onl/nRF5/time.c \
 ./OnexKernel/src/onl/nRF5/random.c \
 ./OnexKernel/src/onl/nRF5/gpio.c \
 ./OnexKernel/src/onl/nRF5/serial.c \
 ./OnexKernel/src/onl/nRF5/radio.c \
+./OnexKernel/src/onl/nRF5/ipv6.c \
 ./OnexKernel/src/onl/nRF5/log.c \
 ./OnexKernel/src/onl/nRF5/mem.c \
 ./OnexKernel/src/onl/nRF5/persistence.c \
-./OnexKernel/src/onl/nRF5/channel-serial.c \
-./OnexKernel/src/onl/nRF5/channel-radio.c \
-./OnexKernel/src/onl/nRF5/channel-ipv6.c \
 
 
 ONEXAPP_IOT_OBJECTS = \
@@ -215,6 +216,7 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/libraries/bsp \
   $(SDK_ROOT)/components/libraries/usbd/class/cdc \
   $(SDK_ROOT)/components/libraries/csense \
+  $(SDK_ROOT)/components/libraries/bootloader/ \
   $(SDK_ROOT)/components/libraries/balloc \
   $(SDK_ROOT)/components/libraries/ecc \
   $(SDK_ROOT)/components/libraries/hardfault \
@@ -301,7 +303,7 @@ CFLAGS += -mcpu=cortex-m4
 CFLAGS += -mthumb -mabi=aapcs
 CFLAGS += -Wall -Werror
 CFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
-CFLAGS += -Wno-incompatible-pointer-types -Wno-discarded-qualifiers -Wno-array-bounds -Wno-char-subscripts
+CFLAGS += -Wno-incompatible-pointer-types -Wno-discarded-qualifiers -Wno-array-bounds -Wno-char-subscripts -Wno-misleading-indentation -Wno-unused-variable
 # keep every function in a separate section, this allows linker to discard unused ones
 CFLAGS += -ffunction-sections -fdata-sections -fno-strict-aliasing
 CFLAGS += -fno-builtin -fshort-enums

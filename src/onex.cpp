@@ -9,7 +9,6 @@ extern "C" {
 #include <onex-kernel/mem.h>
 #include <onn.h>
 #include <onr.h>
-#include <ont.h>
 }
 
 object* config;
@@ -59,9 +58,9 @@ char* init_onex(const int argc, const char *argv[]) {
   onex_set_evaluators((char*)"eval_default",                          evaluate_edit_rule, evaluate_default, 0);
   onex_set_evaluators((char*)"eval_user",                                                 evaluate_user, 0);
   onex_set_evaluators((char*)"device",                                               evaluate_device_logic, 0);
-  onex_set_evaluators((char*)"clock",                            evaluate_edit_rule, evaluate_clock, 0);
-  onex_set_evaluators((char*)"light",                            evaluate_edit_rule, evaluate_light_logic, 0);
+  onex_set_evaluators((char*)"eval_clock",                            evaluate_edit_rule, /* evaluate_clock, */ 0);
   onex_set_evaluators((char*)"eval_event",                            evaluate_edit_rule, evaluate_event, 0);
+  onex_set_evaluators((char*)"eval_light",                            evaluate_edit_rule, /* evaluate_light_logic, */ 0);
   onex_set_evaluators((char*)"eval_bluetooth", evaluate_bluetooth_in, evaluate_edit_rule,                       evaluate_bluetooth_out, 0);
 
   config=onex_get_from_cache((char*)"uid-0");
@@ -95,7 +94,7 @@ char* init_onex(const int argc, const char *argv[]) {
     object* home=object_new(0, (char*)"eval_editable",  (char*)"list editable", 4);
     homeUID=object_property(home, (char*)"UID");
 
-    object* oclock=object_new(0, (char*)"clock", (char*)"clock event", 12);
+    object* oclock=object_new(0, (char*)"eval_clock", (char*)"clock event", 12);
     object_property_set(oclock, (char*)"title", (char*)"OnexApp Clock");
     clockUID=object_property(oclock, (char*)"UID");
     object_set_persist(oclock, (char*)"none");
