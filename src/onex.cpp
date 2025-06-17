@@ -57,7 +57,6 @@ char* init_onex(const int argc, const char *argv[]) {
   onex_set_evaluators((char*)"eval_editable",                         evaluate_edit_rule, 0);
   onex_set_evaluators((char*)"eval_default",                          evaluate_edit_rule, evaluate_default, 0);
   onex_set_evaluators((char*)"eval_user",                                                 evaluate_user, 0);
-  onex_set_evaluators((char*)"device",                                               evaluate_device_logic, 0);
   onex_set_evaluators((char*)"eval_clock",                            evaluate_edit_rule, /* evaluate_clock, */ 0);
   onex_set_evaluators((char*)"eval_event",                            evaluate_edit_rule, evaluate_event, 0);
   onex_set_evaluators((char*)"eval_light",                            evaluate_edit_rule, /* evaluate_light_logic, */ 0);
@@ -107,7 +106,6 @@ char* init_onex(const int argc, const char *argv[]) {
     object_property_set(button, (char*)"state", (char*)"up");
     buttonUID=object_property(button, (char*)"UID");
 
-    object_set_evaluator(onex_device_object, (char*)"device");
     char* deviceUID=object_property(onex_device_object, (char*)"UID");
 
     object_property_add(onex_device_object, (char*)"name", (char*)"OnexApp");

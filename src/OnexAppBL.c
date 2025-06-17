@@ -72,7 +72,6 @@ int main()
   onex_set_evaluators("eval_button", evaluate_edit_rule, evaluate_button_io, 0);
   onex_set_evaluators("eval_light",  evaluate_edit_rule, evaluate_light_logic, evaluate_light_io, 0);
 
-  onex_set_evaluators("evaluate_device", evaluate_device_logic, 0);
   button=object_new(0, "eval_button", "editable button", 4);
   light =object_new(0, "eval_light",  "editable light", 4);
 
@@ -83,7 +82,6 @@ int main()
 
   object_property_set(light, "light", "off");
 
-  object_set_evaluator(onex_device_object, (char*)"evaluate_device");
   object_property_add(onex_device_object, (char*)"io", buttonuid);
   object_property_add(onex_device_object, (char*)"io", lightuid);
 

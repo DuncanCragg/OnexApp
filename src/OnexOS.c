@@ -177,9 +177,6 @@ int main()
   onex_set_evaluators("eval_motion",    evaluate_motion_in, 0);
   onex_set_evaluators("eval_button",    evaluate_button_in, 0);
   onex_set_evaluators("eval_about",     evaluate_about_in, 0);
-  onex_set_evaluators("device",    evaluate_device_logic, 0);
-
-  object_set_evaluator(onex_device_object, "device");
   onex_set_evaluators("eval_backlight", evaluate_edit_rule, /* evaluate_light_logic, */ evaluate_backlight_out, 0);
   onex_set_evaluators("eval_clock", /*  evaluate_clock_sync, evaluate_clock, */ 0);
   onex_set_evaluators("eval_editable",  evaluate_edit_rule, 0);
